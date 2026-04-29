@@ -483,31 +483,25 @@ function can(roles) {
  * @param {object} [extra]  Các tham số bổ sung
  * @returns {Promise<object>}  JSON  từ server
  */
-async function apiCall(action, payload = {}, token = '') {
-  // Lấy token từ session hiện tại nếu không truyền vào
+ async function apiCall(action, payload = {}, token = '') {
   const authToken = token || S.session?.token || '';
-  
-  try {
+  try {                                          // ← try{ ở đây
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action, token: authToken, payload }),
       redirect: 'follow'
     });
-
     if (!response.ok) {
       throw new Error('HTTP error! status: ' + response.status);
     }
-
     const data = await response.json();
     return data;
-
-  } catch (error) {
+  } catch (error) {                             // ← catch đúng cặp với try
     console.error('API Error:', error);
     throw error;
   }
 }
-
 /* ──────────────────────────────────────────────────────────
    §5  UI UTILITY HELPERS
 ────────────────────────────────────────────────────────── */
