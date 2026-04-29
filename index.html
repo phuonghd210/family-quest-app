@@ -483,21 +483,19 @@ function can(roles) {
  * @param {object} [extra]  Các tham số bổ sung
  * @returns {Promise<object>}  JSON  từ server
  */
- async function apiCall(action, payload = {}, token = '') {
+   async function apiCall(action, payload = {}, token = '') {
   const authToken = token || S.session?.token || '';
-  try {                                          // ← try{ ở đây
+  try {
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action, token: authToken, payload }),
       redirect: 'follow'
     });
-    if (!response.ok) {
-      throw new Error('HTTP error! status: ' + response.status);
-    }
+    if (!response.ok) throw new Error('HTTP error! status: ' + response.status);
     const data = await response.json();
     return data;
-  } catch (error) {                             // ← catch đúng cặp với try
+  } catch (error) {
     console.error('API Error:', error);
     throw error;
   }
@@ -1513,36 +1511,32 @@ async function bootApp() {
 
 /** Entry point chính */
 async function main() {
-    buildStars();
-    bindEvents();
+  buildStars();
+  bindEvents();
 
-    // Kiểm tra session đã lưu trong localStorage
-    const stored = loadSession();
-    if (stored?.token) {
-        S.session = stored;
-        try {
-            // ★ API: validateSession(token)
-            const r = await apiCall('validateSession');
-            if (r.success) {
-                // Cập nhật session nếu server trả về thông tin mới hơn
-                saveSession({
-                    ...stored,
-                    display_name: r.user?.display_name ?? stored.display_name,
-                    role:         r.user?.role         ?? stored.role,
-                    child_id:     r.user?.child_id     ?? stored.child_id,
-                });
-                await bootApp();
-                return;  // Không hiện login screen
-            }
-        } catch (err) {
-            console.warn('Session check failed:', err);
-        }
-        clearSession();  // Token không hợp lệ → xóa
+  const stored = loadSession();
+  if (stored?.token) {
+    S.session = stored;
+    try {
+      const r = await apiCall('validateSession');
+      if (r.success) {
+        // ✅ Server trả FLAT nên dùng r.display_name (không phải r.user.display_name)
+        saveSession({
+          ...stored,
+          display_name: r.display_name ?? stored.display_name,
+          role:         r.role         ?? stored.role,
+          child_id:     r.child_id     ?? stored.child_id,
+        });
+        await bootApp();
+        return;
+      }
+    } catch (err) {
+      console.warn('Session check failed:', err);
     }
-    // Login screen hiển thị mặc định (đã có trong HTML)
+    clearSession();
+  }
 }
 
-// Khởi động app
 main();
 </script>
 
