@@ -1,4 +1,7 @@
-<!DOCTYPE html><html lang="vi"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="
+<!DOCTYPE html><html lang="vi">
+<head>
+<meta name="x-poe-datastore-behavior" content="local_only">
+<meta http-equiv="Content-Security-Policy" content="
   default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:
   https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com
   https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly
@@ -12,91 +15,303 @@
   https://puc.poecdn.net https://i.imgur.com
   https://wikimedia.org https://*.icons8.com https://*.giphy.com
   https://picsum.photos https://images.unsplash.com;
-
   connect-src 'self'
     https://script.google.com
     https://script.googleusercontent.com;
 ">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏆 Bảng Theo Dõi Điểm Thưởng</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        /* ── Keyframes ─────────────────────────────────── */
-        @keyframes float      { 0%,100%{transform:translateY(0)}    50%{transform:translateY(-12px)} }
-        @keyframes fadeInUp   { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes bounceIn   { 0%{transform:scale(.3);opacity:0} 50%{transform:scale(1.06)} 70%{transform:scale(.92)} 100%{transform:scale(1);opacity:1} }
-        @keyframes shimmer    { 0%{background-position:-200% center} 100%{background-position:200% center} }
-        @keyframes twinkle    { 0%,100%{opacity:.15} 50%{opacity:1} }
-        @keyframes confettiDrop{ from{transform:translateY(-80px) rotate(0deg);opacity:1} to{transform:translateY(105vh) rotate(740deg);opacity:0} }
-        @keyframes pulseGold  { 0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.3)} 50%{box-shadow:0 0 18px 6px rgba(255,215,0,.18)} }
-        @keyframes slideInR   { from{transform:translateX(90px);opacity:0} to{transform:translateX(0);opacity:1} }
-        @keyframes spin       { to{transform:rotate(360deg)} }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏆 Bảng Theo Dõi Điểm Thưởng</title>
+<!-- Google Fonts: Nunito — tròn, dễ đọc cho trẻ em -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    /* ── Keyframes ─────────────────────────────────── */
+    @keyframes float      { 0%,100%{transform:translateY(0)}    50%{transform:translateY(-14px)} }
+    @keyframes fadeInUp   { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes bounceIn   { 0%{transform:scale(.3);opacity:0} 50%{transform:scale(1.08)} 70%{transform:scale(.93)} 100%{transform:scale(1);opacity:1} }
+    @keyframes shimmer    { 0%{background-position:-200% center} 100%{background-position:200% center} }
+    @keyframes twinkle    { 0%,100%{opacity:.15;transform:scale(.7)} 50%{opacity:1;transform:scale(1.3)} }
+    @keyframes confettiDrop{ from{transform:translateY(-80px) rotate(0deg);opacity:1} to{transform:translateY(105vh) rotate(740deg);opacity:0} }
+    @keyframes pulseGold  { 0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.4)} 50%{box-shadow:0 0 24px 10px rgba(255,215,0,.22)} }
+    @keyframes slideInR   { from{transform:translateX(90px);opacity:0} to{transform:translateX(0);opacity:1} }
+    @keyframes spin       { to{transform:rotate(360deg)} }
+    /* ── Kids-friendly extras ────────────────────── */
+    @keyframes wiggle     { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
+    @keyframes popScale   { 0%{transform:scale(1)} 40%{transform:scale(1.1)} 100%{transform:scale(1)} }
+    @keyframes starColor  {
+        0%  { background:#FFD700; box-shadow:0 0 8px #FFD700; }
+        20% { background:#FF6B6B; box-shadow:0 0 8px #FF6B6B; }
+        40% { background:#4ECDC4; box-shadow:0 0 8px #4ECDC4; }
+        60% { background:#A29BFE; box-shadow:0 0 8px #A29BFE; }
+        80% { background:#FD79A8; box-shadow:0 0 8px #FD79A8; }
+        100%{ background:#FFD700; box-shadow:0 0 8px #FFD700; }
+    }
+    @keyframes gradShift  { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
 
-        /* ── Utility ────────────────────────────────────── */
-        .float-anim   { animation:float 3s ease-in-out infinite; }
-        .fade-in-up   { animation:fadeInUp .4s ease-out both; }
-        .bounce-in    { animation:bounceIn .5s ease-out both; }
-        .shimmer-bg   { background:linear-gradient(90deg,#FFD700,#FF8C00,#FFD700);background-size:200%;animation:shimmer 2s linear infinite; }
-        .pulse-gold   { animation:pulseGold 2.2s ease-in-out infinite; }
-        .spin-anim    { animation:spin 1s linear infinite; }
-        .slide-in-r   { animation:slideInR .3s ease-out; }
-        .confetti-p   { position:fixed;width:9px;height:9px;pointer-events:none;
-                        animation:confettiDrop var(--dur,3s) linear var(--delay,0s) forwards; }
-        .star         { position:fixed;border-radius:50%;background:#fff;pointer-events:none;
-                        animation:twinkle var(--dur,2s) ease-in-out var(--delay,0s) infinite; }
+    /* ── Utility ────────────────────────────────────── */
+    .float-anim   { animation:float 3s ease-in-out infinite; }
+    .fade-in-up   { animation:fadeInUp .4s ease-out both; }
+    .bounce-in    { animation:bounceIn .5s ease-out both; }
+    .shimmer-bg   {
+        background: linear-gradient(90deg, #FF6B6B, #FFD700, #4ECDC4, #A29BFE, #FD79A8, #FF6B6B);
+        background-size: 400%;
+        animation: shimmer 3s linear infinite;
+    }
+    .pulse-gold   { animation:pulseGold 2.2s ease-in-out infinite; }
+    .spin-anim    { animation:spin 1s linear infinite; }
+    .slide-in-r   { animation:slideInR .3s ease-out; }
+    .wiggle-anim  { animation:wiggle .5s ease-in-out; }
+    .confetti-p   { position:fixed;width:10px;height:10px;border-radius:3px;pointer-events:none;
+                    animation:confettiDrop var(--dur,3s) linear var(--delay,0s) forwards; }
 
-        /* ── Layout ─────────────────────────────────────── */
-        body { background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;
-               font-family:'Segoe UI',system-ui,sans-serif; }
+    /* ── Stars — colorful & glowing ─────────────────── */
+    .star {
+        position:fixed; border-radius:50%; pointer-events:none;
+        animation:
+            twinkle var(--dur,2s) ease-in-out var(--delay,0s) infinite,
+            starColor 8s ease-in-out var(--delay,0s) infinite;
+        background:#FFD700;
+        box-shadow: 0 0 6px #FFD700;
+    }
+    #stars-wrap > div:nth-child(5n+1) { background:#FFD700; box-shadow:0 0 7px #FFD700; }
+    #stars-wrap > div:nth-child(5n+2) { background:#FF6B6B; box-shadow:0 0 7px #FF6B6B; }
+    #stars-wrap > div:nth-child(5n+3) { background:#4ECDC4; box-shadow:0 0 7px #4ECDC4; }
+    #stars-wrap > div:nth-child(5n+4) { background:#A29BFE; box-shadow:0 0 7px #A29BFE; }
+    #stars-wrap > div:nth-child(5n)   { background:#FD79A8; box-shadow:0 0 7px #FD79A8; }
 
-        /* ── Glass ──────────────────────────────────────── */
-        .glass  { background:rgba(255,255,255,.08);backdrop-filter:blur(12px);
-                  -webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14);border-radius:16px; }
-        .glass2 { background:rgba(255,255,255,.13);backdrop-filter:blur(20px);
-                  -webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.22);border-radius:20px; }
+    /* ── Layout ─────────────────────────────────────── */
+    body {
+        background: linear-gradient(135deg, #1a0533 0%, #3b0764 25%, #6b21a8 55%, #be185d 80%, #f97316 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+        font-size: 16px;
+    }
 
-        /* ── Gradient text ───────────────────────────────── */
-        .grad { background:linear-gradient(135deg,#FFD700,#FF6B6B,#4ECDC4);
-                -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent; }
+    /* ── Glass ──────────────────────────────────────── */
+    .glass {
+        background: rgba(255,255,255,0.13);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 2px solid rgba(255,255,255,0.24);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .glass2 {
+        background: rgba(255,255,255,0.18);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 2px solid rgba(255,255,255,0.32);
+        border-radius: 32px;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.18);
+    }
 
-        /* ── Nav tabs ────────────────────────────────────── */
-        .tab-btn { transition:all .25s;border-bottom:3px solid transparent; }
-        .tab-btn.active { background:rgba(255,215,0,.15);border-bottom-color:#FFD700;color:#FFD700; }
+    /* ── Gradient text ───────────────────────────────── */
+    .grad {
+        background: linear-gradient(135deg, #FFD700, #FF6B6B, #4ECDC4, #A29BFE);
+        background-size: 200%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradShift 4s ease-in-out infinite;
+    }
 
-        /* ── Progress bar ────────────────────────────────── */
-        .prog-track { background:rgba(255,255,255,.1);border-radius:999px;height:10px;overflow:hidden; }
-        .prog-fill  { height:100%;border-radius:999px;transition:width .6s ease; }
+    /* ── Nav tabs ────────────────────────────────────── */
+    .tab-btn {
+        transition: all .25s;
+        border-radius: 999px;
+        font-weight: 800;
+        font-family: 'Nunito', sans-serif;
+        border: 2px solid transparent;
+    }
+    .tab-btn.active {
+        background: linear-gradient(135deg, #FFD700, #FF8C00) !important;
+        color: #1a0533 !important;
+        box-shadow: 0 4px 18px rgba(255,165,0,0.45);
+        transform: translateY(-2px);
+        border-color: rgba(255,255,255,0.4) !important;
+    }
+    .tab-btn:not(.active):hover {
+        background: rgba(255,255,255,0.12);
+        transform: translateY(-1px);
+    }
 
-        /* ── Task row ─────────────────────────────────────── */
-        .task-row { transition:all .22s; }
-        .task-row:hover { background:rgba(255,255,255,.12);transform:translateX(4px); }
+    /* ── Progress bar ────────────────────────────────── */
+    .prog-track {
+        background: rgba(255,255,255,0.12);
+        border-radius: 999px;
+        height: 14px;
+        overflow: hidden;
+        box-shadow: inset 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .prog-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width .7s cubic-bezier(.34,1.56,.64,1);
+        position: relative;
+    }
+    .prog-fill::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(255,255,255,0.35) 0%, transparent 60%);
+        border-radius: 999px;
+    }
 
-        /* ── Card hover ───────────────────────────────────── */
-        .card-h { transition:transform .25s,box-shadow .25s; }
-        .card-h:hover { transform:translateY(-5px);box-shadow:0 14px 32px rgba(0,0,0,.35); }
+    /* ── Task row ─────────────────────────────────────── */
+    .task-row {
+        transition: all .22s cubic-bezier(.34,1.56,.64,1);
+        border-radius: 18px;
+    }
+    .task-row:hover {
+        background: rgba(255,255,255,0.18) !important;
+        transform: translateX(6px) scale(1.01);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
 
-        /* ── Inputs ───────────────────────────────────────── */
-        .inp { background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;
-               border-radius:10px;padding:10px 14px;width:100%;outline:none;transition:border-color .2s; }
-        .inp:focus { border-color:#FFD700; }
-        .inp::placeholder { color:rgba(255,255,255,.32); }
-        select.inp option { background:#1a1a3e;color:#fff; }
+    /* ── Card hover ───────────────────────────────────── */
+    .card-h { transition:transform .28s, box-shadow .28s; }
+    .card-h:hover {
+        transform: translateY(-7px) scale(1.01);
+        box-shadow: 0 20px 48px rgba(0,0,0,0.32), 0 0 0 2px rgba(255,215,0,0.35);
+    }
 
-        /* ── Role badges ─────────────────────────────────── */
-        .badge-admin  { background:rgba(255,215,0,.18);color:#FFD700;border:1px solid rgba(255,215,0,.4); }
-        .badge-scorer { background:rgba(100,200,255,.18);color:#64C8FF;border:1px solid rgba(100,200,255,.4); }
-        .badge-viewer { background:rgba(150,255,150,.18);color:#96FF96;border:1px solid rgba(150,255,150,.4); }
+    /* ── Inputs ───────────────────────────────────────── */
+    .inp {
+        background: rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.24);
+        color: #fff;
+        border-radius: 18px;
+        padding: 13px 18px;
+        width: 100%;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+        font-family: 'Nunito', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+    .inp:focus {
+        border-color: #FFD700;
+        box-shadow: 0 0 0 4px rgba(255,215,0,0.2), 0 4px 16px rgba(255,215,0,0.1);
+    }
+    .inp::placeholder { color: rgba(255,255,255,0.35); font-weight: 600; }
+    select.inp option { background: #3b0764; color: #fff; }
 
-        /* ── Toast ────────────────────────────────────────── */
-        #toast { position:fixed;top:18px;right:18px;z-index:9999;max-width:300px; }
+    /* ── Role badges ─────────────────────────────────── */
+    .badge-admin  {
+        background: rgba(255,215,0,.2);
+        color: #FFD700;
+        border: 2px solid rgba(255,215,0,.5);
+        border-radius: 999px;
+        box-shadow: 0 2px 8px rgba(255,215,0,.2);
+    }
+    .badge-scorer {
+        background: rgba(100,200,255,.2);
+        color: #64C8FF;
+        border: 2px solid rgba(100,200,255,.5);
+        border-radius: 999px;
+        box-shadow: 0 2px 8px rgba(100,200,255,.2);
+    }
+    .badge-viewer {
+        background: rgba(150,255,150,.2);
+        color: #96FF96;
+        border: 2px solid rgba(150,255,150,.5);
+        border-radius: 999px;
+        box-shadow: 0 2px 8px rgba(150,255,150,.2);
+    }
 
-        /* ── Scrollbar ────────────────────────────────────── */
-        ::-webkit-scrollbar { width:5px;height:5px; }
-        ::-webkit-scrollbar-track { background:rgba(255,255,255,.05); }
-        ::-webkit-scrollbar-thumb { background:rgba(255,215,0,.4);border-radius:4px; }
-    </style>
+    /* ── Toast ────────────────────────────────────────── */
+    #toast { position:fixed;top:20px;right:20px;z-index:9999;max-width:320px; }
+
+    /* ── Scrollbar ────────────────────────────────────── */
+    ::-webkit-scrollbar { width:6px;height:6px; }
+    ::-webkit-scrollbar-track { background:rgba(255,255,255,.06);border-radius:6px; }
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(to bottom, #FFD700, #FF6B6B, #A29BFE);
+        border-radius: 6px;
+    }
+
+    /* ── Global button hover & active ────────────────── */
+    button { font-family: 'Nunito', sans-serif; font-weight: 800; transition: all .2s; }
+    button:not(:disabled):hover  { transform: translateY(-3px) scale(1.04); }
+    button:not(:disabled):active { transform: scale(0.95) !important; }
+
+    /* ── Task category filter overrides ──────────────── */
+    .task-filter {
+        border-radius: 999px !important;
+        font-family: 'Nunito', sans-serif !important;
+        font-weight: 800 !important;
+        font-size: 0.82rem !important;
+        padding: 8px 18px !important;
+        border-width: 2px !important;
+        transition: all .22s cubic-bezier(.34,1.56,.64,1) !important;
+    }
+    .task-filter.active {
+        background: linear-gradient(135deg, #FFD700, #FF8C00) !important;
+        color: #1a0533 !important;
+        border-color: transparent !important;
+        box-shadow: 0 4px 16px rgba(255,165,0,0.4) !important;
+        transform: translateY(-2px) !important;
+    }
+    .task-filter:not(.active):hover {
+        transform: translateY(-1px) !important;
+        background: rgba(255,255,255,0.15) !important;
+    }
+
+    /* ── Section headings bigger for kids ────────────── */
+    .tab-pane > div > h2 {
+        font-size: 1.45rem !important;
+        font-weight: 900 !important;
+        letter-spacing: -0.01em;
+    }
+
+    /* ── Colorful card borders per child ─────────────── */
+    #cards-children .glass:nth-child(1) { border-color: rgba(255,215,0,0.4); }
+    #cards-children .glass:nth-child(2) { border-color: rgba(78,205,196,0.4); }
+
+    /* ── Rewards grid card ───────────────────────────── */
+    #rewards-grid .glass:hover {
+        border-color: rgba(255,215,0,0.5) !important;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.25), 0 0 0 2px rgba(255,215,0,0.3);
+    }
+
+    /* ── Leaderboard card medals ──────────────────────── */
+    #lb-cards .glass:first-child  { border-color: rgba(255,215,0,0.5); background: rgba(255,215,0,0.08); }
+    #lb-cards .glass:nth-child(2) { border-color: rgba(192,192,192,0.5); background: rgba(192,192,192,0.06); }
+    #lb-cards .glass:nth-child(3) { border-color: rgba(205,127,50,0.5); background: rgba(205,127,50,0.06); }
+
+    /* ── Settings section card tops ──────────────────── */
+    #tab-settings .glass:nth-child(2)  { border-color: rgba(34,197,94,0.4); }
+    #tab-settings .glass:nth-child(3)  { border-color: rgba(168,85,247,0.4); }
+    #tab-settings .glass:nth-child(4)  { border-color: rgba(239,68,68,0.4); }
+
+    /* ── Error message boxes ──────────────────────────── */
+    #err-cred  { border-radius: 18px !important; font-weight: 700; }
+    #err-server { border-radius: 18px !important; font-weight: 700; }
+
+    /* ── Login screen decoration ──────────────────────── */
+    #screen-login .glass2 {
+        box-shadow: 0 24px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,215,0,0.15);
+    }
+
+    /* ── Header gradient tint ─────────────────────────── */
+    header.glass {
+        background: linear-gradient(135deg, rgba(107,33,168,0.5), rgba(190,24,93,0.3)) !important;
+        border-color: rgba(255,215,0,0.25) !important;
+    }
+
+    /* ── Loading emoji bigger bounce ─────────────────── */
+    #loading .glass2 {
+        box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+    }
+
+    /* ── Stats mini-card colors ───────────────────────── */
+    /* Subtle color distinction for today/week stat boxes in child cards */
+</style>
 </head>
 <body class="text-white">
 
@@ -110,8 +325,8 @@
 ════════════════════════════════════════════ -->
 <div id="toast" class="hidden">
     <div class="glass2 px-5 py-3 flex items-center gap-3 slide-in-r shadow-2xl">
-        <span id="toast-icon" class="text-xl flex-shrink-0">✅</span>
-        <p id="toast-msg" class="text-sm font-medium leading-snug"></p>
+        <span id="toast-icon" class="text-2xl flex-shrink-0">✅</span>
+        <p id="toast-msg" class="text-sm font-bold leading-snug"></p>
     </div>
 </div>
 
@@ -119,9 +334,9 @@
      GLOBAL LOADING OVERLAY
 ════════════════════════════════════════════ -->
 <div id="loading" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-    <div class="glass2 p-8 text-center bounce-in">
-        <div class="text-5xl spin-anim inline-block mb-3">⭐</div>
-        <p class="font-semibold text-base">Đang xử lý...</p>
+    <div class="glass2 p-10 text-center bounce-in">
+        <div class="text-7xl spin-anim inline-block mb-4">⭐</div>
+        <p class="font-black text-lg tracking-wide">Đang xử lý...</p>
     </div>
 </div>
 
@@ -129,11 +344,11 @@
      CUSTOM CONFIRM MODAL  (thay window.confirm)
 ════════════════════════════════════════════ -->
 <div id="modal-confirm" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-    <div class="glass2 p-6 w-full max-w-sm bounce-in">
-        <p id="confirm-msg" class="text-center text-base mb-5 leading-relaxed"></p>
+    <div class="glass2 p-7 w-full max-w-sm bounce-in">
+        <p id="confirm-msg" class="text-center text-base font-bold mb-6 leading-relaxed"></p>
         <div class="flex gap-3">
-            <button id="confirm-yes" class="flex-1 shimmer-bg text-white font-bold py-2.5 rounded-xl">✅ Xác nhận</button>
-            <button id="confirm-no" class="flex-1 glass text-white font-medium py-2.5 rounded-xl hover:bg-white/15 transition-all">❌ Hủy</button>
+            <button id="confirm-yes" class="flex-1 shimmer-bg text-white font-black py-3 rounded-2xl text-base shadow-lg">✅ Xác nhận</button>
+            <button id="confirm-no" class="flex-1 glass text-white font-bold py-3 rounded-2xl hover:bg-white/20 transition-all text-base">❌ Hủy</button>
         </div>
     </div>
 </div>
@@ -142,12 +357,12 @@
      REDEEM REWARD MODAL
 ════════════════════════════════════════════ -->
 <div id="modal-redeem" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-    <div class="glass2 p-6 w-full max-w-sm bounce-in overflow-y-auto max-h-screen">
-        <h3 class="text-xl font-bold text-center mb-4">🎁 Đổi Phần Thưởng</h3>
+    <div class="glass2 p-7 w-full max-w-sm bounce-in overflow-y-auto max-h-screen">
+        <h3 class="text-2xl font-black text-center mb-5">🎁 Đổi Phần Thưởng</h3>
         <div id="redeem-body"></div>
-        <div class="flex gap-3 mt-5">
-            <button id="redeem-ok" class="flex-1 shimmer-bg text-white font-bold py-3 rounded-xl">🎉 Xác Nhận</button>
-            <button id="redeem-cancel" class="flex-1 glass text-white font-medium py-3 rounded-xl hover:bg-white/15 transition-all">❌ Hủy</button>
+        <div class="flex gap-3 mt-6">
+            <button id="redeem-ok" class="flex-1 shimmer-bg text-white font-black py-3.5 rounded-2xl text-base shadow-lg">🎉 Xác Nhận</button>
+            <button id="redeem-cancel" class="flex-1 glass text-white font-bold py-3.5 rounded-2xl hover:bg-white/20 transition-all text-base">❌ Hủy</button>
         </div>
     </div>
 </div>
@@ -156,40 +371,40 @@
      LOGIN SCREEN
 ════════════════════════════════════════════ -->
 <div id="screen-login" class="relative z-10 min-h-screen flex items-center justify-center p-4">
-    <!-- Floating deco emojis -->
-    <span class="fixed top-8 left-8 text-3xl float-anim select-none" style="animation-delay:.4s">⭐</span>
-    <span class="fixed top-12 right-10 text-3xl float-anim select-none" style="animation-delay:1s">🌟</span>
-    <span class="fixed bottom-14 left-12 text-3xl float-anim select-none" style="animation-delay:1.7s">✨</span>
-    <span class="fixed bottom-10 right-8 text-3xl float-anim select-none" style="animation-delay:.9s">🎯</span>
+    <!-- Floating deco emojis — bigger for kids -->
+    <span class="fixed top-8 left-8 text-5xl float-anim select-none" style="animation-delay:.4s">⭐</span>
+    <span class="fixed top-12 right-10 text-5xl float-anim select-none" style="animation-delay:1s">🌟</span>
+    <span class="fixed bottom-14 left-12 text-5xl float-anim select-none" style="animation-delay:1.7s">✨</span>
+    <span class="fixed bottom-10 right-8 text-5xl float-anim select-none" style="animation-delay:.9s">🎯</span>
 
     <div class="glass2 p-8 w-full max-w-md bounce-in relative">
         <!-- Hero -->
         <div class="text-center mb-8">
-            <div class="text-7xl float-anim inline-block mb-3">🏆</div>
-            <h1 class="text-3xl font-extrabold grad mb-1">Bảng Điểm Thưởng</h1>
-            <p class="text-white/50 text-sm">Hành trình chinh phục mỗi ngày! ✨</p>
+            <div class="text-8xl float-anim inline-block mb-4">🏆</div>
+            <h1 class="text-4xl font-black grad mb-2">Bảng Điểm Thưởng</h1>
+            <p class="text-white/60 text-base font-semibold">Hành trình chinh phục mỗi ngày! ✨</p>
         </div>
 
-        <form id="login-form" class="space-y-4" autocomplete="off">
+        <form id="login-form" class="space-y-5" autocomplete="off">
             <div>
-                <label class="block text-white/70 text-sm font-medium mb-1.5">👤 Tên đăng nhập</label>
+                <label class="block text-white/80 text-sm font-black mb-2">👤 Tên đăng nhập</label>
                 <input id="f-user" type="text" placeholder="Nhập username..." class="inp" autocomplete="username" required="">
             </div>
             <div class="relative">
-                <label class="block text-white/70 text-sm font-medium mb-1.5">🔒 Mật khẩu</label>
-                <input id="f-pass" type="password" placeholder="Nhập mật khẩu..." class="inp pr-12" autocomplete="current-password" required="">
-                <button type="button" id="btn-eye" class="absolute right-3 bottom-2.5 text-white/40 hover:text-white/80 transition-colors text-xl">👁️</button>
+                <label class="block text-white/80 text-sm font-black mb-2">🔒 Mật khẩu</label>
+                <input id="f-pass" type="password" placeholder="Nhập mật khẩu..." class="inp pr-14" autocomplete="current-password" required="">
+                <button type="button" id="btn-eye" class="absolute right-4 bottom-3 text-white/50 hover:text-white transition-colors text-2xl">👁️</button>
             </div>
 
             <!-- Error messages -->
-            <div id="err-cred" class="hidden rounded-xl bg-red-500/15 border border-red-500/40 p-3 text-red-300 text-sm text-center">
+            <div id="err-cred" class="hidden rounded-2xl bg-red-500/15 border-2 border-red-500/40 p-4 text-red-300 font-bold text-sm text-center">
                 ❌ Tên đăng nhập hoặc mật khẩu không đúng!
             </div>
-            <div id="err-server" class="hidden rounded-xl bg-orange-500/15 border border-orange-500/40 p-3 text-orange-300 text-sm text-center">
+            <div id="err-server" class="hidden rounded-2xl bg-orange-500/15 border-2 border-orange-500/40 p-4 text-orange-300 font-bold text-sm text-center">
                 ⚠️ Không thể kết nối server. Kiểm tra API_URL và thử lại.
             </div>
 
-            <button type="submit" id="btn-login" class="w-full shimmer-bg font-bold py-3.5 rounded-xl text-lg shadow-lg hover:opacity-90 transition-all mt-1 disabled:opacity-50">
+            <button type="submit" id="btn-login" class="w-full shimmer-bg font-black py-4 rounded-2xl text-xl shadow-xl hover:opacity-95 transition-all mt-2 disabled:opacity-50">
                 🚀 Đăng Nhập
             </button>
         </form>
@@ -202,160 +417,160 @@
 <div id="screen-app" class="hidden relative z-10 min-h-screen flex flex-col">
 
     <!-- ── HEADER ─────────────────────────────── -->
-    <header class="glass mx-2 mt-2 px-4 py-2.5 flex items-center gap-3 sticky top-2 z-40 shadow-lg">
-        <span class="text-2xl flex-shrink-0">🏆</span>
+    <header class="glass mx-2 mt-2 px-4 py-3 flex items-center gap-3 sticky top-2 z-40 shadow-xl">
+        <span class="text-3xl flex-shrink-0">🏆</span>
         <div class="flex-1 min-w-0">
-            <h1 class="font-bold text-sm leading-tight grad truncate">Bảng Điểm Thưởng</h1>
-            <p id="hdr-hello" class="text-xs text-white/50 truncate"></p>
+            <h1 class="font-black text-sm leading-tight grad truncate">Bảng Điểm Thưởng</h1>
+            <p id="hdr-hello" class="text-xs text-white/60 font-semibold truncate"></p>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-            <span id="hdr-badge" class="hidden text-xs px-2 py-0.5 rounded-full font-semibold sm:inline-flex items-center"></span>
+            <span id="hdr-badge" class="hidden text-xs px-3 py-1 rounded-full font-black sm:inline-flex items-center"></span>
             <!-- Manual refresh -->
-            <button id="btn-refresh" title="Làm mới dữ liệu" class="glass text-blue-300 px-2.5 py-1.5 rounded-xl text-sm hover:bg-blue-500/20 transition-all">🔄</button>
-            <button id="btn-logout" class="glass text-red-300 px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-red-500/20 transition-all flex items-center gap-1">
+            <button id="btn-refresh" title="Làm mới dữ liệu" class="glass text-blue-300 px-3 py-2 rounded-2xl text-sm hover:bg-blue-500/25 transition-all font-bold">🔄</button>
+            <button id="btn-logout" class="glass text-red-300 px-3 py-2 rounded-2xl text-xs font-black hover:bg-red-500/25 transition-all flex items-center gap-1">
                 🚪 <span class="hidden sm:inline">Logout</span>
             </button>
         </div>
     </header>
 
     <!-- ── NAV TABS ───────────────────────────── -->
-    <nav class="glass mx-2 mt-2 px-2 py-1.5 overflow-x-auto shadow">
-        <div class="flex gap-0.5 min-w-max">
-            <button class="tab-btn active px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="today">🌞 Hôm nay</button>
-            <button class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="tasks">✅ Nhiệm vụ</button>
+    <nav class="glass mx-2 mt-2 px-3 py-2 overflow-x-auto shadow-lg">
+        <div class="flex gap-1.5 min-w-max">
+            <button class="tab-btn active px-4 py-2 rounded-full text-xs sm:text-sm font-black text-white/80 whitespace-nowrap" data-tab="today">🌞 Hôm nay</button>
+            <button class="tab-btn px-4 py-2 rounded-full text-xs sm:text-sm font-black text-white/80 whitespace-nowrap" data-tab="tasks">✅ Nhiệm vụ</button>
             <!-- Bonus tab: admin & scorer only -->
-            <button class="tab-btn tab-role tab-admin tab-scorer hidden px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="bonus">✨ Điểm</button>
-            <button class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="rewards">🎁 Thưởng</button>
-            <button class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="leaderboard">🏅 Xếp hạng</button>
-            <button class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="history">📊 Lịch sử</button>
+            <button class="tab-btn tab-role tab-admin tab-scorer hidden px-4 py-2 rounded-full text-xs sm:text-sm font-black text-white/80 whitespace-nowrap" data-tab="bonus">✨ Điểm</button>
+            <button class="tab-btn px-4 py-2 rounded-full text-xs sm:text-sm font-black text-white/80 whitespace-nowrap" data-tab="rewards">🎁 Thưởng</button>
+            <button class="tab-btn px-4 py-2 rounded-full text-xs sm:text-sm font-black text-white/80 whitespace-nowrap" data-tab="leaderboard">🏅 Xếp hạng</button>
+            <button class="tab-btn px-4 py-2 rounded-full text-xs sm:text-sm font-black text-white/80 whitespace-nowrap" data-tab="history">📊 Lịch sử</button>
             <!-- Settings tab: admin only -->
-            <button class="tab-btn tab-role tab-admin hidden px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="settings">⚙️ Cài đặt</button>
+            <button class="tab-btn tab-role tab-admin hidden px-4 py-2 rounded-full text-xs sm:text-sm font-black text-white/80 whitespace-nowrap" data-tab="settings">⚙️ Cài đặt</button>
         </div>
     </nav>
 
     <!-- ── TAB CONTENT ────────────────────────── -->
-    <main class="flex-1 p-2 mt-2 pb-10">
+    <main class="flex-1 p-3 mt-2 pb-12">
 
         <!-- ━━━━ TODAY ━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-        <section id="tab-today" class="tab-pane space-y-4">
+        <section id="tab-today" class="tab-pane space-y-5">
             <div class="text-center">
-                <h2 class="text-lg font-bold grad">🌞 Hôm Nay</h2>
-                <p id="today-date" class="text-xs text-white/50 mt-0.5"></p>
+                <h2 class="text-xl font-black grad">🌞 Hôm Nay</h2>
+                <p id="today-date" class="text-xs text-white/60 mt-1 font-semibold"></p>
             </div>
             <div id="cards-children" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
         </section>
 
         <!-- ━━━━ TASKS ━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-        <section id="tab-tasks" class="tab-pane hidden space-y-3">
+        <section id="tab-tasks" class="tab-pane hidden space-y-4">
             <div class="text-center">
-                <h2 class="text-lg font-bold grad">✅ Nhiệm Vụ</h2>
+                <h2 class="text-xl font-black grad">✅ Nhiệm Vụ</h2>
             </div>
-            <div id="task-filters" class="flex gap-2 overflow-x-auto pb-1">
+            <div id="task-filters" class="flex gap-2 overflow-x-auto pb-2">
                 <button class="task-filter active whitespace-nowrap px-3 py-1.5 rounded-full text-xs border border-yellow-500/50 bg-yellow-500/20 text-yellow-300 transition-all" data-cat="all">Tất cả</button>
                 <button class="task-filter whitespace-nowrap px-3 py-1.5 rounded-full text-xs border border-white/20 text-white/50 transition-all" data-cat="Tác phong hằng ngày">🌅 Tác phong</button>
                 <button class="task-filter whitespace-nowrap px-3 py-1.5 rounded-full text-xs border border-white/20 text-white/50 transition-all" data-cat="Việc nhà">🏠 Việc nhà</button>
                 <button class="task-filter whitespace-nowrap px-3 py-1.5 rounded-full text-xs border border-white/20 text-white/50 transition-all" data-cat="Học tập">📚 Học tập</button>
                 <button class="task-filter whitespace-nowrap px-3 py-1.5 rounded-full text-xs border border-white/20 text-white/50 transition-all" data-cat="Điểm phát sinh">⚡ Phát sinh</button>
             </div>
-            <div id="tasks-list" class="space-y-1"></div>
+            <div id="tasks-list" class="space-y-1.5"></div>
         </section>
 
         <!-- ━━━━ BONUS (admin/scorer) ━━━━━━━━━━━ -->
-        <section id="tab-bonus" class="tab-pane hidden space-y-4">
+        <section id="tab-bonus" class="tab-pane hidden space-y-5">
             <div class="text-center">
-                <h2 class="text-lg font-bold grad">✨ Thêm Điểm Thưởng / Phạt</h2>
+                <h2 class="text-xl font-black grad">✨ Thêm Điểm Thưởng / Phạt</h2>
             </div>
-            <div class="glass p-5 max-w-md mx-auto space-y-4">
+            <div class="glass p-6 max-w-md mx-auto space-y-5">
                 <div>
-                    <label class="block text-sm text-white/70 mb-1.5">👶 Chọn bé</label>
+                    <label class="block text-sm text-white/80 font-black mb-2">👶 Chọn bé</label>
                     <select id="bp-child" class="inp"></select>
                 </div>
                 <div>
-                    <label class="block text-sm text-white/70 mb-1.5">Loại</label>
+                    <label class="block text-sm text-white/80 font-black mb-2">Loại</label>
                     <div class="flex gap-6">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="bp-type" value="bonus" checked="" class="accent-yellow-400 w-4 h-4">
-                            <span class="text-green-300 font-semibold">➕ Thưởng</span>
+                            <input type="radio" name="bp-type" value="bonus" checked="" class="accent-yellow-400 w-5 h-5">
+                            <span class="text-green-300 font-black text-base">➕ Thưởng</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="bp-type" value="penalty" class="accent-red-400 w-4 h-4">
-                            <span class="text-red-300 font-semibold">➖ Phạt</span>
+                            <input type="radio" name="bp-type" value="penalty" class="accent-red-400 w-5 h-5">
+                            <span class="text-red-300 font-black text-base">➖ Phạt</span>
                         </label>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm text-white/70 mb-1.5">📝 Lý do</label>
+                    <label class="block text-sm text-white/80 font-black mb-2">📝 Lý do</label>
                     <input id="bp-reason" type="text" placeholder="Nhập lý do..." class="inp">
                 </div>
                 <div>
-                    <label class="block text-sm text-white/70 mb-1.5">🔢 Số điểm</label>
+                    <label class="block text-sm text-white/80 font-black mb-2">🔢 Số điểm</label>
                     <input id="bp-points" type="number" placeholder="Nhập số điểm..." min="1" class="inp">
                 </div>
-                <button id="btn-bp" class="w-full shimmer-bg font-bold py-3 rounded-xl">✅ Xác Nhận</button>
+                <button id="btn-bp" class="w-full shimmer-bg font-black py-4 rounded-2xl text-lg shadow-lg">✅ Xác Nhận</button>
             </div>
             <!-- Recent history panel -->
-            <div class="glass p-4 max-w-md mx-auto">
-                <h3 class="text-sm font-semibold text-white/60 mb-2">📜 Lịch Sử Gần Đây</h3>
-                <div id="recent-history" class="space-y-1.5 max-h-60 overflow-y-auto"></div>
+            <div class="glass p-5 max-w-md mx-auto">
+                <h3 class="text-sm font-black text-white/70 mb-3">📜 Lịch Sử Gần Đây</h3>
+                <div id="recent-history" class="space-y-2 max-h-64 overflow-y-auto"></div>
             </div>
         </section>
 
         <!-- ━━━━ REWARDS ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-        <section id="tab-rewards" class="tab-pane hidden space-y-4">
+        <section id="tab-rewards" class="tab-pane hidden space-y-5">
             <div class="text-center">
-                <h2 class="text-lg font-bold grad">🎁 Phần Thưởng</h2>
+                <h2 class="text-xl font-black grad">🎁 Phần Thưởng</h2>
             </div>
             <!-- Recent redemptions bar -->
-            <div id="redemption-bar" class="hidden glass p-3 max-w-2xl mx-auto">
-                <p class="text-xs text-white/50 mb-2">🔖 Lịch sử đổi thưởng gần đây:</p>
-                <div id="redemption-list" class="space-y-1 max-h-28 overflow-y-auto"></div>
+            <div id="redemption-bar" class="hidden glass p-4 max-w-2xl mx-auto">
+                <p class="text-xs text-white/60 font-bold mb-2">🔖 Lịch sử đổi thưởng gần đây:</p>
+                <div id="redemption-list" class="space-y-1.5 max-h-28 overflow-y-auto"></div>
             </div>
-            <div id="rewards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl mx-auto"></div>
+            <div id="rewards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto"></div>
         </section>
 
         <!-- ━━━━ LEADERBOARD ━━━━━━━━━━━━━━━━━━━━ -->
-        <section id="tab-leaderboard" class="tab-pane hidden space-y-4">
+        <section id="tab-leaderboard" class="tab-pane hidden space-y-5">
             <div class="text-center">
-                <h2 class="text-lg font-bold grad">🏅 Bảng Xếp Hạng</h2>
+                <h2 class="text-xl font-black grad">🏅 Bảng Xếp Hạng</h2>
             </div>
             <div class="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
-                <div class="glass p-3 text-center">
-                    <p class="text-xs text-white/50 mb-1">🌞 Dẫn đầu hôm nay</p>
-                    <p id="lb-leader-today" class="font-bold text-yellow-300 text-sm">-</p>
+                <div class="glass p-4 text-center">
+                    <p class="text-xs text-white/60 font-bold mb-1">🌞 Dẫn đầu hôm nay</p>
+                    <p id="lb-leader-today" class="font-black text-yellow-300 text-sm">-</p>
                 </div>
-                <div class="glass p-3 text-center">
-                    <p class="text-xs text-white/50 mb-1">📅 Dẫn đầu tuần</p>
-                    <p id="lb-leader-week" class="font-bold text-yellow-300 text-sm">-</p>
+                <div class="glass p-4 text-center">
+                    <p class="text-xs text-white/60 font-bold mb-1">📅 Dẫn đầu tuần</p>
+                    <p id="lb-leader-week" class="font-black text-yellow-300 text-sm">-</p>
                 </div>
             </div>
             <div id="lb-cards" class="space-y-3 max-w-2xl mx-auto"></div>
-            <div class="glass p-4 max-w-2xl mx-auto">
-                <h3 class="text-sm font-semibold text-center mb-3">📊 So Sánh Tuần Này</h3>
+            <div class="glass p-5 max-w-2xl mx-auto">
+                <h3 class="text-sm font-black text-center mb-4">📊 So Sánh Tuần Này</h3>
                 <canvas id="chart-weekly" height="160"></canvas>
             </div>
         </section>
 
         <!-- ━━━━ HISTORY ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-        <section id="tab-history" class="tab-pane hidden space-y-4">
+        <section id="tab-history" class="tab-pane hidden space-y-5">
             <div class="text-center">
-                <h2 class="text-lg font-bold grad">📊 Lịch Sử</h2>
+                <h2 class="text-xl font-black grad">📊 Lịch Sử</h2>
             </div>
-            <div class="glass p-4 max-w-4xl mx-auto">
-                <h3 class="text-sm font-semibold text-center mb-3">📈 Biểu Đồ Tiến Bộ 7 Ngày</h3>
+            <div class="glass p-5 max-w-4xl mx-auto">
+                <h3 class="text-sm font-black text-center mb-4">📈 Biểu Đồ Tiến Bộ 7 Ngày</h3>
                 <canvas id="chart-progress" height="160"></canvas>
             </div>
             <div id="history-panels" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto"></div>
         </section>
 
         <!-- ━━━━ SETTINGS (admin only) ━━━━━━━━━━ -->
-        <section id="tab-settings" class="tab-pane hidden space-y-4 max-w-lg mx-auto">
+        <section id="tab-settings" class="tab-pane hidden space-y-5 max-w-lg mx-auto">
             <div class="text-center">
-                <h2 class="text-lg font-bold grad">⚙️ Cài Đặt</h2>
+                <h2 class="text-xl font-black grad">⚙️ Cài Đặt</h2>
             </div>
 
             <!-- Add Task -->
-            <div class="glass p-5 space-y-3">
-                <h3 class="font-bold flex items-center gap-2">➕ Thêm Nhiệm Vụ Mới</h3>
+            <div class="glass p-6 space-y-4">
+                <h3 class="font-black text-base flex items-center gap-2">➕ Thêm Nhiệm Vụ Mới</h3>
                 <input id="nt-name" type="text" placeholder="Tên nhiệm vụ..." class="inp">
                 <select id="nt-cat" class="inp">
                     <option value="Tác phong hằng ngày">🌅 Tác phong hằng ngày</option>
@@ -367,29 +582,29 @@
                 <select id="nt-assign" class="inp">
                     <option value="both">👥 Cả hai</option>
                 </select>
-                <button id="btn-add-task" class="w-full bg-green-500/20 hover:bg-green-500/35 border border-green-500/40 text-green-300 font-bold py-2.5 rounded-xl transition-all">
+                <button id="btn-add-task" class="w-full bg-green-500/20 hover:bg-green-500/35 border-2 border-green-500/50 text-green-300 font-black py-3 rounded-2xl transition-all shadow-lg">
                     ✅ Thêm Nhiệm Vụ
                 </button>
             </div>
 
             <!-- Add Reward -->
-            <div class="glass p-5 space-y-3">
-                <h3 class="font-bold flex items-center gap-2">🎁 Thêm Phần Thưởng Mới</h3>
+            <div class="glass p-6 space-y-4">
+                <h3 class="font-black text-base flex items-center gap-2">🎁 Thêm Phần Thưởng Mới</h3>
                 <input id="nr-name" type="text" placeholder="Tên phần thưởng..." class="inp">
                 <input id="nr-pts" type="number" placeholder="Điểm cần đổi..." min="1" class="inp">
                 <input id="nr-icon" type="text" placeholder="Icon emoji (vd: 🎮)..." class="inp">
-                <button id="btn-add-reward" class="w-full bg-purple-500/20 hover:bg-purple-500/35 border border-purple-500/40 text-purple-300 font-bold py-2.5 rounded-xl transition-all">
+                <button id="btn-add-reward" class="w-full bg-purple-500/20 hover:bg-purple-500/35 border-2 border-purple-500/50 text-purple-300 font-black py-3 rounded-2xl transition-all shadow-lg">
                     🎁 Thêm Phần Thưởng
                 </button>
             </div>
 
             <!-- System Management -->
-            <div class="glass p-5 space-y-3">
-                <h3 class="font-bold flex items-center gap-2">🔧 Quản Lý Hệ Thống</h3>
-                <button id="btn-reset-today" class="w-full glass text-orange-300 border border-orange-500/30 font-medium py-2.5 rounded-xl hover:bg-orange-500/20 transition-all">
+            <div class="glass p-6 space-y-4">
+                <h3 class="font-black text-base flex items-center gap-2">🔧 Quản Lý Hệ Thống</h3>
+                <button id="btn-reset-today" class="w-full glass text-orange-300 border-2 border-orange-500/40 font-black py-3 rounded-2xl hover:bg-orange-500/20 transition-all">
                     🔄 Đặt Lại Nhiệm Vụ Hôm Nay
                 </button>
-                <button id="btn-reset-week" class="w-full glass text-red-300 border border-red-500/30 font-medium py-2.5 rounded-xl hover:bg-red-500/20 transition-all">
+                <button id="btn-reset-week" class="w-full glass text-red-300 border-2 border-red-500/40 font-black py-3 rounded-2xl hover:bg-red-500/20 transition-all">
                     🗑️ Đặt Lại Điểm Tuần
                 </button>
             </div>
@@ -399,7 +614,7 @@
 </div><!-- /screen-app -->
 
 <!-- ════════════════════════════════════════════
-     JAVASCRIPT
+     JAVASCRIPT — KHÔNG THAY ĐỔI GÌ
 ════════════════════════════════════════════ -->
 <script>
 // ╔═══════════════════════════════════════════════════════════╗
@@ -1539,6 +1754,5 @@ async function main() {
 
 main();
 </script>
-
 
 </body></html>
