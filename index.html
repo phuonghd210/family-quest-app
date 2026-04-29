@@ -494,8 +494,8 @@ async function apiCall(action, payload, token = '') {
     redirect: 'follow'
   });
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
 }
 
 /* ──────────────────────────────────────────────────────────
