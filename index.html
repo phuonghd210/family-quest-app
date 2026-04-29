@@ -483,16 +483,16 @@ function can(roles) {
  * @param {object} [extra]  Các tham số bổ sung
  * @returns {Promise<object>}  JSON response từ server
  */
-async function apiCall(action, extra = {}) {
-    const payload = { action, ...extra };
-    if (S.session?.token) payload.token = S.session.token;
-
-    const res = await fetch(API_URL, {
-        method:   'POST',
-        headers:  { 'Content-Type': 'text/plain;charset=utf-8' },
-        body:     JSON.stringify({ action, token, payload }),
-        redirect: 'follow',   // Google Apps Script dùng redirect
-    });
+async function apiCall(action, payload, token = '') {
+  // Nếu không truyền token, lấy từ localStorage
+  const authToken = token || localStorage.getItem('authToken') || '';
+  
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, token: authToken, payload }),
+    redirect: 'follow'
+  });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
