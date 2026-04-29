@@ -481,7 +481,7 @@ function can(roles) {
  *
  * @param {string} action   Tên action (vd: 'login', 'completeTask')
  * @param {object} [extra]  Các tham số bổ sung
- * @returns {Promise<object>}  JSON response từ server
+ * @returns {Promise<object>}  JSON  từ server
  */
 async function apiCall(action, payload, token = '') {
   // Nếu không truyền token, lấy từ localStorage
@@ -494,8 +494,17 @@ async function apiCall(action, payload, token = '') {
     redirect: 'follow'
   });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
+    if (!response.ok) {
+      throw new Error('HTTP error! status: ' + response.status);
+    }
+    
+    const data = await response.json();
+    return data;
+    
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
+  }
 }
 
 /* ──────────────────────────────────────────────────────────
