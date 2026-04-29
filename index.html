@@ -1,0 +1,1528 @@
+<!DOCTYPE html><html lang="vi"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Bảng Theo Dõi Điểm Thưởng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        /* ── Keyframes ─────────────────────────────────── */
+        @keyframes float      { 0%,100%{transform:translateY(0)}    50%{transform:translateY(-12px)} }
+        @keyframes fadeInUp   { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes bounceIn   { 0%{transform:scale(.3);opacity:0} 50%{transform:scale(1.06)} 70%{transform:scale(.92)} 100%{transform:scale(1);opacity:1} }
+        @keyframes shimmer    { 0%{background-position:-200% center} 100%{background-position:200% center} }
+        @keyframes twinkle    { 0%,100%{opacity:.15} 50%{opacity:1} }
+        @keyframes confettiDrop{ from{transform:translateY(-80px) rotate(0deg);opacity:1} to{transform:translateY(105vh) rotate(740deg);opacity:0} }
+        @keyframes pulseGold  { 0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.3)} 50%{box-shadow:0 0 18px 6px rgba(255,215,0,.18)} }
+        @keyframes slideInR   { from{transform:translateX(90px);opacity:0} to{transform:translateX(0);opacity:1} }
+        @keyframes spin       { to{transform:rotate(360deg)} }
+
+        /* ── Utility ────────────────────────────────────── */
+        .float-anim   { animation:float 3s ease-in-out infinite; }
+        .fade-in-up   { animation:fadeInUp .4s ease-out both; }
+        .bounce-in    { animation:bounceIn .5s ease-out both; }
+        .shimmer-bg   { background:linear-gradient(90deg,#FFD700,#FF8C00,#FFD700);background-size:200%;animation:shimmer 2s linear infinite; }
+        .pulse-gold   { animation:pulseGold 2.2s ease-in-out infinite; }
+        .spin-anim    { animation:spin 1s linear infinite; }
+        .slide-in-r   { animation:slideInR .3s ease-out; }
+        .confetti-p   { position:fixed;width:9px;height:9px;pointer-events:none;
+                        animation:confettiDrop var(--dur,3s) linear var(--delay,0s) forwards; }
+        .star         { position:fixed;border-radius:50%;background:#fff;pointer-events:none;
+                        animation:twinkle var(--dur,2s) ease-in-out var(--delay,0s) infinite; }
+
+        /* ── Layout ─────────────────────────────────────── */
+        body { background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;
+               font-family:'Segoe UI',system-ui,sans-serif; }
+
+        /* ── Glass ──────────────────────────────────────── */
+        .glass  { background:rgba(255,255,255,.08);backdrop-filter:blur(12px);
+                  -webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14);border-radius:16px; }
+        .glass2 { background:rgba(255,255,255,.13);backdrop-filter:blur(20px);
+                  -webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.22);border-radius:20px; }
+
+        /* ── Gradient text ───────────────────────────────── */
+        .grad { background:linear-gradient(135deg,#FFD700,#FF6B6B,#4ECDC4);
+                -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent; }
+
+        /* ── Nav tabs ────────────────────────────────────── */
+        .tab-btn { transition:all .25s;border-bottom:3px solid transparent; }
+        .tab-btn.active { background:rgba(255,215,0,.15);border-bottom-color:#FFD700;color:#FFD700; }
+
+        /* ── Progress bar ────────────────────────────────── */
+        .prog-track { background:rgba(255,255,255,.1);border-radius:999px;height:10px;overflow:hidden; }
+        .prog-fill  { height:100%;border-radius:999px;transition:width .6s ease; }
+
+        /* ── Task row ─────────────────────────────────────── */
+        .task-row { transition:all .22s; }
+        .task-row:hover { background:rgba(255,255,255,.12);transform:translateX(4px); }
+
+        /* ── Card hover ───────────────────────────────────── */
+        .card-h { transition:transform .25s,box-shadow .25s; }
+        .card-h:hover { transform:translateY(-5px);box-shadow:0 14px 32px rgba(0,0,0,.35); }
+
+        /* ── Inputs ───────────────────────────────────────── */
+        .inp { background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;
+               border-radius:10px;padding:10px 14px;width:100%;outline:none;transition:border-color .2s; }
+        .inp:focus { border-color:#FFD700; }
+        .inp::placeholder { color:rgba(255,255,255,.32); }
+        select.inp option { background:#1a1a3e;color:#fff; }
+
+        /* ── Role badges ─────────────────────────────────── */
+        .badge-admin  { background:rgba(255,215,0,.18);color:#FFD700;border:1px solid rgba(255,215,0,.4); }
+        .badge-scorer { background:rgba(100,200,255,.18);color:#64C8FF;border:1px solid rgba(100,200,255,.4); }
+        .badge-viewer { background:rgba(150,255,150,.18);color:#96FF96;border:1px solid rgba(150,255,150,.4); }
+
+        /* ── Toast ────────────────────────────────────────── */
+        #toast { position:fixed;top:18px;right:18px;z-index:9999;max-width:300px; }
+
+        /* ── Scrollbar ────────────────────────────────────── */
+        ::-webkit-scrollbar { width:5px;height:5px; }
+        ::-webkit-scrollbar-track { background:rgba(255,255,255,.05); }
+        ::-webkit-scrollbar-thumb { background:rgba(255,215,0,.4);border-radius:4px; }
+    </style>
+</head>
+<body class="text-white">
+
+<!-- ════════════════════════════════════════════
+     BACKGROUND STARS
+════════════════════════════════════════════ -->
+<div id="stars-wrap" style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;"></div>
+
+<!-- ════════════════════════════════════════════
+     TOAST NOTIFICATION
+════════════════════════════════════════════ -->
+<div id="toast" class="hidden">
+    <div class="glass2 px-5 py-3 flex items-center gap-3 slide-in-r shadow-2xl">
+        <span id="toast-icon" class="text-xl flex-shrink-0">✅</span>
+        <p id="toast-msg" class="text-sm font-medium leading-snug"></p>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     GLOBAL LOADING OVERLAY
+════════════════════════════════════════════ -->
+<div id="loading" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+    <div class="glass2 p-8 text-center bounce-in">
+        <div class="text-5xl spin-anim inline-block mb-3">⭐</div>
+        <p class="font-semibold text-base">Đang xử lý...</p>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     CUSTOM CONFIRM MODAL  (thay window.confirm)
+════════════════════════════════════════════ -->
+<div id="modal-confirm" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="glass2 p-6 w-full max-w-sm bounce-in">
+        <p id="confirm-msg" class="text-center text-base mb-5 leading-relaxed"></p>
+        <div class="flex gap-3">
+            <button id="confirm-yes" class="flex-1 shimmer-bg text-white font-bold py-2.5 rounded-xl">✅ Xác nhận</button>
+            <button id="confirm-no" class="flex-1 glass text-white font-medium py-2.5 rounded-xl hover:bg-white/15 transition-all">❌ Hủy</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     REDEEM REWARD MODAL
+════════════════════════════════════════════ -->
+<div id="modal-redeem" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="glass2 p-6 w-full max-w-sm bounce-in overflow-y-auto max-h-screen">
+        <h3 class="text-xl font-bold text-center mb-4">🎁 Đổi Phần Thưởng</h3>
+        <div id="redeem-body"></div>
+        <div class="flex gap-3 mt-5">
+            <button id="redeem-ok" class="flex-1 shimmer-bg text-white font-bold py-3 rounded-xl">🎉 Xác Nhận</button>
+            <button id="redeem-cancel" class="flex-1 glass text-white font-medium py-3 rounded-xl hover:bg-white/15 transition-all">❌ Hủy</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════════════ -->
+<div id="screen-login" class="relative z-10 min-h-screen flex items-center justify-center p-4">
+    <!-- Floating deco emojis -->
+    <span class="fixed top-8 left-8 text-3xl float-anim select-none" style="animation-delay:.4s">⭐</span>
+    <span class="fixed top-12 right-10 text-3xl float-anim select-none" style="animation-delay:1s">🌟</span>
+    <span class="fixed bottom-14 left-12 text-3xl float-anim select-none" style="animation-delay:1.7s">✨</span>
+    <span class="fixed bottom-10 right-8 text-3xl float-anim select-none" style="animation-delay:.9s">🎯</span>
+
+    <div class="glass2 p-8 w-full max-w-md bounce-in relative">
+        <!-- Hero -->
+        <div class="text-center mb-8">
+            <div class="text-7xl float-anim inline-block mb-3">🏆</div>
+            <h1 class="text-3xl font-extrabold grad mb-1">Bảng Điểm Thưởng</h1>
+            <p class="text-white/50 text-sm">Hành trình chinh phục mỗi ngày! ✨</p>
+        </div>
+
+        <form id="login-form" class="space-y-4" autocomplete="off">
+            <div>
+                <label class="block text-white/70 text-sm font-medium mb-1.5">👤 Tên đăng nhập</label>
+                <input id="f-user" type="text" placeholder="Nhập username..." class="inp" autocomplete="username" required="">
+            </div>
+            <div class="relative">
+                <label class="block text-white/70 text-sm font-medium mb-1.5">🔒 Mật khẩu</label>
+                <input id="f-pass" type="password" placeholder="Nhập mật khẩu..." class="inp pr-12" autocomplete="current-password" required="">
+                <button type="button" id="btn-eye" class="absolute right-3 bottom-2.5 text-white/40 hover:text-white/80 transition-colors text-xl">👁️</button>
+            </div>
+
+            <!-- Error messages -->
+            <div id="err-cred" class="hidden rounded-xl bg-red-500/15 border border-red-500/40 p-3 text-red-300 text-sm text-center">
+                ❌ Tên đăng nhập hoặc mật khẩu không đúng!
+            </div>
+            <div id="err-server" class="hidden rounded-xl bg-orange-500/15 border border-orange-500/40 p-3 text-orange-300 text-sm text-center">
+                ⚠️ Không thể kết nối server. Kiểm tra API_URL và thử lại.
+            </div>
+
+            <button type="submit" id="btn-login" class="w-full shimmer-bg font-bold py-3.5 rounded-xl text-lg shadow-lg hover:opacity-90 transition-all mt-1 disabled:opacity-50">
+                🚀 Đăng Nhập
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MAIN APP  (hidden until logged in)
+════════════════════════════════════════════ -->
+<div id="screen-app" class="hidden relative z-10 min-h-screen flex flex-col">
+
+    <!-- ── HEADER ─────────────────────────────── -->
+    <header class="glass mx-2 mt-2 px-4 py-2.5 flex items-center gap-3 sticky top-2 z-40 shadow-lg">
+        <span class="text-2xl flex-shrink-0">🏆</span>
+        <div class="flex-1 min-w-0">
+            <h1 class="font-bold text-sm leading-tight grad truncate">Bảng Điểm Thưởng</h1>
+            <p id="hdr-hello" class="text-xs text-white/50 truncate"></p>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <span id="hdr-badge" class="hidden text-xs px-2 py-0.5 rounded-full font-semibold sm:inline-flex items-center"></span>
+            <!-- Manual refresh -->
+            <button id="btn-refresh" title="Làm mới dữ liệu" class="glass text-blue-300 px-2.5 py-1.5 rounded-xl text-sm hover:bg-blue-500/20 transition-all">🔄</button>
+            <button id="btn-logout" class="glass text-red-300 px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-red-500/20 transition-all flex items-center gap-1">
+                🚪 <span class="hidden sm:inline">Logout</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ── NAV TABS ───────────────────────────── -->
+    <nav class="glass mx-2 mt-2 px-2 py-1.5 overflow-x-auto shadow">
+        <div class="flex gap-0.5 min-w-max">
+            <button class="tab-btn active px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="today">🌞 Hôm nay</button>
+            <button class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="tasks">✅ Nhiệm vụ</button>
+            <!-- Bonus tab: admin & scorer only -->
+            <button class="tab-btn tab-role tab-admin tab-scorer hidden px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="bonus">✨ Điểm</button>
+            <button class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="rewards">🎁 Thưởng</button>
+            <button class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="leaderboard">🏅 Xếp hạng</button>
+            <button class="tab-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="history">📊 Lịch sử</button>
+            <!-- Settings tab: admin only -->
+            <button class="tab-btn tab-role tab-admin hidden px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/70 whitespace-nowrap" data-tab="settings">⚙️ Cài đặt</button>
+        </div>
+    </nav>
+
+    <!-- ── TAB CONTENT ────────────────────────── -->
+    <main class="flex-1 p-2 mt-2 pb-10">
+
+        <!-- ━━━━ TODAY ━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="tab-today" class="tab-pane space-y-4">
+            <div class="text-center">
+                <h2 class="text-lg font-bold grad">🌞 Hôm Nay</h2>
+                <p id="today-date" class="text-xs text-white/50 mt-0.5"></p>
+            </div>
+            <div id="cards-children" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        </section>
+
+        <!-- ━━━━ TASKS ━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="tab-tasks" class="tab-pane hidden space-y-3">
+            <div class="text-center">
+                <h2 class="text-lg font-bold grad">✅ Nhiệm Vụ</h2>
+            </div>
+            <div id="task-filters" class="flex gap-2 overflow-x-auto pb-1">
+                <button class="task-filter active whitespace-nowrap px-3 py-1.5 rounded-full text-xs border border-yellow-500/50 bg-yellow-500/20 text-yellow-300 transition-all" data-cat="all">Tất cả</button>
+                <button class="task-filter whitespace-nowrap px-3 py-1.5 rounded-full text-xs border border-white/20 text-white/50 transition-all" data-cat="Tác phong hằng ngày">🌅 Tác phong</button>
+                <button class="task-filter whitespace-nowrap px-3 py-1.5 rounded-full text-xs border border-white/20 text-white/50 transition-all" data-cat="Việc nhà">🏠 Việc nhà</button>
+                <button class="task-filter whitespace-nowrap px-3 py-1.5 rounded-full text-xs border border-white/20 text-white/50 transition-all" data-cat="Học tập">📚 Học tập</button>
+                <button class="task-filter whitespace-nowrap px-3 py-1.5 rounded-full text-xs border border-white/20 text-white/50 transition-all" data-cat="Điểm phát sinh">⚡ Phát sinh</button>
+            </div>
+            <div id="tasks-list" class="space-y-1"></div>
+        </section>
+
+        <!-- ━━━━ BONUS (admin/scorer) ━━━━━━━━━━━ -->
+        <section id="tab-bonus" class="tab-pane hidden space-y-4">
+            <div class="text-center">
+                <h2 class="text-lg font-bold grad">✨ Thêm Điểm Thưởng / Phạt</h2>
+            </div>
+            <div class="glass p-5 max-w-md mx-auto space-y-4">
+                <div>
+                    <label class="block text-sm text-white/70 mb-1.5">👶 Chọn bé</label>
+                    <select id="bp-child" class="inp"></select>
+                </div>
+                <div>
+                    <label class="block text-sm text-white/70 mb-1.5">Loại</label>
+                    <div class="flex gap-6">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="bp-type" value="bonus" checked="" class="accent-yellow-400 w-4 h-4">
+                            <span class="text-green-300 font-semibold">➕ Thưởng</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="bp-type" value="penalty" class="accent-red-400 w-4 h-4">
+                            <span class="text-red-300 font-semibold">➖ Phạt</span>
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm text-white/70 mb-1.5">📝 Lý do</label>
+                    <input id="bp-reason" type="text" placeholder="Nhập lý do..." class="inp">
+                </div>
+                <div>
+                    <label class="block text-sm text-white/70 mb-1.5">🔢 Số điểm</label>
+                    <input id="bp-points" type="number" placeholder="Nhập số điểm..." min="1" class="inp">
+                </div>
+                <button id="btn-bp" class="w-full shimmer-bg font-bold py-3 rounded-xl">✅ Xác Nhận</button>
+            </div>
+            <!-- Recent history panel -->
+            <div class="glass p-4 max-w-md mx-auto">
+                <h3 class="text-sm font-semibold text-white/60 mb-2">📜 Lịch Sử Gần Đây</h3>
+                <div id="recent-history" class="space-y-1.5 max-h-60 overflow-y-auto"></div>
+            </div>
+        </section>
+
+        <!-- ━━━━ REWARDS ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="tab-rewards" class="tab-pane hidden space-y-4">
+            <div class="text-center">
+                <h2 class="text-lg font-bold grad">🎁 Phần Thưởng</h2>
+            </div>
+            <!-- Recent redemptions bar -->
+            <div id="redemption-bar" class="hidden glass p-3 max-w-2xl mx-auto">
+                <p class="text-xs text-white/50 mb-2">🔖 Lịch sử đổi thưởng gần đây:</p>
+                <div id="redemption-list" class="space-y-1 max-h-28 overflow-y-auto"></div>
+            </div>
+            <div id="rewards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl mx-auto"></div>
+        </section>
+
+        <!-- ━━━━ LEADERBOARD ━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="tab-leaderboard" class="tab-pane hidden space-y-4">
+            <div class="text-center">
+                <h2 class="text-lg font-bold grad">🏅 Bảng Xếp Hạng</h2>
+            </div>
+            <div class="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
+                <div class="glass p-3 text-center">
+                    <p class="text-xs text-white/50 mb-1">🌞 Dẫn đầu hôm nay</p>
+                    <p id="lb-leader-today" class="font-bold text-yellow-300 text-sm">-</p>
+                </div>
+                <div class="glass p-3 text-center">
+                    <p class="text-xs text-white/50 mb-1">📅 Dẫn đầu tuần</p>
+                    <p id="lb-leader-week" class="font-bold text-yellow-300 text-sm">-</p>
+                </div>
+            </div>
+            <div id="lb-cards" class="space-y-3 max-w-2xl mx-auto"></div>
+            <div class="glass p-4 max-w-2xl mx-auto">
+                <h3 class="text-sm font-semibold text-center mb-3">📊 So Sánh Tuần Này</h3>
+                <canvas id="chart-weekly" height="160"></canvas>
+            </div>
+        </section>
+
+        <!-- ━━━━ HISTORY ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <section id="tab-history" class="tab-pane hidden space-y-4">
+            <div class="text-center">
+                <h2 class="text-lg font-bold grad">📊 Lịch Sử</h2>
+            </div>
+            <div class="glass p-4 max-w-4xl mx-auto">
+                <h3 class="text-sm font-semibold text-center mb-3">📈 Biểu Đồ Tiến Bộ 7 Ngày</h3>
+                <canvas id="chart-progress" height="160"></canvas>
+            </div>
+            <div id="history-panels" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto"></div>
+        </section>
+
+        <!-- ━━━━ SETTINGS (admin only) ━━━━━━━━━━ -->
+        <section id="tab-settings" class="tab-pane hidden space-y-4 max-w-lg mx-auto">
+            <div class="text-center">
+                <h2 class="text-lg font-bold grad">⚙️ Cài Đặt</h2>
+            </div>
+
+            <!-- Add Task -->
+            <div class="glass p-5 space-y-3">
+                <h3 class="font-bold flex items-center gap-2">➕ Thêm Nhiệm Vụ Mới</h3>
+                <input id="nt-name" type="text" placeholder="Tên nhiệm vụ..." class="inp">
+                <select id="nt-cat" class="inp">
+                    <option value="Tác phong hằng ngày">🌅 Tác phong hằng ngày</option>
+                    <option value="Việc nhà">🏠 Việc nhà</option>
+                    <option value="Học tập">📚 Học tập</option>
+                    <option value="Điểm phát sinh">⚡ Điểm phát sinh</option>
+                </select>
+                <input id="nt-pts" type="number" placeholder="Điểm thưởng..." min="1" class="inp">
+                <select id="nt-assign" class="inp">
+                    <option value="both">👥 Cả hai</option>
+                </select>
+                <button id="btn-add-task" class="w-full bg-green-500/20 hover:bg-green-500/35 border border-green-500/40 text-green-300 font-bold py-2.5 rounded-xl transition-all">
+                    ✅ Thêm Nhiệm Vụ
+                </button>
+            </div>
+
+            <!-- Add Reward -->
+            <div class="glass p-5 space-y-3">
+                <h3 class="font-bold flex items-center gap-2">🎁 Thêm Phần Thưởng Mới</h3>
+                <input id="nr-name" type="text" placeholder="Tên phần thưởng..." class="inp">
+                <input id="nr-pts" type="number" placeholder="Điểm cần đổi..." min="1" class="inp">
+                <input id="nr-icon" type="text" placeholder="Icon emoji (vd: 🎮)..." class="inp">
+                <button id="btn-add-reward" class="w-full bg-purple-500/20 hover:bg-purple-500/35 border border-purple-500/40 text-purple-300 font-bold py-2.5 rounded-xl transition-all">
+                    🎁 Thêm Phần Thưởng
+                </button>
+            </div>
+
+            <!-- System Management -->
+            <div class="glass p-5 space-y-3">
+                <h3 class="font-bold flex items-center gap-2">🔧 Quản Lý Hệ Thống</h3>
+                <button id="btn-reset-today" class="w-full glass text-orange-300 border border-orange-500/30 font-medium py-2.5 rounded-xl hover:bg-orange-500/20 transition-all">
+                    🔄 Đặt Lại Nhiệm Vụ Hôm Nay
+                </button>
+                <button id="btn-reset-week" class="w-full glass text-red-300 border border-red-500/30 font-medium py-2.5 rounded-xl hover:bg-red-500/20 transition-all">
+                    🗑️ Đặt Lại Điểm Tuần
+                </button>
+            </div>
+        </section>
+
+    </main>
+</div><!-- /screen-app -->
+
+<!-- ════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
+<script>
+// ╔═══════════════════════════════════════════════════════════╗
+// ║   BẢNG THEO DÕI ĐIỂM THƯỞNG  —  MVP Frontend            ║
+// ║   Dữ liệu → Google Sheets qua Google Apps Script API     ║
+// ╚═══════════════════════════════════════════════════════════╝
+
+/* ──────────────────────────────────────────────────────────
+   §1  CONFIGURATION
+────────────────────────────────────────────────────────── */
+/** URL của Web App đã deploy từ Google Apps Script.
+ *  Sau khi deploy, thay chuỗi bên dưới bằng URL thực. */
+const API_URL     = "https://script.google.com/macros/s/AKfycbxEMdh9qb18S9sBuAm0QiCFyXL4wplq2qo_voL_WN3za8RTGQ60I2tbrM4GCbzQzKzS/exec";
+
+/** Key dùng để lưu session vào localStorage */
+const SESSION_KEY = "bdt_session_v2";
+
+/* ──────────────────────────────────────────────────────────
+   §2  APPLICATION STATE
+   Toàn bộ dữ liệu app nằm trong object S (State).
+   localStorage chỉ lưu session — KHÔNG lưu dữ liệu nghiệp vụ.
+────────────────────────────────────────────────────────── */
+let S = {
+    session:      null,  // { token, user_id, username, display_name, role, child_id }
+    children:     [],    // Children[]
+    tasks:        [],    // Tasks[]
+    rewards:      [],    // Rewards[]
+    transactions: [],    // ScoreTransactions[]  — tổng điểm tính từ đây
+    dailyStatus:  [],    // DailyTaskStatus[]    — trạng thái task hôm nay
+    redemptions:  [],    // RewardRedemptions[]  — lịch sử đổi thưởng
+    taskFilter:   'all', // bộ lọc danh mục nhiệm vụ
+    chartLine:    null,  // Chart.js — line chart 7 ngày
+    chartBar:     null,  // Chart.js — bar chart tuần
+};
+
+/** Pending redeem: lưu tạm thông tin reward đang chờ xác nhận */
+let pendingRedeem    = null;
+/** Pending confirm callback */
+let confirmCallback  = null;
+
+/* ──────────────────────────────────────────────────────────
+   §3  SESSION MANAGEMENT
+────────────────────────────────────────────────────────── */
+
+/** Đọc session từ localStorage */
+function loadSession() {
+    try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
+    catch { return null; }
+}
+
+/** Ghi session vào localStorage và cập nhật S.session */
+function saveSession(data) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+    S.session = data;
+}
+
+/** Xóa session (logout) */
+function clearSession() {
+    localStorage.removeItem(SESSION_KEY);
+    S.session = null;
+}
+
+/**
+ * Kiểm tra quyền của user hiện tại.
+ * @param {string[]} roles  Ví dụ: ['admin','scorer']
+ * @returns {boolean}
+ */
+function can(roles) {
+    return !!(S.session && roles.includes(S.session.role));
+}
+
+/* ──────────────────────────────────────────────────────────
+   §4  API HELPER
+────────────────────────────────────────────────────────── */
+
+/**
+ * Gọi Google Apps Script API bằng POST JSON.
+ * Token session tự động được đính kèm nếu đã đăng nhập.
+ *
+ * @param {string} action   Tên action (vd: 'login', 'completeTask')
+ * @param {object} [extra]  Các tham số bổ sung
+ * @returns {Promise<object>}  JSON response từ server
+ */
+async function apiCall(action, extra = {}) {
+    const payload = { action, ...extra };
+    if (S.session?.token) payload.token = S.session.token;
+
+    const res = await fetch(API_URL, {
+        method:   'POST',
+        headers:  { 'Content-Type': 'application/json' },
+        body:     JSON.stringify(payload),
+        redirect: 'follow',   // Google Apps Script dùng redirect
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+}
+
+/* ──────────────────────────────────────────────────────────
+   §5  UI UTILITY HELPERS
+────────────────────────────────────────────────────────── */
+
+// ─ Toast notification ─
+let _toastTimer = null;
+function toast(msg, type = 'success') {
+    const icons = { success:'✅', error:'❌', warning:'⚠️', info:'💡' };
+    const el   = document.getElementById('toast');
+    const icon = document.getElementById('toast-icon');
+    const txt  = document.getElementById('toast-msg');
+    icon.textContent = icons[type] ?? '✅';
+    txt.textContent  = msg;
+    el.classList.remove('hidden');
+    // Re-trigger animation
+    const inner = el.firstElementChild;
+    inner.classList.remove('slide-in-r');
+    void inner.offsetWidth;
+    inner.classList.add('slide-in-r');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => el.classList.add('hidden'), 3500);
+}
+
+// ─ Global loading overlay ─
+function showLoad() { document.getElementById('loading').classList.remove('hidden'); }
+function hideLoad() { document.getElementById('loading').classList.add('hidden'); }
+
+// ─ Custom confirm modal ─
+function showConfirm(message, cb) {
+    document.getElementById('confirm-msg').textContent = message;
+    document.getElementById('modal-confirm').classList.remove('hidden');
+    confirmCallback = cb;
+}
+
+// ─ Stars background ─
+function buildStars() {
+    const wrap = document.getElementById('stars-wrap');
+    for (let i = 0; i < 70; i++) {
+        const s   = document.createElement('div');
+        s.className = 'star';
+        const sz  = (Math.random() * 2.2 + 0.5).toFixed(1);
+        s.style.cssText = `width:${sz}px;height:${sz}px;left:${(Math.random()*100).toFixed(2)}%;` +
+                          `top:${(Math.random()*100).toFixed(2)}%;` +
+                          `--dur:${(Math.random()*3+1).toFixed(1)}s;` +
+                          `--delay:${(Math.random()*4).toFixed(1)}s;`;
+        wrap.appendChild(s);
+    }
+}
+
+// ─ Confetti celebration ─
+function confetti() {
+    const colors = ['#FFD700','#FF6B6B','#4ECDC4','#A29BFE','#FD79A8','#55EFC4'];
+    for (let i = 0; i < 28; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti-p';
+        p.style.cssText =
+            `left:${(Math.random()*100).toFixed(1)}vw;top:-20px;` +
+            `background:${colors[i % colors.length]};` +
+            `border-radius:${Math.random()>.5?'50%':'3px'};` +
+            `--dur:${(Math.random()*2+2).toFixed(1)}s;` +
+            `--delay:${(Math.random()*.7).toFixed(2)}s;`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 5500);
+    }
+}
+
+// ─ Date helpers ─
+function todayStr()      { return new Date().toISOString().split('T')[0]; }
+function weekStartStr()  {
+    const d   = new Date();
+    const day = d.getDay();
+    const mon = new Date(d);
+    mon.setDate(d.getDate() - (day === 0 ? 6 : day - 1));  // Monday-first
+    mon.setHours(0,0,0,0);
+    return mon.toISOString().split('T')[0];
+}
+
+// ─ Points aggregation (computed from S.transactions) ─
+function totalPts(childId) {
+    return S.transactions
+        .filter(t => t.child_id === childId)
+        .reduce((a, t) => a + (parseFloat(t.points) || 0), 0);
+}
+function todayPts(childId) {
+    const d = todayStr();
+    return S.transactions
+        .filter(t => t.child_id === childId && t.date === d)
+        .reduce((a, t) => a + (parseFloat(t.points) || 0), 0);
+}
+function weekPts(childId) {
+    const ws = weekStartStr();
+    return S.transactions
+        .filter(t => t.child_id === childId && t.date >= ws)
+        .reduce((a, t) => a + (parseFloat(t.points) || 0), 0);
+}
+
+// ─ Daily task status helper ─
+function isTaskDone(childId, taskId) {
+    const d = todayStr();
+    return S.dailyStatus.some(
+        s => s.child_id === childId && s.task_id === taskId
+          && s.date === d && s.status === 'done'
+    );
+}
+
+// ─ Safe HTML string for inline onclick values ─
+function jstr(v) { return JSON.stringify(String(v)); }
+
+/* ──────────────────────────────────────────────────────────
+   §6  AUTH — LOGIN / LOGOUT
+   (Thay thế: loadPIN, savePIN, currentMode, switchMode, checkPIN)
+────────────────────────────────────────────────────────── */
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const username = document.getElementById('f-user').value.trim();
+    const password = document.getElementById('f-pass').value;
+    if (!username || !password) { toast('Vui lòng điền đầy đủ!','warning'); return; }
+
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true; btn.textContent = '⏳ Đang đăng nhập...';
+    document.getElementById('err-cred').classList.add('hidden');
+    document.getElementById('err-server').classList.add('hidden');
+
+    try {
+        // ★ API: login(username, password)
+        const r = await apiCall('login', { username, password });
+
+        if (r.success) {
+            // Lưu session vào localStorage (token, user_id, display_name, role, child_id)
+            saveSession({
+                token:        r.token,
+                user_id:      r.user_id,
+                username:     r.username,
+                display_name: r.display_name,
+                role:         r.role,
+                child_id:     r.child_id ?? null,
+            });
+            confetti();
+            toast(`Chào mừng ${r.display_name}! 🎉`);
+            await bootApp();
+        } else {
+            document.getElementById('err-cred').classList.remove('hidden');
+        }
+    } catch (err) {
+        console.error('Login:', err);
+        document.getElementById('err-server').classList.remove('hidden');
+    } finally {
+        btn.disabled = false; btn.textContent = '🚀 Đăng Nhập';
+    }
+}
+
+function handleLogout() {
+    // Destroy charts trước khi clear
+    if (S.chartLine) { S.chartLine.destroy(); }
+    if (S.chartBar)  { S.chartBar.destroy();  }
+    clearSession();
+    // Reset state
+    S = { ...S, children:[], tasks:[], rewards:[], transactions:[],
+               dailyStatus:[], redemptions:[], taskFilter:'all',
+               chartLine:null, chartBar:null };
+
+    document.getElementById('screen-app').classList.add('hidden');
+    document.getElementById('screen-login').classList.remove('hidden');
+    document.getElementById('f-pass').value = '';
+    switchTab('today');
+    toast('Đã đăng xuất!','info');
+}
+
+/* ──────────────────────────────────────────────────────────
+   §7  ROLE-BASED UI
+   (Thay thế: applyModeRestrictions, currentMode checks)
+────────────────────────────────────────────────────────── */
+function applyRoleUI() {
+    const role = S.session?.role;
+
+    // Hiện/ẩn tab theo role (class "tab-admin", "tab-scorer", "tab-viewer")
+    document.querySelectorAll('.tab-role').forEach(el => {
+        const hasRole = [...el.classList]
+            .filter(c => c !== 'tab-btn' && c !== 'tab-role' && c.startsWith('tab-'))
+            .map(c => c.replace('tab-',''))
+            .includes(role);
+        el.classList.toggle('hidden', !hasRole);
+    });
+
+    // Header greeting + badge
+    document.getElementById('hdr-hello').textContent = `Xin chào, ${S.session.display_name}!`;
+    const badge = document.getElementById('hdr-badge');
+    const labels = { admin:'👑 Admin', scorer:'⭐ Scorer', viewer:'👶 Viewer' };
+    badge.textContent = labels[role] ?? role;
+    badge.className = `hidden text-xs px-2 py-0.5 rounded-full font-semibold sm:inline-flex items-center badge-${role}`;
+}
+
+/* ──────────────────────────────────────────────────────────
+   §8  DATA FETCHING
+────────────────────────────────────────────────────────── */
+
+/**
+ * Load toàn bộ dữ liệu ban đầu.
+ * ★ API: getInitialData(token)
+ */
+async function fetchAll() {
+    showLoad();
+    try {
+        const r = await apiCall('getInitialData');
+        if (r.success) {
+            S.children     = r.children     ?? [];
+            S.tasks        = r.tasks        ?? [];
+            S.rewards      = r.rewards      ?? [];
+            S.transactions = r.transactions ?? [];
+            S.dailyStatus  = r.dailyStatus  ?? [];
+            S.redemptions  = r.redemptions  ?? [];
+            renderAll();
+        } else if (r.error === 'INVALID_TOKEN') {
+            toast('Phiên đăng nhập hết hạn!','error');
+            handleLogout();
+        } else {
+            toast('Lỗi tải dữ liệu: ' + (r.message ?? 'unknown'),'error');
+        }
+    } catch (err) {
+        console.error('fetchAll:', err);
+        toast('Không thể kết nối đến server!','error');
+    } finally {
+        hideLoad();
+    }
+}
+
+/**
+ * Refresh nhẹ sau khi thực hiện action (không reload tất cả).
+ * ★ API: getDashboard(token)
+ */
+async function refreshDash() {
+    try {
+        const r = await apiCall('getDashboard');
+        if (r.success) {
+            if (r.children)     S.children     = r.children;
+            if (r.dailyStatus)  S.dailyStatus  = r.dailyStatus;
+            if (r.transactions) S.transactions = r.transactions;
+            if (r.redemptions)  S.redemptions  = r.redemptions;
+            renderToday();
+            renderLeaderboard();
+            renderHistory();
+            renderRewards();
+            renderRecentHistory();
+        }
+    } catch (err) {
+        console.error('refreshDash:', err);
+    }
+}
+
+/* ──────────────────────────────────────────────────────────
+   §9  RENDER FUNCTIONS
+────────────────────────────────────────────────────────── */
+
+function renderAll() {
+    renderToday();
+    renderTasks();
+    renderBonus();
+    renderRewards();
+    renderLeaderboard();
+    renderHistory();
+    renderSettings();
+}
+
+/* ── TODAY ─────────────────────────────────────────────── */
+function renderToday() {
+    // Hiển thị ngày hiện tại
+    document.getElementById('today-date').textContent =
+        new Date().toLocaleDateString('vi-VN',
+            { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+    const wrap = document.getElementById('cards-children');
+    wrap.innerHTML = '';
+
+    // Viewer thấy card của mình trước
+    const kids = [...S.children].sort((a, b) => {
+        if (S.session.role === 'viewer' && S.session.child_id) {
+            if (a.child_id === S.session.child_id) return -1;
+            if (b.child_id === S.session.child_id) return  1;
+        }
+        return 0;
+    });
+
+    kids.forEach(child => {
+        const total  = totalPts(child.child_id);
+        const today  = todayPts(child.child_id);
+        const week   = weekPts(child.child_id);
+        const target = parseInt(child.daily_target) || 50;
+        const pct    = Math.min(100, Math.round(today / target * 100));
+        const isOwn  = S.session.child_id === child.child_id;
+        const canAct = can(['admin','scorer']);
+        const highlight = S.session.role === 'viewer' && isOwn;
+
+        // Tasks của bé này
+        const childTasks = S.tasks.filter(t =>
+            t.status === 'active' &&
+            (t.assigned_to === 'both' ||
+             t.assigned_to === child.child_id ||
+             t.assigned_to === child.child_key)
+        );
+
+        // Build task rows HTML
+        const taskRowsHTML = childTasks.map(t => {
+            const done  = isTaskDone(child.child_id, t.task_id);
+            const cid   = jstr(child.child_id);
+            const tid   = jstr(t.task_id);
+            const btnHTML = canAct
+                ? (done
+                    ? `<button onclick="doUndo(${cid},${tid})"
+                               class="text-xs px-1.5 py-0.5 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-300 transition-all flex-shrink-0">↩️</button>`
+                    : `<button onclick="doComplete(${cid},${tid})"
+                               class="text-xs px-1.5 py-0.5 rounded-lg bg-green-500/20 hover:bg-green-500/40 text-green-300 transition-all flex-shrink-0">✔️</button>`)
+                : '';
+            return `
+            <div class="task-row flex items-center gap-2 px-2 py-1.5 rounded-lg ${done?'bg-green-500/15':'bg-white/5'} mb-1">
+                <span class="text-base flex-shrink-0">${done?'✅':'⭕'}</span>
+                <span class="flex-1 text-xs truncate ${done?'line-through text-white/40':''}">${t.task_name}</span>
+                <span class="text-xs text-yellow-300 font-semibold flex-shrink-0">+${t.points}⭐</span>
+                ${btnHTML}
+            </div>`;
+        }).join('');
+
+        const card = document.createElement('div');
+        card.className = `glass p-4 card-h fade-in-up ${highlight ? 'ring-2 ring-yellow-400/60 pulse-gold':''}`;
+        card.innerHTML = `
+        <div class="flex items-start gap-3 mb-3">
+            <div class="text-4xl float-anim flex-shrink-0">${child.avatar_icon || '👶'}</div>
+            <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-base leading-tight">${child.child_name}</h3>
+                <p class="text-xs text-white/50">${child.avatar_name || ''}</p>
+            </div>
+            <div class="text-right flex-shrink-0">
+                <p class="text-2xl font-extrabold text-yellow-300 leading-tight">${total}</p>
+                <p class="text-xs text-white/40">tổng điểm</p>
+            </div>
+        </div>
+        <!-- Progress bar -->
+        <div class="mb-3">
+            <div class="flex justify-between text-xs text-white/50 mb-1">
+                <span>Hôm nay: <strong class="text-white">${today}</strong></span>
+                <span>Mục tiêu: ${target}</span>
+            </div>
+            <div class="prog-track">
+                <div class="prog-fill ${pct>=100?'bg-gradient-to-r from-green-400 to-emerald-500':'bg-gradient-to-r from-yellow-400 to-orange-500'}" style="width:${pct}%"></div>
+            </div>
+            <p class="text-right text-xs text-white/30 mt-0.5">${pct}% mục tiêu ngày</p>
+        </div>
+        <!-- Stats -->
+        <div class="grid grid-cols-2 gap-2 mb-3">
+            <div class="glass text-center py-2 rounded-xl">
+                <p class="text-base font-bold text-blue-300">${today}</p>
+                <p class="text-xs text-white/40">Hôm nay</p>
+            </div>
+            <div class="glass text-center py-2 rounded-xl">
+                <p class="text-base font-bold text-purple-300">${week}</p>
+                <p class="text-xs text-white/40">Tuần này</p>
+            </div>
+        </div>
+        <!-- Tasks -->
+        <div>
+            <p class="text-xs text-white/50 font-medium mb-1.5">📋 Nhiệm vụ hôm nay (${childTasks.filter(t=>isTaskDone(child.child_id,t.task_id)).length}/${childTasks.length}):</p>
+            ${childTasks.length ? taskRowsHTML : '<p class="text-xs text-white/30 text-center py-2">Chưa có nhiệm vụ được giao.</p>'}
+        </div>`;
+        wrap.appendChild(card);
+    });
+}
+
+/* ── TASKS ─────────────────────────────────────────────── */
+function renderTasks() {
+    const wrap     = document.getElementById('tasks-list');
+    wrap.innerHTML = '';
+
+    const filtered = S.taskFilter === 'all'
+        ? S.tasks
+        : S.tasks.filter(t => t.category === S.taskFilter);
+
+    if (!filtered.length) {
+        wrap.innerHTML = '<div class="glass p-5 text-center text-white/40 text-sm">Không có nhiệm vụ nào.</div>';
+        return;
+    }
+
+    // Gom nhóm theo category
+    const groups = {};
+    filtered.forEach(t => { (groups[t.category] = groups[t.category] ?? []).push(t); });
+
+    const catIcon = { 'Tác phong hằng ngày':'🌅','Việc nhà':'🏠','Học tập':'📚','Điểm phát sinh':'⚡' };
+
+    Object.entries(groups).forEach(([cat, tasks]) => {
+        const sec = document.createElement('div');
+        sec.innerHTML = `<p class="text-xs font-semibold text-white/50 mb-2 mt-3">${catIcon[cat]??'📋'} ${cat}</p>`;
+        tasks.forEach(t => {
+            const assignee = t.assigned_to === 'both' ? '👥 Cả hai'
+                : (S.children.find(c => c.child_id === t.assigned_to || c.child_key === t.assigned_to)?.child_name ?? t.assigned_to);
+            const row = document.createElement('div');
+            row.className = 'task-row glass p-3 flex items-center gap-3 mb-1.5';
+            row.innerHTML = `
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium truncate">${t.task_name}</p>
+                <p class="text-xs text-white/40">${assignee} · <span class="${t.status==='active'?'text-green-400':'text-red-400'}">${t.status==='active'?'Hoạt động':'Tạm dừng'}</span></p>
+            </div>
+            <span class="text-sm font-bold text-yellow-300 flex-shrink-0">+${t.points}⭐</span>`;
+            sec.appendChild(row);
+        });
+        wrap.appendChild(sec);
+    });
+}
+
+/* ── BONUS ─────────────────────────────────────────────── */
+function renderBonus() {
+    // Populate child select
+    const sel = document.getElementById('bp-child');
+    sel.innerHTML = '<option value="">-- Chọn bé --</option>'
+        + S.children.map(c => `<option value="${c.child_id}">${c.child_name} (${c.avatar_name})</option>`).join('');
+    renderRecentHistory();
+}
+
+function renderRecentHistory() {
+    const wrap = document.getElementById('recent-history');
+    const list = [...S.transactions]
+        .sort((a,b) => new Date(b.created_at||b.date) - new Date(a.created_at||a.date))
+        .slice(0, 15);
+    if (!list.length) {
+        wrap.innerHTML = '<p class="text-xs text-white/30 text-center py-2">Chưa có giao dịch nào.</p>';
+        return;
+    }
+    wrap.innerHTML = list.map(tx => {
+        const pos = parseFloat(tx.points) > 0;
+        return `
+        <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+            <span class="text-sm flex-shrink-0">${pos?'⬆️':'⬇️'}</span>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium truncate">${tx.child_name||''} · ${tx.task_name||tx.note||'—'}</p>
+                <p class="text-xs text-white/30">${tx.date} · ${tx.created_by_name||''}</p>
+            </div>
+            <span class="text-xs font-bold ${pos?'text-green-300':'text-red-300'} flex-shrink-0">
+                ${pos?'+':''}${tx.points}⭐
+            </span>
+        </div>`;
+    }).join('');
+}
+
+/* ── REWARDS ───────────────────────────────────────────── */
+function renderRewards() {
+    const grid = document.getElementById('rewards-grid');
+    grid.innerHTML = '';
+
+    const active = S.rewards.filter(r => r.status === 'active');
+    if (!active.length) {
+        grid.innerHTML = '<div class="glass p-6 text-center text-white/40 col-span-3">Chưa có phần thưởng nào.</div>';
+    } else {
+        active.forEach(rw => {
+            const card = document.createElement('div');
+            card.className = 'glass p-4 text-center card-h fade-in-up';
+
+            let btnHTML = '';
+            const rid    = jstr(rw.reward_id);
+            const rname  = jstr(rw.reward_name);
+            const ricon  = jstr(rw.icon || '🎁');
+            const reqPts = parseInt(rw.required_points);
+
+            if (S.session.role === 'viewer' && S.session.child_id) {
+                // Viewer: tự đổi cho bản thân nếu đủ điểm
+                const myPts  = totalPts(S.session.child_id);
+                const enough = myPts >= reqPts;
+                btnHTML = `
+                <button onclick="openRedeem(${rid},${rname},${reqPts},${ricon})"
+                    class="mt-3 w-full py-2 rounded-xl text-sm font-bold transition-all
+                    ${enough?'shimmer-bg text-white hover:opacity-90':'glass text-white/30 cursor-not-allowed'}">
+                    ${enough?'🎁 Đổi thưởng':`Cần thêm ${reqPts-myPts}⭐`}
+                </button>`;
+            } else if (can(['admin','scorer'])) {
+                // Admin/scorer: đổi hộ bé
+                btnHTML = `
+                <button onclick="openRedeem(${rid},${rname},${reqPts},${ricon})"
+                    class="mt-3 w-full shimmer-bg text-white py-2 rounded-xl text-sm font-bold hover:opacity-90 transition-all">
+                    🎁 Đổi cho bé
+                </button>`;
+            }
+
+            card.innerHTML = `
+            <div class="text-4xl mb-2 float-anim">${rw.icon||'🎁'}</div>
+            <h3 class="font-bold text-sm">${rw.reward_name}</h3>
+            <p class="text-yellow-300 font-bold mt-1 text-sm">⭐ ${rw.required_points} điểm</p>
+            ${btnHTML}`;
+            grid.appendChild(card);
+        });
+    }
+
+    // Redemption history bar
+    renderRedemptionBar();
+}
+
+function renderRedemptionBar() {
+    const bar  = document.getElementById('redemption-bar');
+    const list = document.getElementById('redemption-list');
+    const items = S.session.role === 'viewer' && S.session.child_id
+        ? S.redemptions.filter(r => r.child_id === S.session.child_id)
+        : S.redemptions;
+    const recent = items.slice(0, 5);
+    if (!recent.length) { bar.classList.add('hidden'); return; }
+    bar.classList.remove('hidden');
+    list.innerHTML = recent.map(r =>
+        `<div class="flex items-center gap-2 text-xs">
+            <span class="flex-1 truncate text-white/60">${r.child_name} đổi ${r.reward_name}</span>
+            <span class="text-red-300 flex-shrink-0">-${r.points_spent}⭐</span>
+            <span class="text-white/30 flex-shrink-0">${r.date}</span>
+        </div>`
+    ).join('');
+}
+
+/* ── LEADERBOARD ───────────────────────────────────────── */
+function renderLeaderboard() {
+    const ranked = [...S.children]
+        .map(c => ({
+            ...c,
+            total: totalPts(c.child_id),
+            today: todayPts(c.child_id),
+            week:  weekPts(c.child_id),
+        }))
+        .sort((a, b) => b.week - a.week);
+
+    const todayRanked = [...ranked].sort((a,b) => b.today - a.today);
+
+    document.getElementById('lb-leader-today').textContent = todayRanked[0]?.child_name
+        ? `${todayRanked[0].avatar_icon} ${todayRanked[0].child_name} (${todayRanked[0].today}⭐)` : '-';
+    document.getElementById('lb-leader-week').textContent = ranked[0]?.child_name
+        ? `${ranked[0].avatar_icon} ${ranked[0].child_name} (${ranked[0].week}⭐)` : '-';
+
+    const wrap    = document.getElementById('lb-cards');
+    wrap.innerHTML = '';
+    const medals  = ['🥇','🥈','🥉'];
+
+    ranked.forEach((c, i) => {
+        const card = document.createElement('div');
+        card.className = 'glass p-4 flex items-center gap-3 card-h fade-in-up';
+        card.innerHTML = `
+        <span class="text-3xl flex-shrink-0">${medals[i] ?? `#${i+1}`}</span>
+        <span class="text-3xl flex-shrink-0 float-anim">${c.avatar_icon||'👶'}</span>
+        <div class="flex-1 min-w-0">
+            <p class="font-bold">${c.child_name}</p>
+            <p class="text-xs text-white/40">${c.avatar_name||''}</p>
+            <div class="flex gap-3 mt-1 text-xs">
+                <span class="text-blue-300">Hôm nay: ${c.today}</span>
+                <span class="text-purple-300">Tuần: ${c.week}</span>
+            </div>
+        </div>
+        <div class="text-right flex-shrink-0">
+            <p class="text-xl font-extrabold text-yellow-300">${c.total}</p>
+            <p class="text-xs text-white/40">tổng điểm</p>
+        </div>`;
+        wrap.appendChild(card);
+    });
+
+    if (ranked.length >= 2 && ranked[0].week === ranked[1].week && ranked[0].week > 0) {
+        const tie = document.createElement('div');
+        tie.className = 'glass p-3 text-center text-green-300 font-medium text-sm';
+        tie.textContent = '🎉 Cả hai đều tuyệt vời!';
+        wrap.appendChild(tie);
+    }
+
+    buildWeeklyChart(ranked);
+}
+
+function buildWeeklyChart(ranked) {
+    const ctx = document.getElementById('chart-weekly').getContext('2d');
+    if (S.chartBar) { S.chartBar.destroy(); S.chartBar = null; }
+    S.chartBar = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ranked.map(c => c.child_name),
+            datasets: [
+                { label:'Hôm nay', data:ranked.map(c=>c.today),
+                  backgroundColor:'rgba(255,215,0,.55)', borderColor:'#FFD700', borderWidth:2, borderRadius:8 },
+                { label:'Tuần này', data:ranked.map(c=>c.week),
+                  backgroundColor:'rgba(100,180,255,.55)', borderColor:'#64B4FF', borderWidth:2, borderRadius:8 },
+            ],
+        },
+        options: {
+            responsive:true,
+            plugins:{ legend:{ labels:{ color:'rgba(255,255,255,.7)', boxRadius:4 } } },
+            scales:{
+                x:{ ticks:{ color:'rgba(255,255,255,.6)' }, grid:{ color:'rgba(255,255,255,.08)' } },
+                y:{ ticks:{ color:'rgba(255,255,255,.6)' }, grid:{ color:'rgba(255,255,255,.08)' }, beginAtZero:true },
+            },
+        },
+    });
+}
+
+/* ── HISTORY ───────────────────────────────────────────── */
+function renderHistory() {
+    const panels = document.getElementById('history-panels');
+    panels.innerHTML = '';
+
+    // Viewer chỉ thấy lịch sử của mình
+    const kids = (S.session.role === 'viewer' && S.session.child_id)
+        ? S.children.filter(c => c.child_id === S.session.child_id)
+        : S.children;
+
+    kids.forEach(child => {
+        const txs = [...S.transactions]
+            .filter(t => t.child_id === child.child_id)
+            .sort((a,b) => new Date(b.created_at||b.date) - new Date(a.created_at||a.date))
+            .slice(0, 30);
+
+        const typeLabel = t => ({
+            task:'✅ Task', bonus:'⬆️ Thưởng', penalty:'⬇️ Phạt', reward_redeem:'🎁 Đổi thưởng'
+        }[t.type] ?? '•');
+
+        const panel = document.createElement('div');
+        panel.className = 'glass p-4';
+        panel.innerHTML = `
+        <h3 class="font-bold text-sm mb-3">📜 ${child.child_name} (${child.avatar_name})</h3>
+        <div class="space-y-1 max-h-72 overflow-y-auto pr-1">
+            ${txs.length ? txs.map(tx => {
+                const pos = parseFloat(tx.points) > 0;
+                return `
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                    <span class="text-xs flex-shrink-0">${typeLabel(tx)}</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs truncate">${tx.task_name||tx.note||'—'}</p>
+                        <p class="text-xs text-white/30">${tx.date}</p>
+                    </div>
+                    <span class="text-xs font-bold ${pos?'text-green-300':'text-red-300'} flex-shrink-0">
+                        ${pos?'+':''}${tx.points}⭐
+                    </span>
+                </div>`;
+            }).join('') : '<p class="text-xs text-white/30 text-center py-3">Chưa có lịch sử.</p>'}
+        </div>`;
+        panels.appendChild(panel);
+    });
+
+    build7DayChart();
+}
+
+function build7DayChart() {
+    const ctx = document.getElementById('chart-progress').getContext('2d');
+    if (S.chartLine) { S.chartLine.destroy(); S.chartLine = null; }
+
+    const days = [], labels = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        days.push(d.toISOString().split('T')[0]);
+        labels.push(d.toLocaleDateString('vi-VN',{ weekday:'short', day:'numeric', month:'numeric' }));
+    }
+
+    const palette = [
+        { bg:'rgba(255,215,0,.25)', line:'#FFD700' },
+        { bg:'rgba(100,180,255,.25)', line:'#64B4FF' },
+    ];
+
+    const kids = (S.session.role === 'viewer' && S.session.child_id)
+        ? S.children.filter(c => c.child_id === S.session.child_id)
+        : S.children;
+
+    S.chartLine = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: kids.map((child, idx) => ({
+                label: child.child_name,
+                data:  days.map(day =>
+                    S.transactions
+                        .filter(t => t.child_id === child.child_id && t.date === day)
+                        .reduce((s, t) => s + (parseFloat(t.points)||0), 0)
+                ),
+                fill:true, tension:.4,
+                backgroundColor: palette[idx]?.bg  ?? 'rgba(200,200,200,.2)',
+                borderColor:     palette[idx]?.line ?? '#ccc',
+                borderWidth:2,
+                pointBackgroundColor: palette[idx]?.line ?? '#ccc',
+                pointRadius:4,
+            })),
+        },
+        options:{
+            responsive:true,
+            plugins:{ legend:{ labels:{ color:'rgba(255,255,255,.7)', boxRadius:4 } } },
+            scales:{
+                x:{ ticks:{ color:'rgba(255,255,255,.5)', maxRotation:30 }, grid:{ color:'rgba(255,255,255,.08)' } },
+                y:{ ticks:{ color:'rgba(255,255,255,.6)' }, grid:{ color:'rgba(255,255,255,.08)' }, beginAtZero:true },
+            },
+        },
+    });
+}
+
+/* ── SETTINGS ──────────────────────────────────────────── */
+function renderSettings() {
+    const sel = document.getElementById('nt-assign');
+    if (!sel) return;
+    sel.innerHTML = '<option value="both">👥 Cả hai</option>'
+        + S.children.map(c => `<option value="${c.child_id}">${c.child_name}</option>`).join('');
+}
+
+/* ──────────────────────────────────────────────────────────
+   §10  ACTION HANDLERS
+────────────────────────────────────────────────────────── */
+
+/** Đánh dấu hoàn thành task — admin / scorer */
+async function doComplete(childId, taskId) {
+    if (!can(['admin','scorer'])) { toast('Không có quyền!','error'); return; }
+    showLoad();
+    try {
+        // ★ API: completeTask(token, child_id, task_id)
+        const r = await apiCall('completeTask', { child_id:childId, task_id:taskId });
+        if (r.success) {
+            // Optimistic local update
+            const today = todayStr();
+            const ex = S.dailyStatus.find(d =>
+                d.child_id===childId && d.task_id===taskId && d.date===today);
+            ex ? (ex.status='done') : S.dailyStatus.push({ child_id:childId, task_id:taskId, date:today, status:'done' });
+            if (r.transaction) S.transactions.push(r.transaction);
+            confetti();
+            toast('🎉 Hoàn thành nhiệm vụ!');
+            renderToday(); renderLeaderboard(); renderRecentHistory();
+        } else { toast(r.message ?? 'Lỗi!','error'); }
+    } catch { toast('Lỗi kết nối!','error'); }
+    finally { hideLoad(); }
+}
+
+/** Hoàn tác task — admin / scorer */
+async function doUndo(childId, taskId) {
+    if (!can(['admin','scorer'])) { toast('Không có quyền!','error'); return; }
+    showLoad();
+    try {
+        // ★ API: undoTask(token, child_id, task_id)
+        const r = await apiCall('undoTask', { child_id:childId, task_id:taskId });
+        if (r.success) {
+            const today = todayStr();
+            const ex = S.dailyStatus.find(d =>
+                d.child_id===childId && d.task_id===taskId && d.date===today);
+            if (ex) ex.status = 'undone';
+            if (r.removed_transaction_id)
+                S.transactions = S.transactions.filter(t => t.transaction_id !== r.removed_transaction_id);
+            toast('↩️ Đã hoàn tác!','info');
+            renderToday(); renderLeaderboard(); renderRecentHistory();
+        } else { toast(r.message ?? 'Lỗi!','error'); }
+    } catch { toast('Lỗi kết nối!','error'); }
+    finally { hideLoad(); }
+}
+
+/** Thêm điểm thưởng / phạt — admin / scorer */
+async function doBonusPenalty() {
+    if (!can(['admin','scorer'])) return;
+    const childId = document.getElementById('bp-child').value;
+    const type    = document.querySelector('input[name="bp-type"]:checked')?.value;
+    const reason  = document.getElementById('bp-reason').value.trim();
+    const points  = parseInt(document.getElementById('bp-points').value);
+
+    if (!childId)          { toast('Vui lòng chọn bé!','warning');              return; }
+    if (!reason)           { toast('Vui lòng nhập lý do!','warning');            return; }
+    if (!points || points < 1) { toast('Số điểm phải lớn hơn 0!','warning');   return; }
+
+    showLoad();
+    try {
+        // ★ API: addBonusPenalty(token, child_id, type, reason, points)
+        const r = await apiCall('addBonusPenalty', { child_id:childId, type, reason, points });
+        if (r.success) {
+            if (r.transaction) S.transactions.push(r.transaction);
+            document.getElementById('bp-child').value  = '';
+            document.getElementById('bp-reason').value = '';
+            document.getElementById('bp-points').value = '';
+            if (type==='bonus') confetti();
+            toast(`${type==='bonus'?'🎉 Đã thưởng':'😔 Đã phạt'} ${points} điểm!`,
+                  type==='bonus' ? 'success':'warning');
+            renderToday(); renderLeaderboard(); renderRecentHistory();
+        } else { toast(r.message ?? 'Lỗi!','error'); }
+    } catch { toast('Lỗi kết nối!','error'); }
+    finally { hideLoad(); }
+}
+
+/** Mở modal đổi thưởng */
+function openRedeem(rewardId, rewardName, requiredPts, icon) {
+    pendingRedeem = { rewardId, rewardName, requiredPts:parseInt(requiredPts), icon };
+    let body = `
+    <div class="text-center mb-4">
+        <div class="text-5xl float-anim mb-2">${icon}</div>
+        <h4 class="font-bold text-base">${rewardName}</h4>
+        <p class="text-yellow-300 font-bold mt-1">⭐ ${requiredPts} điểm</p>
+    </div>`;
+
+    if (S.session.role === 'viewer') {
+        // Viewer: tự động dùng child_id của chính mình
+        const child = S.children.find(c => c.child_id === S.session.child_id);
+        const myPts = totalPts(S.session.child_id);
+        pendingRedeem.childId = S.session.child_id;
+        body += `<p class="text-center text-sm text-white/60">Đổi cho: <strong class="text-white">${child?.child_name??''}</strong></p>
+                 <p class="text-center text-xs text-white/40 mt-1">Điểm hiện có: ${myPts} ⭐ → Còn lại: ${myPts - parseInt(requiredPts)} ⭐</p>`;
+    } else {
+        // Admin/scorer chọn bé
+        body += `
+        <div>
+            <label class="block text-sm text-white/70 mb-1.5">Đổi cho bé:</label>
+            <select id="redeem-child-sel" class="inp">
+                <option value="">-- Chọn bé --</option>
+                ${S.children.map(c => `<option value="${c.child_id}">${c.child_name} — ${totalPts(c.child_id)} điểm</option>`).join('')}
+            </select>
+        </div>`;
+    }
+
+    document.getElementById('redeem-body').innerHTML = body;
+    document.getElementById('modal-redeem').classList.remove('hidden');
+}
+
+/** Xác nhận đổi thưởng */
+async function doRedeemConfirm() {
+    if (!pendingRedeem) return;
+
+    let childId = pendingRedeem.childId;
+    if (can(['admin','scorer'])) {
+        childId = document.getElementById('redeem-child-sel')?.value;
+        if (!childId) { toast('Vui lòng chọn bé!','warning'); return; }
+    }
+    if (!childId) { toast('Không xác định được bé!','error'); return; }
+
+    const pts = totalPts(childId);
+    if (pts < pendingRedeem.requiredPts) {
+        toast(`Không đủ điểm! Cần ${pendingRedeem.requiredPts}, đang có ${pts}.`,'error');
+        return;
+    }
+
+    showLoad();
+    try {
+        // ★ API: redeemReward(token, child_id, reward_id)
+        // Server sẽ:  1) ghi RewardRedemptions,
+        //             2) ghi ScoreTransactions(type=reward_redeem, points âm)
+        const r = await apiCall('redeemReward', {
+            child_id:  childId,
+            reward_id: pendingRedeem.rewardId,
+        });
+        if (r.success) {
+            if (r.transaction) S.transactions.push(r.transaction);
+            if (r.redemption)  S.redemptions.unshift(r.redemption);
+            confetti();
+            toast(`🎉 Đã đổi "${pendingRedeem.rewardName}"!`);
+            document.getElementById('modal-redeem').classList.add('hidden');
+            pendingRedeem = null;
+            renderRewards(); renderToday(); renderLeaderboard();
+        } else { toast(r.message ?? 'Lỗi!','error'); }
+    } catch { toast('Lỗi kết nối!','error'); }
+    finally { hideLoad(); }
+}
+
+/** Thêm nhiệm vụ mới — admin only */
+async function doAddTask() {
+    if (!can(['admin'])) return;
+    const name   = document.getElementById('nt-name').value.trim();
+    const cat    = document.getElementById('nt-cat').value;
+    const pts    = parseInt(document.getElementById('nt-pts').value);
+    const assign = document.getElementById('nt-assign').value;
+    if (!name)         { toast('Vui lòng nhập tên nhiệm vụ!','warning'); return; }
+    if (!pts || pts<1) { toast('Điểm phải lớn hơn 0!','warning');        return; }
+
+    showLoad();
+    try {
+        // ★ API: addTask(token, task_name, category, points, assigned_to)
+        const r = await apiCall('addTask', { task_name:name, category:cat, points:pts, assigned_to:assign });
+        if (r.success) {
+            if (r.task) S.tasks.push(r.task);
+            document.getElementById('nt-name').value = '';
+            document.getElementById('nt-pts').value  = '';
+            toast('✅ Đã thêm nhiệm vụ mới!');
+            renderTasks(); renderToday(); renderSettings();
+        } else { toast(r.message ?? 'Lỗi!','error'); }
+    } catch { toast('Lỗi kết nối!','error'); }
+    finally { hideLoad(); }
+}
+
+/** Thêm phần thưởng mới — admin only */
+async function doAddReward() {
+    if (!can(['admin'])) return;
+    const name = document.getElementById('nr-name').value.trim();
+    const pts  = parseInt(document.getElementById('nr-pts').value);
+    const icon = document.getElementById('nr-icon').value.trim() || '🎁';
+    if (!name)         { toast('Vui lòng nhập tên phần thưởng!','warning'); return; }
+    if (!pts || pts<1) { toast('Điểm phải lớn hơn 0!','warning');            return; }
+
+    showLoad();
+    try {
+        // ★ API: addReward(token, reward_name, required_points, icon)
+        const r = await apiCall('addReward', { reward_name:name, required_points:pts, icon });
+        if (r.success) {
+            if (r.reward) S.rewards.push(r.reward);
+            document.getElementById('nr-name').value = '';
+            document.getElementById('nr-pts').value  = '';
+            document.getElementById('nr-icon').value = '';
+            toast('🎁 Đã thêm phần thưởng!');
+            renderRewards();
+        } else { toast(r.message ?? 'Lỗi!','error'); }
+    } catch { toast('Lỗi kết nối!','error'); }
+    finally { hideLoad(); }
+}
+
+/* ──────────────────────────────────────────────────────────
+   §11  TAB SWITCHING
+────────────────────────────────────────────────────────── */
+function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.tab === name));
+    document.querySelectorAll('.tab-pane').forEach(p =>
+        p.classList.toggle('hidden', p.id !== `tab-${name}`));
+}
+
+/* ──────────────────────────────────────────────────────────
+   §12  EVENT LISTENERS
+────────────────────────────────────────────────────────── */
+function bindEvents() {
+    // ── Login ─────────────────────────────────────────
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
+    document.getElementById('btn-eye').addEventListener('click', () => {
+        const inp = document.getElementById('f-pass');
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+    });
+
+    // ── Logout + Refresh ───────────────────────────────
+    document.getElementById('btn-logout').addEventListener('click', handleLogout);
+    document.getElementById('btn-refresh').addEventListener('click', () => fetchAll());
+
+    // ── Tab navigation ─────────────────────────────────
+    document.querySelectorAll('.tab-btn').forEach(b =>
+        b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+    // ── Task category filter ───────────────────────────
+    document.querySelectorAll('.task-filter').forEach(b =>
+        b.addEventListener('click', () => {
+            document.querySelectorAll('.task-filter').forEach(x => {
+                x.classList.remove('active','bg-yellow-500/20','text-yellow-300','border-yellow-500/50');
+                x.classList.add('border-white/20','text-white/50');
+            });
+            b.classList.add('active','bg-yellow-500/20','text-yellow-300','border-yellow-500/50');
+            b.classList.remove('border-white/20','text-white/50');
+            S.taskFilter = b.dataset.cat;
+            renderTasks();
+        })
+    );
+
+    // ── Bonus submit ───────────────────────────────────
+    document.getElementById('btn-bp').addEventListener('click', doBonusPenalty);
+
+    // ── Settings buttons ───────────────────────────────
+    document.getElementById('btn-add-task').addEventListener('click', doAddTask);
+    document.getElementById('btn-add-reward').addEventListener('click', doAddReward);
+
+    document.getElementById('btn-reset-today').addEventListener('click', () =>
+        showConfirm('Đặt lại trạng thái nhiệm vụ hôm nay?\n(Hành động không thể hoàn tác)', async () => {
+            showLoad();
+            try {
+                const r = await apiCall('resetToday');
+                if (r.success) { await fetchAll(); toast('✅ Đã đặt lại nhiệm vụ hôm nay!'); }
+                else toast(r.message ?? 'Lỗi!','error');
+            } catch { toast('Lỗi kết nối!','error'); }
+            finally { hideLoad(); }
+        })
+    );
+
+    document.getElementById('btn-reset-week').addEventListener('click', () =>
+        showConfirm('Đặt lại điểm tuần cho tất cả bé?\n(Hành động không thể hoàn tác)', async () => {
+            showLoad();
+            try {
+                const r = await apiCall('resetWeek');
+                if (r.success) { await fetchAll(); toast('✅ Đã đặt lại điểm tuần!'); }
+                else toast(r.message ?? 'Lỗi!','error');
+            } catch { toast('Lỗi kết nối!','error'); }
+            finally { hideLoad(); }
+        })
+    );
+
+    // ── Custom Confirm Modal ───────────────────────────
+    document.getElementById('confirm-yes').addEventListener('click', () => {
+        document.getElementById('modal-confirm').classList.add('hidden');
+        if (typeof confirmCallback === 'function') confirmCallback();
+        confirmCallback = null;
+    });
+    document.getElementById('confirm-no').addEventListener('click', () => {
+        document.getElementById('modal-confirm').classList.add('hidden');
+        confirmCallback = null;
+    });
+    document.getElementById('modal-confirm').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-confirm')) {
+            document.getElementById('modal-confirm').classList.add('hidden');
+            confirmCallback = null;
+        }
+    });
+
+    // ── Redeem Modal ───────────────────────────────────
+    document.getElementById('redeem-ok').addEventListener('click', doRedeemConfirm);
+    document.getElementById('redeem-cancel').addEventListener('click', () => {
+        document.getElementById('modal-redeem').classList.add('hidden');
+        pendingRedeem = null;
+    });
+    document.getElementById('modal-redeem').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-redeem')) {
+            document.getElementById('modal-redeem').classList.add('hidden');
+            pendingRedeem = null;
+        }
+    });
+}
+
+/* ──────────────────────────────────────────────────────────
+   §13  APP BOOT
+────────────────────────────────────────────────────────── */
+
+/** Gọi sau khi login thành công hoặc session đã hợp lệ */
+async function bootApp() {
+    document.getElementById('screen-login').classList.add('hidden');
+    document.getElementById('screen-app').classList.remove('hidden');
+    applyRoleUI();
+    await fetchAll();
+    switchTab('today');
+}
+
+/** Entry point chính */
+async function main() {
+    buildStars();
+    bindEvents();
+
+    // Kiểm tra session đã lưu trong localStorage
+    const stored = loadSession();
+    if (stored?.token) {
+        S.session = stored;
+        try {
+            // ★ API: validateSession(token)
+            const r = await apiCall('validateSession');
+            if (r.success) {
+                // Cập nhật session nếu server trả về thông tin mới hơn
+                saveSession({
+                    ...stored,
+                    display_name: r.user?.display_name ?? stored.display_name,
+                    role:         r.user?.role         ?? stored.role,
+                    child_id:     r.user?.child_id     ?? stored.child_id,
+                });
+                await bootApp();
+                return;  // Không hiện login screen
+            }
+        } catch (err) {
+            console.warn('Session check failed:', err);
+        }
+        clearSession();  // Token không hợp lệ → xóa
+    }
+    // Login screen hiển thị mặc định (đã có trong HTML)
+}
+
+// Khởi động app
+main();
+</script>
+
+
+</body></html>
