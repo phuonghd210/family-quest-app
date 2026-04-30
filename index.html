@@ -963,7 +963,7 @@
 // ============================================================
 // CONFIG — ĐỔI URL NÀY
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbxJwpMxT1gMADbf8CGcCZDkRsX68uwHh4_1lquJ8ryg3icDns4LEVByTVFyMtJEXsqo/exec';
+const _URL = 'https://script.google.com/macros/s/AKfycbxJwpMxT1gMADbf8CGcCZDkRsX68uwHh4_1lquJ8ryg3icDns4LEVByTVFyMtJEXsqo/exec';
 
 // ============================================================
 // STATE
@@ -984,26 +984,21 @@ let S = {
 };
 
 // ============================================================
-// API HELPER
+//  HELPER
 // ============================================================
 async function api(action, data = {}) {
     const payload = { action, ...data };
-
-    // Đính token nếu có
     if (S.token && !payload.token) payload.token = S.token;
 
     const res = await fetch(API_URL, {
         method:   'POST',
-        redirect: 'follow',          // ← FIX chính cho lỗi 302
-        headers:  { 'Content-Type': 'application/json' },
+        redirect: 'follow',
+        headers:  { 'Content-Type': 'text/plain;charset=utf-8' }, // ← SỬA chỗ này
         body:     JSON.stringify(payload)
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    const json = await res.json();
-    console.log(`api [${action}] →`, json);  // debug
-    return json;
+    return await res.json();
 }
 
 // ============================================================
