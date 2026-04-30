@@ -311,6 +311,668 @@
 
     /* ── Stats mini-card colors ───────────────────────── */
     /* Subtle color distinction for today/week stat boxes in child cards */
+
+
+    /* ══════════════════════════════════════════════════════
+       KIMETSU KIDS-FRIENDLY UI SKIN — UI ONLY, NO LOGIC
+       ══════════════════════════════════════════════════════ */
+    :root {
+        --tanjiro-green: #0f766e;
+        --tanjiro-dark: #052e2b;
+        --tanjiro-check: #14532d;
+        --nezuko-pink: #f9a8d4;
+        --nezuko-rose: #be185d;
+        --sakura-soft: #fff1f7;
+        --paper-white: #fffdf8;
+        --ink-dark: #1f2937;
+    }
+
+    @keyframes gentleBounce { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-8px) scale(1.03)} }
+    @keyframes softWiggle { 0%,100%{transform:rotate(-2deg)} 50%{transform:rotate(2deg)} }
+    @keyframes sakuraFall { 0%{transform:translate3d(0,-15vh,0) rotate(0deg);opacity:0} 10%{opacity:.95} 100%{transform:translate3d(var(--drift,40px),110vh,0) rotate(360deg);opacity:0} }
+    @keyframes breathingGlow { 0%,100%{box-shadow:0 16px 48px rgba(0,0,0,.24),0 0 0 2px rgba(249,168,212,.18)} 50%{box-shadow:0 20px 60px rgba(0,0,0,.30),0 0 28px rgba(20,184,166,.28),0 0 0 2px rgba(255,255,255,.35)} }
+    @keyframes checkPulse { 0%,100%{background-position:0 0} 50%{background-position:34px 34px} }
+
+    body {
+        background:
+            radial-gradient(circle at 12% 18%, rgba(249,168,212,.35), transparent 26%),
+            radial-gradient(circle at 88% 12%, rgba(20,184,166,.28), transparent 28%),
+            radial-gradient(circle at 50% 100%, rgba(251,146,60,.22), transparent 34%),
+            linear-gradient(135deg, #071b1a 0%, #064e3b 24%, #7f1d1d 52%, #9d174d 76%, #f9a8d4 100%) !important;
+        background-attachment: fixed !important;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        opacity: .12;
+        background-image:
+            linear-gradient(45deg, rgba(255,255,255,.9) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(255,255,255,.9) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(255,255,255,.9) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.9) 75%);
+        background-size: 42px 42px;
+        background-position: 0 0, 0 21px, 21px -21px, -21px 0px;
+        animation: checkPulse 12s ease-in-out infinite;
+    }
+
+    .glass, .glass2 {
+        border-color: rgba(255,255,255,.38) !important;
+    }
+
+    #screen-login {
+        overflow: hidden;
+    }
+
+    #screen-login .glass2 {
+        background: rgba(255,253,248,.94) !important;
+        color: var(--ink-dark);
+        border: 3px solid rgba(255,255,255,.72) !important;
+        animation: bounceIn .5s ease-out both, breathingGlow 4s ease-in-out infinite;
+    }
+
+    #screen-login .grad,
+    #screen-login h1.grad {
+        background: linear-gradient(135deg, var(--tanjiro-green), var(--nezuko-rose), #f97316) !important;
+        background-size: 220% !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+    }
+
+    #screen-login p,
+    #screen-login label {
+        color: #475569 !important;
+    }
+
+    #screen-login .inp {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border: 2px solid rgba(15,118,110,.28) !important;
+        min-height: 52px;
+    }
+
+    #screen-login .inp::placeholder {
+        color: #94a3b8 !important;
+    }
+
+    #screen-login .inp:focus {
+        border-color: var(--nezuko-rose) !important;
+        box-shadow: 0 0 0 5px rgba(249,168,212,.28), 0 8px 22px rgba(15,118,110,.10) !important;
+    }
+
+    .kimetsu-login-character {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+        width: clamp(96px, 18vw, 220px);
+        min-height: clamp(190px, 32vw, 360px);
+        border-radius: 34px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-align: center;
+        user-select: none;
+        pointer-events: none;
+        filter: drop-shadow(0 18px 24px rgba(0,0,0,.24));
+    }
+
+    .kimetsu-login-character .character-face {
+        width: clamp(76px, 13vw, 150px);
+        height: clamp(76px, 13vw, 150px);
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        font-size: clamp(2.8rem, 7vw, 6.5rem);
+        background: rgba(255,255,255,.88);
+        border: 4px solid rgba(255,255,255,.85);
+        animation: gentleBounce 3.2s ease-in-out infinite;
+    }
+
+    .kimetsu-login-character .character-name {
+        font-weight: 900;
+        font-size: clamp(.75rem, 1.8vw, 1.05rem);
+        line-height: 1.15;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.86);
+        color: #111827;
+        border: 2px solid rgba(255,255,255,.72);
+    }
+
+    .kimetsu-login-character .character-hint {
+        font-size: clamp(.7rem, 1.4vw, .9rem);
+        font-weight: 800;
+        color: rgba(255,255,255,.88);
+        text-shadow: 0 2px 8px rgba(0,0,0,.28);
+    }
+
+    .tanjiro-side {
+        left: max(14px, calc((100vw - 760px) / 2 - 250px));
+        background:
+            linear-gradient(45deg, rgba(5,46,43,.78) 25%, rgba(20,83,45,.78) 25% 50%, rgba(5,46,43,.78) 50% 75%, rgba(20,83,45,.78) 75%),
+            linear-gradient(135deg, rgba(20,184,166,.34), rgba(6,78,59,.24));
+        background-size: 42px 42px, auto;
+    }
+
+    .nezuko-side {
+        right: max(14px, calc((100vw - 760px) / 2 - 250px));
+        background:
+            radial-gradient(circle at 50% 28%, rgba(255,255,255,.42), transparent 22%),
+            linear-gradient(135deg, rgba(249,168,212,.86), rgba(190,24,93,.70));
+    }
+
+    .nezuko-side .character-face { animation-delay: .5s; }
+    .tanjiro-side .character-name { color: #064e3b; }
+    .nezuko-side .character-name { color: #9d174d; }
+
+    .demon-slayer-chip {
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.82);
+        border: 2px solid rgba(15,118,110,.16);
+        color: #334155;
+        font-weight: 900;
+        font-size: .78rem;
+        margin-top: 10px;
+    }
+
+    #btn-login {
+        background: linear-gradient(90deg, #0f766e, #16a34a, #f9a8d4, #be185d, #0f766e) !important;
+        background-size: 360% !important;
+        color: white !important;
+        min-height: 58px;
+        border: 3px solid rgba(255,255,255,.75);
+        text-shadow: 0 2px 8px rgba(0,0,0,.22);
+    }
+
+    #btn-eye { color: #64748b !important; }
+
+    header.glass {
+        background: linear-gradient(135deg, rgba(6,78,59,.82), rgba(157,23,77,.62)) !important;
+    }
+
+    .tab-btn.active, .task-filter.active {
+        background: linear-gradient(135deg, #f9a8d4, #ffffff, #34d399) !important;
+        color: #052e2b !important;
+        border-color: rgba(255,255,255,.82) !important;
+    }
+
+    .tab-btn:not(.active), .task-filter:not(.active) {
+        min-height: 42px;
+    }
+
+    #tab-tasks,
+    #tab-bonus,
+    #tab-settings,
+    #tab-history,
+    #tab-leaderboard {
+        color: var(--ink-dark);
+    }
+
+    #tab-tasks > .text-center,
+    #tab-bonus > .text-center,
+    #tab-settings > .text-center,
+    #tab-history > .text-center,
+    #tab-leaderboard > .text-center,
+    #tab-rewards > .text-center {
+        color: white;
+    }
+
+    #tab-tasks #tasks-list > div,
+    #tab-tasks .task-row,
+    #tab-bonus .glass,
+    #tab-settings .glass,
+    #tab-history .glass,
+    #tab-leaderboard .glass {
+        background: rgba(255,253,248,.96) !important;
+        color: var(--ink-dark) !important;
+        border-color: rgba(15,118,110,.14) !important;
+        box-shadow: 0 12px 28px rgba(15,23,42,.16) !important;
+    }
+
+    #tab-tasks #tasks-list > div > p,
+    #tab-tasks .task-row p,
+    #tab-tasks .task-row span,
+    #tab-bonus label,
+    #tab-settings h3,
+    #tab-history h3,
+    #tab-leaderboard h3 {
+        color: var(--ink-dark) !important;
+    }
+
+    #tab-tasks .task-row:hover {
+        background: #fff7ed !important;
+        transform: translateX(4px) scale(1.01);
+    }
+
+    #tab-bonus .inp,
+    #tab-settings .inp {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: rgba(15,118,110,.24) !important;
+    }
+
+    #tab-bonus .inp::placeholder,
+    #tab-settings .inp::placeholder { color:#94a3b8 !important; }
+    #tab-bonus select.inp option,
+    #tab-settings select.inp option { background:#ffffff; color:#111827; }
+
+    #rewards-grid .glass,
+    #redemption-bar,
+    #modal-redeem .glass2,
+    #modal-confirm .glass2,
+    #toast .glass2 {
+        background: rgba(255,253,248,.95) !important;
+        color: var(--ink-dark) !important;
+    }
+
+    #tab-rewards {
+        position: relative;
+    }
+
+    #tab-rewards::before,
+    #tab-rewards::after {
+        content: '🌸';
+        position: fixed;
+        top: -12vh;
+        z-index: 2;
+        pointer-events: none;
+        font-size: 24px;
+        opacity: 0;
+        animation: sakuraFall 7s linear infinite;
+    }
+
+    #tab-rewards::before { left: 18%; --drift: 120px; animation-delay: .2s; }
+    #tab-rewards::after { left: 72%; --drift: -100px; animation-delay: 2.4s; }
+
+    .reward-sakura-field {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    #screen-app button,
+    #screen-login button {
+        min-height: 42px;
+        touch-action: manipulation;
+    }
+
+    #loading .glass2 {
+        background: rgba(255,253,248,.94) !important;
+        color: #111827 !important;
+    }
+
+    @media (max-width: 980px) {
+        .kimetsu-login-character {
+            opacity: .32;
+            width: 108px;
+            min-height: 150px;
+            top: auto;
+            bottom: 18px;
+        }
+        .tanjiro-side { left: 8px; }
+        .nezuko-side { right: 8px; }
+        .kimetsu-login-character .character-name,
+        .kimetsu-login-character .character-hint { display:none; }
+        #screen-login .glass2 { max-width: 430px; }
+    }
+
+    @media (max-width: 640px) {
+        body { font-size: 17px; }
+        #screen-login { align-items: flex-start; padding-top: 34px; }
+        #screen-login .glass2 { padding: 22px !important; border-radius: 28px; }
+        #screen-login h1 { font-size: 2rem !important; }
+        #screen-login .text-8xl { font-size: 4.8rem !important; }
+        .inp { font-size: 1rem; padding: 14px 16px; }
+        .task-row { border-radius: 20px; }
+        #tasks-list .task-row { padding: 14px !important; }
+        .tab-btn { padding-left: 14px !important; padding-right: 14px !important; }
+        #toast { left: 12px; right: 12px; max-width: none; }
+    }
+
+    /* ══════════════════════════════════════════════════════
+       BRIGHT TANJIRO / NEZUKO PALETTE OVERRIDE — UI ONLY
+       ══════════════════════════════════════════════════════ */
+    :root {
+        --tanjiro-green: #22c55e;
+        --tanjiro-green-bright: #86efac;
+        --tanjiro-green-soft: #dcfce7;
+        --tanjiro-black: #111827;
+        --tanjiro-check: #16a34a;
+        --nezuko-pink: #fb7185;
+        --nezuko-pink-bright: #f9a8d4;
+        --nezuko-pink-soft: #fce7f3;
+        --nezuko-black: #1f1720;
+        --sakura-soft: #fff7fb;
+        --paper-white: #ffffff;
+        --ink-dark: #1f2937;
+    }
+
+    body {
+        background:
+            radial-gradient(circle at 10% 14%, rgba(134,239,172,.58), transparent 25%),
+            radial-gradient(circle at 90% 13%, rgba(249,168,212,.62), transparent 27%),
+            radial-gradient(circle at 42% 92%, rgba(253,224,71,.30), transparent 28%),
+            linear-gradient(135deg, #ecfdf5 0%, #bbf7d0 22%, #86efac 42%, #fbcfe8 70%, #fdf2f8 100%) !important;
+        color: var(--ink-dark) !important;
+    }
+
+    body::before {
+        opacity: .20 !important;
+        background-image:
+            linear-gradient(45deg, rgba(17,24,39,.16) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(17,24,39,.16) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(17,24,39,.16) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(17,24,39,.16) 75%) !important;
+    }
+
+    .glass {
+        background: rgba(255,255,255,.78) !important;
+        color: var(--ink-dark) !important;
+        border-color: rgba(34,197,94,.22) !important;
+        box-shadow: 0 12px 30px rgba(15,23,42,.12), inset 0 1px 0 rgba(255,255,255,.72) !important;
+    }
+
+    .glass2 {
+        background: rgba(255,255,255,.92) !important;
+        color: var(--ink-dark) !important;
+        border-color: rgba(255,255,255,.82) !important;
+        box-shadow: 0 18px 56px rgba(15,23,42,.18), inset 0 1px 0 rgba(255,255,255,.82) !important;
+    }
+
+    .grad,
+    #screen-login .grad,
+    #screen-login h1.grad {
+        background: linear-gradient(135deg, #16a34a, #22c55e, #fb7185, #f472b6) !important;
+        background-size: 240% !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+    }
+
+    #screen-login .glass2 {
+        background:
+            linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,247,251,.94)),
+            radial-gradient(circle at 18% 0%, rgba(134,239,172,.22), transparent 30%),
+            radial-gradient(circle at 84% 10%, rgba(249,168,212,.25), transparent 32%) !important;
+        border: 4px solid rgba(255,255,255,.88) !important;
+    }
+
+    #screen-login .inp,
+    #tab-bonus .inp,
+    #tab-settings .inp {
+        border-color: rgba(34,197,94,.35) !important;
+        background: #ffffff !important;
+        color: #111827 !important;
+    }
+
+    #screen-login .inp:focus,
+    #tab-bonus .inp:focus,
+    #tab-settings .inp:focus {
+        border-color: #fb7185 !important;
+        box-shadow: 0 0 0 5px rgba(251,113,133,.20), 0 8px 22px rgba(34,197,94,.12) !important;
+    }
+
+    #btn-login,
+    .shimmer-bg {
+        background: linear-gradient(90deg, #22c55e, #86efac, #ffffff, #f9a8d4, #fb7185, #22c55e) !important;
+        background-size: 420% !important;
+        color: #102016 !important;
+        text-shadow: none !important;
+        border-color: rgba(255,255,255,.92) !important;
+    }
+
+    header.glass,
+    nav.glass {
+        background: linear-gradient(135deg, rgba(236,253,245,.92), rgba(252,231,243,.88)) !important;
+        border-color: rgba(34,197,94,.24) !important;
+    }
+
+    header.glass .grad,
+    header.glass h1,
+    nav.glass .tab-btn {
+        color: #111827 !important;
+    }
+
+    #hdr-hello { color: #334155 !important; }
+
+    .tab-btn.active,
+    .task-filter.active {
+        background: linear-gradient(135deg, #86efac, #ffffff, #f9a8d4) !important;
+        color: #111827 !important;
+        border-color: rgba(17,24,39,.10) !important;
+        box-shadow: 0 8px 22px rgba(34,197,94,.22) !important;
+    }
+
+    .tab-btn:not(.active):hover,
+    .task-filter:not(.active):hover {
+        background: rgba(255,255,255,.72) !important;
+    }
+
+    #tab-tasks #tasks-list > div,
+    #tab-tasks .task-row,
+    #tab-bonus .glass,
+    #tab-settings .glass,
+    #tab-history .glass,
+    #tab-leaderboard .glass,
+    #rewards-grid .glass,
+    #redemption-bar {
+        background: rgba(255,255,255,.95) !important;
+        color: var(--ink-dark) !important;
+        border-color: rgba(34,197,94,.18) !important;
+        box-shadow: 0 12px 28px rgba(15,23,42,.10) !important;
+    }
+
+    #tab-tasks .task-row:hover {
+        background: linear-gradient(90deg, #f0fdf4, #fdf2f8) !important;
+    }
+
+    .tanjiro-side {
+        background:
+            linear-gradient(45deg, rgba(17,24,39,.92) 25%, rgba(34,197,94,.92) 25% 50%, rgba(17,24,39,.92) 50% 75%, rgba(34,197,94,.92) 75%),
+            linear-gradient(135deg, rgba(134,239,172,.88), rgba(34,197,94,.70)) !important;
+        background-size: 42px 42px, auto !important;
+        border: 4px solid rgba(255,255,255,.82);
+    }
+
+    .nezuko-side {
+        background:
+            radial-gradient(circle at 50% 18%, rgba(255,255,255,.62), transparent 20%),
+            linear-gradient(135deg, rgba(252,231,243,.96), rgba(249,168,212,.92) 55%, rgba(31,23,32,.78)) !important;
+        border: 4px solid rgba(255,255,255,.82);
+    }
+
+    .kimetsu-login-character .character-name {
+        background: rgba(255,255,255,.94) !important;
+        border-color: rgba(255,255,255,.95) !important;
+    }
+
+    .kimetsu-login-character .character-hint {
+        color: #ffffff !important;
+        text-shadow: 0 2px 8px rgba(0,0,0,.45) !important;
+    }
+
+    .character-portrait {
+        position: relative;
+        width: clamp(92px, 13vw, 170px);
+        height: clamp(132px, 20vw, 245px);
+        border-radius: 999px 999px 28px 28px;
+        background: rgba(255,255,255,.92);
+        border: 5px solid rgba(255,255,255,.96);
+        overflow: hidden;
+        animation: gentleBounce 3.2s ease-in-out infinite;
+        box-shadow: 0 16px 30px rgba(15,23,42,.22);
+    }
+
+    .character-portrait::before,
+    .character-portrait::after {
+        content: '';
+        position: absolute;
+        pointer-events: none;
+    }
+
+    .character-portrait .head {
+        position: absolute;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 54%;
+        height: 34%;
+        background: #ffd7b5;
+        border-radius: 50% 50% 45% 45%;
+        z-index: 3;
+        box-shadow: inset 0 -7px 0 rgba(180,83,9,.10);
+    }
+
+    .character-portrait .hair {
+        position: absolute;
+        top: 10%;
+        left: 22%;
+        width: 56%;
+        height: 30%;
+        background: #2b1712;
+        border-radius: 50% 50% 45% 45%;
+        z-index: 4;
+    }
+
+    .character-portrait .hair::before,
+    .character-portrait .hair::after {
+        content:'';
+        position:absolute;
+        bottom:-18%;
+        width: 24%;
+        height: 55%;
+        background: inherit;
+        border-radius: 50%;
+    }
+
+    .character-portrait .hair::before { left: -8%; transform: rotate(18deg); }
+    .character-portrait .hair::after { right: -8%; transform: rotate(-18deg); }
+
+    .character-portrait .eyes {
+        position: absolute;
+        top: 43%;
+        left: 29%;
+        width: 42%;
+        height: 5%;
+        z-index: 5;
+        background:
+            radial-gradient(circle at 20% 50%, #111827 0 28%, transparent 30%),
+            radial-gradient(circle at 80% 50%, #111827 0 28%, transparent 30%);
+    }
+
+    .character-portrait .smile {
+        position: absolute;
+        top: 51%;
+        left: 43%;
+        width: 14%;
+        height: 7%;
+        border-bottom: 3px solid rgba(17,24,39,.72);
+        border-radius: 0 0 999px 999px;
+        z-index: 5;
+    }
+
+    .character-portrait .body {
+        position: absolute;
+        left: 50%;
+        bottom: -3%;
+        transform: translateX(-50%);
+        width: 72%;
+        height: 44%;
+        border-radius: 28px 28px 12px 12px;
+        z-index: 2;
+    }
+
+    .character-portrait .accessory {
+        position: absolute;
+        z-index: 6;
+    }
+
+    .tanjiro-portrait {
+        background: linear-gradient(180deg, #dcfce7, #ffffff 54%, #bbf7d0);
+    }
+
+    .tanjiro-portrait::before {
+        left: 10%;
+        bottom: 9%;
+        width: 80%;
+        height: 38%;
+        background-image:
+            linear-gradient(45deg, rgba(17,24,39,.92) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(17,24,39,.92) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(17,24,39,.92) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(17,24,39,.92) 75%);
+        background-color: #22c55e;
+        background-size: 26px 26px;
+        background-position: 0 0, 0 13px, 13px -13px, -13px 0;
+        border-radius: 24px 24px 8px 8px;
+        z-index: 1;
+    }
+
+    .tanjiro-portrait .hair { background: #291712; }
+    .tanjiro-portrait .body { background: #111827; }
+    .tanjiro-portrait .accessory {
+        left: 16%;
+        top: 44%;
+        width: 15%;
+        height: 20%;
+        border-radius: 999px;
+        background: #ef4444;
+        box-shadow: calc(clamp(92px, 13vw, 170px) * .53) 0 0 #ef4444;
+    }
+
+    .nezuko-portrait {
+        background: linear-gradient(180deg, #fdf2f8, #ffffff 48%, #fbcfe8);
+        animation-delay: .45s;
+    }
+
+    .nezuko-portrait::before {
+        left: 20%;
+        top: 50%;
+        width: 60%;
+        height: 10%;
+        border-radius: 999px;
+        background: #86efac;
+        border: 3px solid rgba(34,197,94,.55);
+        z-index: 7;
+    }
+
+    .nezuko-portrait .hair { background: #26151c; }
+    .nezuko-portrait .hair::after { background: linear-gradient(#26151c 52%, #fb7185); }
+    .nezuko-portrait .body { background: linear-gradient(135deg, #f9a8d4, #fb7185); }
+    .nezuko-portrait .accessory {
+        right: 18%;
+        top: 20%;
+        width: 18%;
+        height: 10%;
+        border-radius: 999px 999px 999px 0;
+        background: #f9a8d4;
+        transform: rotate(26deg);
+        box-shadow: -12px 8px 0 rgba(249,168,212,.80);
+    }
+
+    @media (max-width: 980px) {
+        .character-portrait {
+            width: 92px;
+            height: 128px;
+        }
+    }
+
+
 </style>
 </head>
 <body class="text-white">
@@ -371,11 +1033,22 @@
      LOGIN SCREEN
 ════════════════════════════════════════════ -->
 <div id="screen-login" class="relative z-10 min-h-screen flex items-center justify-center p-4">
-    <!-- Floating deco emojis — bigger for kids -->
-    <span class="fixed top-8 left-8 text-5xl float-anim select-none" style="animation-delay:.4s">⭐</span>
-    <span class="fixed top-12 right-10 text-5xl float-anim select-none" style="animation-delay:1s">🌟</span>
-    <span class="fixed bottom-14 left-12 text-5xl float-anim select-none" style="animation-delay:1.7s">✨</span>
-    <span class="fixed bottom-10 right-8 text-5xl float-anim select-none" style="animation-delay:.9s">🎯</span>
+    <!-- Floating deco emojis — bigger for kids, Kimetsu-inspired -->
+    <span class="fixed top-8 left-8 text-5xl float-anim select-none" style="animation-delay:.4s">🌸</span>
+    <span class="fixed top-12 right-10 text-5xl float-anim select-none" style="animation-delay:1s">⚔️</span>
+    <span class="fixed bottom-14 left-12 text-5xl float-anim select-none" style="animation-delay:1.7s">🟩</span>
+    <span class="fixed bottom-10 right-8 text-5xl float-anim select-none" style="animation-delay:.9s">🎋</span>
+
+    <div class="kimetsu-login-character tanjiro-side" aria-hidden="true">
+        <div class="character-portrait tanjiro-portrait"><span class="hair"></span><span class="head"></span><span class="eyes"></span><span class="smile"></span><span class="body"></span><span class="accessory"></span></div>
+        <div class="character-name">Kamado Tanjiro</div>
+        <div class="character-hint">Hơi thở của sự cố gắng</div>
+    </div>
+    <div class="kimetsu-login-character nezuko-side" aria-hidden="true">
+        <div class="character-portrait nezuko-portrait"><span class="hair"></span><span class="head"></span><span class="eyes"></span><span class="smile"></span><span class="body"></span><span class="accessory"></span></div>
+        <div class="character-name">Kamado Nezuko</div>
+        <div class="character-hint">Dịu dàng nhưng mạnh mẽ</div>
+    </div>
 
     <div class="glass2 p-8 w-full max-w-md bounce-in relative">
         <!-- Hero -->
@@ -383,15 +1056,16 @@
             <div class="text-8xl float-anim inline-block mb-4">🏆</div>
             <h1 class="text-4xl font-black grad mb-2">Bảng Điểm Thưởng</h1>
             <p class="text-white/60 text-base font-semibold">Hành trình chinh phục mỗi ngày! ✨</p>
+            <div class="demon-slayer-chip">⚔️ Nhiệm vụ nhỏ · Sức mạnh lớn 🌸</div>
         </div>
 
         <form id="login-form" class="space-y-5" autocomplete="off">
             <div>
-                <label class="block text-white/80 text-sm font-black mb-2">👤 Tên đăng nhập</label>
+                <label class="block text-white/80 text-sm font-black mb-2">🧑‍🚀 Tên chiến binh</label>
                 <input id="f-user" type="text" placeholder="Nhập username..." class="inp" autocomplete="username" required="">
             </div>
             <div class="relative">
-                <label class="block text-white/80 text-sm font-black mb-2">🔒 Mật khẩu</label>
+                <label class="block text-white/80 text-sm font-black mb-2">🔐 Mật khẩu bí mật</label>
                 <input id="f-pass" type="password" placeholder="Nhập mật khẩu..." class="inp pr-14" autocomplete="current-password" required="">
                 <button type="button" id="btn-eye" class="absolute right-4 bottom-3 text-white/50 hover:text-white transition-colors text-2xl">👁️</button>
             </div>
