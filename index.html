@@ -1,1047 +1,523 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚔️ Bảng Điểm Thưởng – Kimetsu no Yaiba</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>🏆 Bảng Điểm Thưởng</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: #0a0f1e;
+      color: #e2e8f0;
+      font-size: 15px;
+    }
+    :root {
+      --red:    #c9184a;
+      --red-l:  #ff4d79;
+      --gold:   #f5c518;
+      --blue:   #4cc9f0;
+      --green:  #43aa8b;
+      --bg0:    #0a0f1e;
+      --bg1:    #131929;
+      --bg2:    #1e2840;
+      --bg3:    #243050;
+      --border: rgba(255,255,255,0.08);
+      --text:   #e2e8f0;
+      --dim:    #8892a4;
+      --radius: 14px;
+    }
 
-    <style>
-        .toast {
-    position: fixed;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: #1e293b;
-    color: #fff;
-    padding: 13px 24px;
-    border-radius: var(--r-full);
-    font-size: 15px; font-weight: 700;
-    opacity: 0;
-    transition: all .35s cubic-bezier(.34,1.56,.64,1);
-    z-index: 9999;
-    pointer-events: none;
-    white-space: nowrap;
-}
-.toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-}
-.toast.warn  { background: #f59e0b; color: #fff; }
-.toast.error { background: #ef4444; color: #fff; }
-.toast.ok    { background: var(--g600); color: #fff; }
-        /* ========================================
-           1. CSS VARIABLES
-        ======================================== */
-        :root {
-            --g50:  #f0fdf4; --g100: #dcfce7; --g200: #bbf7d0;
-            --g300: #86efac; --g400: #4ade80; --g500: #22c55e;
-            --g600: #16a34a; --g700: #15803d;
-            --p50:  #fdf2f8; --p100: #fce7f3; --p200: #fbcfe8;
-            --p300: #f9a8d4; --p400: #f472b6; --p500: #ec4899;
-            --p600: #db2777; --p700: #be185d;
-            --ink:  #1a1a2e;
-            --shadow-sm:    0 2px 8px  rgba(0,0,0,.08);
-            --shadow-md:    0 4px 20px rgba(0,0,0,.12);
-            --shadow-lg:    0 8px 40px rgba(0,0,0,.16);
-            --shadow-green: 0 4px 20px rgba(34,197,94,.35);
-            --shadow-pink:  0 4px 20px rgba(236,72,153,.35);
-            --r-sm: 14px; --r-md: 20px; --r-lg: 28px;
-            --r-xl: 36px; --r-full: 9999px;
-        }
+    /* LOADING */
+    #loading {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(10,15,30,0.88);
+      display: none; align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px;
+    }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid var(--bg3);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ========================================
-           2. RESET & BASE
-        ======================================== */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
+    /* TOAST */
+    #toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: var(--bg3); color: var(--text);
+      padding: 10px 20px; border-radius: 30px;
+      font-size: 14px; z-index: 8888;
+      opacity: 0; transition: opacity 0.3s;
+      max-width: 90vw; text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+    #toast.show    { opacity: 1; }
+    #toast.success { background: var(--green); }
+    #toast.error   { background: var(--red); }
+    #toast.warn    { background: #d97706; }
 
-        body {
-            font-family: 'Baloo 2', cursive;
-            min-height: 100vh;
-            color: var(--ink);
-            overflow-x: hidden;
-            background: var(--g50);
-        }
+    /* MODAL */
+    #modal-overlay {
+      position: fixed; inset: 0; z-index: 7777;
+      background: rgba(0,0,0,0.7);
+      display: none; align-items: center; justify-content: center;
+    }
+    #modal-overlay.show { display: flex; }
+    .modal-box {
+      background: var(--bg2); border-radius: var(--radius);
+      padding: 24px; max-width: 340px; width: 90%;
+      border: 1px solid var(--border);
+    }
+    .modal-box h3 { margin-bottom: 10px; font-size: 17px; }
+    .modal-box p  { color: var(--dim); font-size: 14px; margin-bottom: 20px; }
+    .modal-btns   { display: flex; gap: 10px; }
+    .modal-btns button {
+      flex: 1; padding: 10px; border-radius: 8px;
+      border: none; cursor: pointer; font-size: 14px; font-weight: 600;
+    }
+    .btn-confirm { background: var(--red); color: white; }
+    .btn-cancel  { background: var(--bg3); color: var(--text); }
 
-        /* ========================================
-           3. KEYFRAMES
-        ======================================== */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(22px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes bounceIn {
-            0%   { transform: scale(.75); opacity: 0; }
-            55%  { transform: scale(1.06); }
-            80%  { transform: scale(.97); }
-            100% { transform: scale(1);   opacity: 1; }
-        }
-        @keyframes wiggle {
-            0%,100% { transform: rotate(-5deg); }
-            50%     { transform: rotate(5deg);  }
-        }
-        @keyframes wiggleEl {
-            0%,100% { transform: rotate(-3deg) scale(1); }
-            50%     { transform: rotate(3deg)  scale(1.05); }
-        }
-        @keyframes float {
-            0%,100% { transform: translateY(0); }
-            50%     { transform: translateY(-13px); }
-        }
-        @keyframes floatMirror {
-            0%,100% { transform: translateY(0)    scaleX(-1); }
-            50%     { transform: translateY(-11px) scaleX(-1); }
-        }
-        @keyframes slideInLeft {
-            from { transform: translateX(-90px); opacity: 0; }
-            to   { transform: translateX(0);     opacity: 1; }
-        }
-        @keyframes slideInRight {
-            from { transform: translateX(90px); opacity: 0; }
-            to   { transform: translateX(0);    opacity: 1; }
-        }
-        @keyframes petalFall {
-            0%   { transform: translateY(-5vh) rotate(0deg)   translateX(0);    opacity: .95; }
-            25%  { transform: translateY(25vh) rotate(90deg)  translateX(28px); }
-            50%  { transform: translateY(52vh) rotate(180deg) translateX(-20px);}
-            75%  { transform: translateY(78vh) rotate(270deg) translateX(22px); }
-            100% { transform: translateY(108vh) rotate(360deg) translateX(0);   opacity: 0; }
-        }
-        @keyframes dotBounce {
-            0%,80%,100% { transform: translateY(0); }
-            40%         { transform: translateY(-11px); }
-        }
-        @keyframes pulse {
-            0%,100% { transform: scale(1); }
-            50%     { transform: scale(1.07); }
-        }
-        @keyframes spin180 {
-            from { transform: rotate(0deg); }
-            to   { transform: rotate(180deg); }
-        }
-        @keyframes shimmer {
-            0%   { background-position: -200% center; }
-            100% { background-position:  200% center; }
-        }
+    /* ============================================================
+       LOGIN — ✅ id="loginScreen"
+    ============================================================ */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 28px;
+      width: 100%; max-width: 380px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .login-logo { text-align: center; margin-bottom: 28px; }
+    .login-logo .logo-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+    .login-logo h1 { font-size: 20px; font-weight: 700; }
+    .login-logo p  { font-size: 13px; color: var(--dim); margin-top: 4px; }
 
-        /* ========================================
-           4. LOADING OVERLAY
-        ======================================== */
-        #loadingOverlay {
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(135deg,
-        var(--g400)  0%,  var(--g500)  42%,
-        var(--p300) 58%, var(--p500) 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
-    z-index: 9999;
-    opacity: 1;
-    transition: opacity 0.4s ease;
-}
+    .chars-row { display: flex; gap: 12px; margin-bottom: 24px; }
+    .char-btn {
+      flex: 1; background: var(--bg2);
+      border: 2px solid var(--border); border-radius: 12px;
+      padding: 12px 8px; cursor: pointer; text-align: center;
+      transition: border-color 0.2s, background 0.2s; color: var(--text);
+    }
+    .char-btn:hover  { border-color: var(--red); background: var(--bg3); }
+    .char-btn.active { border-color: var(--gold); background: var(--bg3); }
+    .char-btn .char-icon { font-size: 28px; display: block; margin-bottom: 4px; }
+    .char-btn .char-name { font-size: 12px; font-weight: 600; }
+    .char-btn .char-role { font-size: 11px; color: var(--dim); }
 
-#loadingOverlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-    display: none !important;
-}
-        #loadingOverlay .ld-icon {
-            font-size: 68px;
-            animation: wiggle .65s ease-in-out infinite;
-            filter: drop-shadow(0 4px 10px rgba(0,0,0,.25));
-        }
-        #loadingOverlay .ld-text {
-            font-size: 26px;
-            font-weight: 800;
-            color: #fff;
-            text-shadow: 1px 2px 6px rgba(0,0,0,.25);
-            letter-spacing: .5px;
-        }
-        #loadingOverlay .ld-dots {
-            display: flex;
-            gap: 10px;
-        }
-        #loadingOverlay .ld-dot {
-            width: 14px; height: 14px;
-            border-radius: 50%;
-            background: rgba(255,255,255,.9);
-            animation: dotBounce 1.1s ease-in-out infinite;
-        }
-        #loadingOverlay .ld-dot:nth-child(2) { animation-delay: .2s; }
-        #loadingOverlay .ld-dot:nth-child(3) { animation-delay: .4s; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+    .input-wrap { position: relative; }
+    .input-wrap input {
+      width: 100%; background: var(--bg2);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 11px 14px; color: var(--text); font-size: 15px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .input-wrap input:focus { border-color: var(--red); }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--dim); cursor: pointer; font-size: 16px;
+    }
+    .login-error {
+      background: rgba(201,24,74,0.15); border: 1px solid var(--red);
+      border-radius: 8px; padding: 8px 12px;
+      font-size: 13px; color: var(--red); margin-bottom: 14px; display: none;
+    }
+    .btn-login {
+      width: 100%;
+      background: linear-gradient(135deg, var(--red), #a11040);
+      color: white; border: none; border-radius: 12px; padding: 13px;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      transition: opacity 0.2s; margin-top: 4px;
+    }
+    .btn-login:hover { opacity: 0.9; }
 
-        /* ========================================
-           5. CONFIRM MODAL
-        ======================================== */
-        #confirmModal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.55);
-            backdrop-filter: blur(6px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        /* JS thường gọi style.display hoặc classList – hỗ trợ cả hai */
-        #confirmModal.show,
-        #confirmModal.active { display: flex; }
+    /* ============================================================
+       APP — ✅ id="mainApp"
+    ============================================================ */
+    #mainApp { display: none; height: 100vh; flex-direction: column; overflow: hidden; }
+    #mainApp.visible { display: flex; }
 
-        .confirm-card {
-            background: #fff;
-            border-radius: var(--r-xl);
-            padding: 38px 32px;
-            max-width: 360px;
-            width: 92%;
-            text-align: center;
-            animation: bounceIn .45s cubic-bezier(.34,1.56,.64,1);
-            box-shadow:
-                0 24px 64px rgba(0,0,0,.28),
-                0 0 0 3px var(--g300),
-                0 0 0 7px rgba(74,222,128,.18);
-        }
-        .confirm-card .conf-emoji {
-            display: block;
-            font-size: 54px;
-            margin-bottom: 10px;
-            animation: wiggleEl 1.3s ease-in-out infinite;
-        }
-        .confirm-card p {
-            font-size: 18px;
-            font-weight: 700;
-            color: #334155;
-            line-height: 1.6;
-            margin-bottom: 28px;
-        }
-        .conf-actions {
-            display: flex;
-            gap: 14px;
-        }
-        #cancelBtn {
-            flex: 1;
-            padding: 14px 8px;
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
-            color: #b91c1c;
-            border: 2.5px solid #fca5a5;
-            border-radius: var(--r-full);
-            font-family: 'Baloo 2', cursive;
-            font-size: 17px; font-weight: 800;
-            cursor: pointer;
-            transition: all .25s ease;
-        }
-        #cancelBtn:hover {
-            transform: scale(1.07) translateY(-2px);
-            box-shadow: 0 6px 20px rgba(185,28,28,.28);
-        }
-        #confirmBtn {
-            flex: 1;
-            padding: 14px 8px;
-            background: linear-gradient(135deg, var(--g400), var(--g600));
-            color: #fff;
-            border: none;
-            border-radius: var(--r-full);
-            font-family: 'Baloo 2', cursive;
-            font-size: 17px; font-weight: 800;
-            cursor: pointer;
-            transition: all .25s ease;
-            box-shadow: var(--shadow-green);
-        }
-        #confirmBtn:hover {
-            transform: scale(1.07) translateY(-2px);
-            box-shadow: 0 8px 24px rgba(34,197,94,.48);
-        }
+    .app-header {
+      background: var(--bg1); border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .app-header h1 { font-size: 16px; font-weight: 700; }
+    .header-right  { display: flex; align-items: center; gap: 10px; }
+    .user-badge {
+      font-size: 12px; color: var(--dim);
+      background: var(--bg2); border-radius: 20px; padding: 4px 10px;
+    }
+    .btn-logout {
+      background: var(--bg2); border: 1px solid var(--border);
+      color: var(--dim); border-radius: 8px;
+      padding: 5px 10px; font-size: 12px; cursor: pointer;
+    }
+    .btn-logout:hover { color: var(--red); border-color: var(--red); }
+    .btn-refresh {
+      background: none; border: none; color: var(--dim);
+      font-size: 18px; cursor: pointer; padding: 4px; transition: transform 0.3s;
+    }
+    .btn-refresh.spinning { animation: spin 0.6s linear; }
 
-        /* ========================================
-           6. LOGIN SCREEN
-        ======================================== */
-        #loginScreen {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
+    .tab-content-area { flex: 1; overflow-y: auto; padding: 16px 16px 80px; }
 
-        /* — Background split: green left / pink right — */
-        #loginScreen::before {
-            content: '';
-            position: absolute; inset: 0;
-            background: linear-gradient(to right,
-                #84cc16  0%,  var(--g400) 38%,
-                var(--p300) 62%, var(--p500) 100%);
-            z-index: 0;
-        }
-        /* Tanjiro checkered overlay – left half */
-        #loginScreen::after {
-            content: '';
-            position: absolute;
-            left: 0; top: 0;
-            width: 50%; height: 100%;
-            background-image:
-                repeating-linear-gradient(45deg,
-                    rgba(0,0,0,.09) 0, rgba(0,0,0,.09) 3px,
-                    transparent 3px, transparent 16px),
-                repeating-linear-gradient(-45deg,
-                    rgba(0,0,0,.09) 0, rgba(0,0,0,.09) 3px,
-                    transparent 3px, transparent 16px);
-            z-index: 1;
-        }
-        /* Nezuko hemp-leaf dot overlay – right half */
-        .nezuko-bg {
-            position: absolute;
-            right: 0; top: 0;
-            width: 50%; height: 100%;
-            background-image:
-                radial-gradient(circle, rgba(255,255,255,.28) 2px, transparent 2px);
-            background-size: 22px 22px;
-            z-index: 1;
-            pointer-events: none;
-        }
+    /* ============================================================
+       TAB PANELS — ✅ class="tab-panel"
+    ============================================================ */
+    .tab-panel         { display: none; }   /* ← ẩn mặc định     */
+    .tab-panel.active  { display: block; }  /* ← hiện khi active  */
 
-        /* — Character wrappers — */
-        .char-tanjiro-wrap,
-        .char-nezuko-wrap {
-            position: absolute;
-            bottom: 0;
-            z-index: 2;
-        }
-        .char-tanjiro-wrap {
-            left: 0;
-            animation: slideInLeft .9s cubic-bezier(.34,1.56,.64,1) both;
-        }
-        .char-nezuko-wrap {
-            right: 0;
-            animation: slideInRight .9s cubic-bezier(.34,1.56,.64,1) both;
-        }
-        .char-tanjiro-wrap svg {
-            width: 168px; height: auto;
-            display: block;
-            animation: float 3.2s ease-in-out infinite;
-            filter: drop-shadow(0 10px 18px rgba(0,80,0,.28));
-        }
-        .char-nezuko-wrap svg {
-            width: 150px; height: auto;
-            display: block;
-            animation: float 3.2s ease-in-out 1.1s infinite;
-            filter: drop-shadow(0 10px 18px rgba(190,24,93,.28));
-        }
+    /* TAB NAV */
+    .tab-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      background: var(--bg1); border-top: 1px solid var(--border);
+      display: flex; overflow-x: auto; scrollbar-width: none;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex: 1; min-width: 60px;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 6px; background: none; border: none; color: var(--dim);
+      cursor: pointer; font-size: 10px; gap: 3px;
+      transition: color 0.2s; white-space: nowrap;
+    }
+    .tab-btn .tab-icon { font-size: 20px; }
+    .tab-btn.active    { color: var(--gold); }
 
-        /* — Login card — */
-        .login-card {
-            position: relative;
-            z-index: 3;
-            background: rgba(255,255,255,.97);
-            border-radius: var(--r-xl);
-            padding: 44px 40px;
-            width: 92%;
-            max-width: 420px;
-            box-shadow:
-                0 32px 80px rgba(0,0,0,.22),
-                0 0 0 3px rgba(74,222,128,.55),
-                0 0 0 7px rgba(255,255,255,.5);
-            border: 2px solid rgba(74,222,128,.28);
-            animation: bounceIn .75s cubic-bezier(.34,1.56,.64,1) both;
-        }
-        .login-badge {
-            display: block;
-            text-align: center;
-            font-size: 40px;
-            margin-bottom: 6px;
-            animation: wiggleEl 2.2s ease-in-out infinite;
-        }
-        .login-card h1 {
-            text-align: center;
-            font-size: 30px; font-weight: 800;
-            margin-bottom: 6px;
-            background: linear-gradient(135deg, var(--g700), var(--p700));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .login-sub {
-            text-align: center;
-            font-size: 15px; font-weight: 600;
-            color: #94a3b8;
-            margin-bottom: 28px;
-        }
+    /* SECTION TITLE */
+    .sec-title {
+      font-size: 17px; font-weight: 700;
+      margin-bottom: 14px; padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
 
-        /* Error message */
-        #loginError {
-            background: linear-gradient(135deg, #fff1f2, #fee2e2);
-            border: 2.5px solid #fca5a5;
-            border-radius: var(--r-md);
-            padding: 13px 18px;
-            text-align: center;
-            font-size: 15px; font-weight: 700;
-            color: #dc2626;
-            margin-bottom: 18px;
-            display: none;
-            animation: wiggle .5s ease;
-        }
+    /* TODAY */
+    .leaders-banner {
+      background: linear-gradient(135deg, #1e1040, #2a1060);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: var(--radius); padding: 16px;
+      margin-bottom: 16px; display: flex; gap: 12px;
+    }
+    .leader-item { flex: 1; background: rgba(0,0,0,0.25); border-radius: 10px; padding: 10px 12px; }
+    .leader-label { font-size: 11px; color: var(--dim); display: block; margin-bottom: 4px; }
+    .leader-name  { font-size: 14px; font-weight: 700; color: var(--gold); }
 
-        /* Inputs */
-        .login-card .inp-wrap { margin-bottom: 16px; }
-        .login-card .pwd-wrap { position: relative; margin-bottom: 16px; }
+    .child-cards { display: flex; flex-direction: column; gap: 14px; }
+    .child-card  {
+      background: var(--bg1); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+    }
+    .child-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .child-card-avatar { font-size: 36px; }
+    .child-card-info h3   { font-size: 17px; font-weight: 700; }
+    .child-card-info span { font-size: 12px; color: var(--dim); }
 
-        .login-card input[type="text"],
-        .login-card input[type="password"] {
-            width: 100%;
-            padding: 17px 22px;
-            font-family: 'Baloo 2', cursive;
-            font-size: 16px; font-weight: 600;
-            color: #334155;
-            background: #f8fafc;
-            border: 2.5px solid #e2e8f0;
-            border-radius: var(--r-full);
-            outline: none;
-            transition: all .3s ease;
-        }
-        .login-card input:focus {
-            border-color: var(--g400);
-            background: #fff;
-            box-shadow: 0 0 0 4px rgba(74,222,128,.2), var(--shadow-green);
-        }
-        .login-card .pwd-wrap input { padding-right: 58px; }
+    .score-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
+    .score-box { background: var(--bg2); border-radius: 10px; padding: 10px 6px; text-align: center; }
+    .score-box .sv { font-size: 20px; font-weight: 700; color: var(--gold); }
+    .score-box .sl { font-size: 11px; color: var(--dim); margin-top: 2px; }
 
-        #togglePassword {
-            position: absolute;
-            right: 18px; top: 50%;
-            transform: translateY(-50%);
-            background: none; border: none;
-            cursor: pointer;
-            font-size: 22px; line-height: 1;
-            padding: 4px;
-            transition: transform .2s ease;
-        }
-        #togglePassword:hover { transform: translateY(-50%) scale(1.35); }
+    .prog-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-bottom: 5px; }
+    .prog-bar   { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+    .prog-fill  { height: 100%; background: linear-gradient(90deg, var(--red), var(--gold)); border-radius: 4px; transition: width 0.5s; }
 
-        /* Login button */
-        #loginBtn {
-            width: 100%;
-            padding: 19px;
-            background: linear-gradient(135deg, var(--g400), var(--g600));
-            color: #fff;
-            border: none;
-            border-radius: var(--r-full);
-            font-family: 'Baloo 2', cursive;
-            font-size: 20px; font-weight: 800;
-            letter-spacing: .5px;
-            cursor: pointer;
-            margin-top: 6px;
-            transition: all .3s cubic-bezier(.34,1.56,.64,1);
-            box-shadow: var(--shadow-green), 0 5px 0 var(--g700);
-        }
-        #loginBtn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 12px 32px rgba(34,197,94,.5), 0 7px 0 var(--g700);
-        }
-        #loginBtn:active {
-            transform: translateY(2px) scale(.98);
-            box-shadow: var(--shadow-sm), 0 2px 0 var(--g700);
-        }
+    /* TASKS */
+    .cat-filter { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-bottom: 16px; }
+    .cat-filter::-webkit-scrollbar { display: none; }
+    .cat-pill {
+      flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+      background: var(--bg2); border: 1px solid var(--border);
+      color: var(--dim); font-size: 13px; cursor: pointer; white-space: nowrap; transition: all 0.2s;
+    }
+    .cat-pill.active { background: var(--red); border-color: var(--red); color: white; }
 
-        /* ========================================
-           7. MAIN APP
-        ======================================== */
-        #mainApp {
-            display: none;        /* ← thêm: ẩn mặc định */
-    min-height: 100vh;
-    background: linear-gradient(160deg,
-        var(--g50)  0%, #f0fdf4 32%,
-        var(--p50) 68%, #fdf2f8 100%);
-}
+    .cat-section       { margin-bottom: 20px; }
+    .cat-section-title { font-size: 13px; font-weight: 600; color: var(--dim); margin-bottom: 8px; text-transform: uppercase; }
 
-/* ← thêm block mới này */
-#mainApp.visible {
-    display: block;
-}
+    .task-item { background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+    .task-item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .task-name-text { font-size: 14px; font-weight: 600; }
+    .task-pts-badge { background: rgba(245,197,24,0.15); color: var(--gold); border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
+    .task-checks { display: flex; gap: 8px; flex-wrap: wrap; }
+    .check-label {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg2); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+      border: 1px solid var(--border); transition: border-color 0.2s, background 0.2s; user-select: none;
+    }
+    .check-label:hover { border-color: var(--red); }
+    .check-label.done  { background: rgba(67,170,139,0.15); border-color: var(--green); }
+    .check-label input[type="checkbox"] { display: none; }
+    .check-box {
+      width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px;
+      display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; transition: all 0.2s;
+    }
+    .check-label.done .check-box { background: var(--green); border-color: var(--green); color: white; }
+    .check-child-name  { font-size: 13px; }
+    .check-label.readonly { cursor: default; pointer-events: none; opacity: 0.8; }
 
-        /* — Header — */
-        #appHeader {
-            position: sticky; top: 0; z-index: 200;
-            background: linear-gradient(135deg, var(--g700), var(--g500), var(--g400));
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 22px rgba(22,163,74,.45);
-        }
-        .hd-left {
-            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-        }
-        .hd-title {
-            font-size: 21px; font-weight: 800;
-            color: #fff;
-            text-shadow: 1px 2px 5px rgba(0,0,0,.2);
-        }
-        #currentUser {
-            font-size: 13px; font-weight: 700;
-            color: rgba(255,255,255,.88);
-            background: rgba(255,255,255,.2);
-            padding: 4px 13px;
-            border-radius: var(--r-full);
-            border: 1.5px solid rgba(255,255,255,.3);
-        }
-        .hd-actions { display: flex; gap: 8px; }
-        #refreshBtn, #logoutBtn {
-            background: rgba(255,255,255,.2);
-            border: 2px solid rgba(255,255,255,.35);
-            border-radius: var(--r-full);
-            padding: 9px 14px;
-            font-size: 18px; color: #fff;
-            cursor: pointer;
-            font-family: 'Baloo 2', cursive; font-weight: 700;
-            transition: all .3s ease;
-        }
-        #refreshBtn:hover {
-            background: rgba(255,255,255,.35);
-            transform: rotate(180deg) scale(1.12);
-        }
-        #logoutBtn:hover {
-            background: rgba(255,80,80,.3);
-            border-color: rgba(255,160,160,.5);
-            transform: scale(1.12);
-        }
+    /* POINTS */
+    .points-form { background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+    .form-row   { margin-bottom: 14px; }
+    .form-row label { display: block; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+    .form-select, .form-input {
+      width: 100%; background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 14px; outline: none;
+    }
+    .form-select:focus, .form-input:focus { border-color: var(--red); }
+    .type-toggle { display: flex; gap: 8px; }
+    .type-btn { flex: 1; padding: 9px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--dim); cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+    .type-btn.active-bonus   { background: rgba(67,170,139,0.2); border-color: var(--green); color: var(--green); }
+    .type-btn.active-penalty { background: rgba(201,24,74,0.2);  border-color: var(--red);   color: var(--red); }
 
-        /* — Navigation — */
-        #mainNav {
-            position: sticky; top: 56px; z-index: 199;
-            background: #fff;
-            padding: 10px 14px;
-            display: flex; gap: 8px;
-            overflow-x: auto;
-            box-shadow: 0 3px 18px rgba(0,0,0,.1);
-            scrollbar-width: none;
-        }
-        #mainNav::-webkit-scrollbar { display: none; }
+    .btn-submit { width: 100%; background: linear-gradient(135deg, var(--red), #a11040); color: white; border: none; border-radius: 10px; padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; }
 
-        .nav-btn {
-            flex-shrink: 0;
-            padding: 11px 18px;
-            background: #f1f5f9;
-            border: 2px solid transparent;
-            border-radius: var(--r-full);
-            font-family: 'Baloo 2', cursive;
-            font-size: 14px; font-weight: 700;
-            color: #64748b;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all .25s cubic-bezier(.34,1.56,.64,1);
-        }
-        .nav-btn:hover {
-            background: var(--g100);
-            color: var(--g700);
-            border-color: var(--g300);
-            transform: translateY(-2px);
-        }
-        .nav-btn.active {
-            background: linear-gradient(135deg, var(--g400), var(--g600));
-            color: #fff;
-            border-color: transparent;
-            box-shadow: 0 4px 16px rgba(34,197,94,.45);
-            transform: translateY(-3px);
-        }
+    .recent-tx { margin-top: 20px; }
+    .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg1); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px; font-size: 13px; }
+    .tx-left .tx-name { font-weight: 600; }
+    .tx-left .tx-meta { font-size: 11px; color: var(--dim); margin-top: 2px; }
+    .tx-pts     { font-weight: 700; font-size: 15px; }
+    .tx-pts.pos { color: var(--green); }
+    .tx-pts.neg { color: var(--red); }
 
-        /* — Tab content — */
-        #tabContent {
-            padding: 20px 16px 48px;
-            max-width: 820px;
-            margin: 0 auto;
-        }
-        .tab-panel {
-            display: none;
-            animation: fadeInUp .4s ease;
-        }
-        .tab-panel.active { display: block; }
+    /* REWARDS */
+    .rewards-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+    .reward-card  { background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
+    .reward-icon  { font-size: 32px; margin-bottom: 6px; display: block; }
+    .reward-name  { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .reward-pts   { font-size: 12px; color: var(--gold); margin-bottom: 10px; }
+    .btn-redeem   { width: 100%; padding: 7px; background: var(--bg3); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+    .btn-redeem:hover:not(:disabled) { background: var(--red); border-color: var(--red); }
+    .btn-redeem:disabled { opacity: 0.4; cursor: not-allowed; }
+    .redeem-history { margin-top: 20px; }
 
-        /* — Generic white card — */
-        .kmt-card {
-            background: #fff;
-            border-radius: var(--r-lg);
-            padding: 24px 22px;
-            margin-bottom: 18px;
-            box-shadow: var(--shadow-md);
-            border: 2px solid rgba(74,222,128,.14);
-        }
-        .kmt-card-title {
-            font-size: 20px; font-weight: 800;
-            color: var(--ink);
-            margin-bottom: 16px;
-            display: flex; align-items: center; gap: 8px;
-        }
+    /* RANKINGS */
+    .rank-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .rank-card  { background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+    .rank-num   { font-size: 24px; font-weight: 900; min-width: 36px; text-align: center; }
+    .rank-num.r1 { color: var(--gold); }
+    .rank-num.r2 { color: #b0b0c0; }
+    .rank-num.r3 { color: #cd7f32; }
+    .rank-info   { flex: 1; }
+    .rank-info h3   { font-size: 15px; font-weight: 700; }
+    .rank-info span { font-size: 12px; color: var(--dim); }
+    .rank-score { font-size: 18px; font-weight: 700; color: var(--gold); }
 
-        /* ========================================
-           8. CHERRY BLOSSOM PETALS (Rewards tab)
-        ======================================== */
-        .petals-container {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 9990;
-            overflow: hidden;
-            display: none;
-        }
-        .petals-container.petals-active { display: block; }
+    .compare-section { background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+    .compare-row     { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
+    .compare-label   { font-size: 12px; color: var(--dim); min-width: 80px; }
+    .compare-bar-wrap  { flex: 1; }
+    .compare-bar-track { height: 10px; background: var(--bg3); border-radius: 5px; overflow: hidden; display: flex; }
+    .cbar    { height: 100%; border-radius: 5px; transition: width 0.5s; }
+    .cbar.c1 { background: var(--red); }
+    .cbar.c2 { background: var(--blue); }
+    .compare-values { display: flex; gap: 8px; margin-top: 4px; font-size: 11px; color: var(--dim); }
 
-        .petal {
-            position: absolute;
-            top: -6%;
-            animation: petalFall linear infinite;
-            opacity: .9;
-        }
-        .petal:nth-child(1)  { left:4%;  font-size:18px; animation-duration:5.2s; animation-delay:0s;    }
-        .petal:nth-child(2)  { left:11%; font-size:22px; animation-duration:6.1s; animation-delay:.6s;   }
-        .petal:nth-child(3)  { left:19%; font-size:16px; animation-duration:4.6s; animation-delay:1.1s;  }
-        .petal:nth-child(4)  { left:27%; font-size:20px; animation-duration:7.0s; animation-delay:.3s;   }
-        .petal:nth-child(5)  { left:36%; font-size:24px; animation-duration:5.7s; animation-delay:1.6s;  }
-        .petal:nth-child(6)  { left:45%; font-size:18px; animation-duration:6.4s; animation-delay:.9s;   }
-        .petal:nth-child(7)  { left:53%; font-size:20px; animation-duration:5.0s; animation-delay:2.0s;  }
-        .petal:nth-child(8)  { left:62%; font-size:16px; animation-duration:7.3s; animation-delay:.4s;   }
-        .petal:nth-child(9)  { left:70%; font-size:22px; animation-duration:4.2s; animation-delay:1.3s;  }
-        .petal:nth-child(10) { left:78%; font-size:18px; animation-duration:6.0s; animation-delay:.7s;   }
-        .petal:nth-child(11) { left:86%; font-size:24px; animation-duration:5.5s; animation-delay:1.9s;  }
-        .petal:nth-child(12) { left:93%; font-size:20px; animation-duration:4.8s; animation-delay:.5s;   }
+    /* HISTORY */
+    .chart-wrap  { background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; overflow-x: auto; }
+    .chart-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+    .bar-chart   { display: flex; gap: 4px; align-items: flex-end; height: 120px; min-width: 280px; }
+    .bar-group   { flex: 1; display: flex; gap: 2px; align-items: flex-end; position: relative; }
+    .bar         { border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.5s; }
+    .bar.b1      { background: var(--red);  flex: 1; }
+    .bar.b2      { background: var(--blue); flex: 1; }
+    .bar-date    { position: absolute; bottom: -18px; width: 100%; text-align: center; font-size: 9px; color: var(--dim); white-space: nowrap; }
+    .chart-legend { display: flex; gap: 14px; margin-top: 24px; font-size: 12px; color: var(--dim); }
+    .legend-dot   { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
 
-        /* ========================================
-           9. RESPONSIVE
-        ======================================== */
-        @media (max-width: 480px) {
-            .login-card { padding: 32px 22px; }
-            .login-card h1 { font-size: 24px; }
-            .login-badge { font-size: 32px; }
-            #loginBtn { font-size: 18px; padding: 16px; }
-            .char-tanjiro-wrap svg { width: 110px; }
-            .char-nezuko-wrap svg  { width: 98px;  }
-            .hd-title { font-size: 18px; }
-            .nav-btn  { font-size: 13px; padding: 9px 13px; }
-            #appHeader { padding: 12px 14px; }
-        }
-        @media (max-width: 360px) {
-            /* Rất nhỏ: ẩn nhân vật để không che form */
-            .char-tanjiro-wrap,
-            .char-nezuko-wrap { display: none; }
-        }
-.char-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 16px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.2);
-    cursor: default;
-}
-.char-icon { font-size: 28px; }
-.char-name { font-weight: 700; color: #fff; font-size: 14px; }
-.char-role { font-size: 11px; color: rgba(255,255,255,0.8); }
+    /* SETTINGS */
+    .settings-card { background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+    .settings-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--gold); }
+    .btn-setting { width: 100%; padding: 11px 14px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-size: 14px; cursor: pointer; text-align: left; margin-bottom: 8px; transition: border-color 0.2s; }
+    .btn-setting:hover  { border-color: var(--red); }
+    .btn-setting.danger { border-color: rgba(201,24,74,0.3); color: var(--red); }
+    .btn-setting.danger:hover { background: rgba(201,24,74,0.15); }
+    .add-task-form, .add-reward-form { display: flex; flex-direction: column; gap: 10px; }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-/* Wrapper */
-#chars-row {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-bottom: 16px;
-}
-    </style>
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 30px; color: var(--dim); }
+    .empty-state .es-icon { font-size: 40px; margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; }
+
+    @media (min-width: 600px) {
+      .child-cards  { flex-direction: row; flex-wrap: wrap; }
+      .child-card   { flex: 1; min-width: 260px; }
+      .rewards-grid { grid-template-columns: repeat(3,1fr); }
+    }
+  </style>
 </head>
-
 <body>
 
-<!-- ============================================================
-     LOADING OVERLAY
-     id="loadingOverlay" – JS ẩn/hiện element này
-============================================================ -->
-<div id="loadingOverlay">
-    <div class="ld-icon">⚔️</div>
-    <div class="ld-text">Đang tải...</div>
-    <div class="ld-dots">
-        <div class="ld-dot"></div>
-        <div class="ld-dot"></div>
-        <div class="ld-dot"></div>
-    </div>
+<!-- LOADING -->
+<div id="loading">
+  <div class="spinner"></div>
+  <span style="color:var(--dim);font-size:13px">Đang tải...</span>
 </div>
 
+<!-- TOAST -->
+<div id="toast"></div>
 
-<!-- ============================================================
-     CONFIRM MODAL
-     id="confirmModal" | id="cancelBtn" | id="confirmBtn"
-============================================================ -->
-<div id="confirmModal">
-    <div class="confirm-card">
-        <span class="conf-emoji">⚔️</span>
-        <p>Bạn chắc chắn muốn thực hiện thao tác này?</p>
-        <div class="conf-actions">
-            <button id="cancelBtn">❌ Hủy</button>
-            <button id="confirmBtn">✅ Xác nhận</button>
-        </div>
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div class="modal-box">
+    <h3 id="modal-title">Xác nhận</h3>
+    <p  id="modal-body">Bạn chắc chắn muốn thực hiện thao tác này?</p>
+    <div class="modal-btns">
+      <button class="btn-cancel"  onclick="closeModal()">❌ Hủy</button>
+      <button class="btn-confirm" id="modal-ok">✅ Xác nhận</button>
     </div>
+  </div>
 </div>
 
-
-<!-- ============================================================
-     LOGIN SCREEN
-     id="loginScreen" | form#loginForm | #username | #password
-     #togglePassword | #loginBtn | #loginError
-============================================================ -->
+<!-- ✅ LOGIN — id="loginScreen" -->
 <div id="loginScreen">
-
-    <!-- Nezuko right-side dot pattern -->
-    <div class="nezuko-bg"></div>
-
-    <!-- ── TANJIRO (LEFT) ── -->
-    <div class="char-tanjiro-wrap">
-        <svg viewBox="0 0 130 230" xmlns="http://www.w3.org/2000/svg" aria-label="Kamado Tanjiro">
-            <!-- Legs -->
-            <rect x="34" y="158" width="23" height="58" rx="10" fill="#1f2937"/>
-            <rect x="64" y="158" width="23" height="58" rx="10" fill="#1f2937"/>
-            <!-- Feet -->
-            <ellipse cx="46"  cy="217" rx="19" ry="9" fill="#14532d"/>
-            <ellipse cx="76"  cy="217" rx="19" ry="9" fill="#14532d"/>
-            <!-- Body: green checkered haori -->
-            <rect x="14" y="92" width="102" height="72" rx="20" fill="#4ade80"/>
-            <rect x="14" y="92" width="51"  height="72" rx="14" fill="#16a34a"/>
-            <!-- Haori collar white -->
-            <rect x="49" y="92" width="32"  height="55" rx="10" fill="#f0fdf4"/>
-            <!-- Center line -->
-            <rect x="62" y="94" width="5"   height="70" rx="2"  fill="#1a1a1a"/>
-            <!-- Horizontal grid left -->
-            <line x1="14" y1="112" x2="65" y2="112" stroke="#15803d" stroke-width="2" opacity=".5"/>
-            <line x1="14" y1="127" x2="65" y2="127" stroke="#15803d" stroke-width="2" opacity=".5"/>
-            <line x1="14" y1="142" x2="65" y2="142" stroke="#15803d" stroke-width="2" opacity=".5"/>
-            <!-- Vertical grid left -->
-            <line x1="34" y1="92"  x2="34" y2="164" stroke="#15803d" stroke-width="2" opacity=".5"/>
-            <line x1="49" y1="92"  x2="49" y2="164" stroke="#15803d" stroke-width="2" opacity=".5"/>
-            <!-- Neck -->
-            <rect x="51" y="78" width="28" height="20" rx="8" fill="#fde68a"/>
-            <!-- Arms -->
-            <rect x="-2"  y="97" width="19" height="52" rx="10" fill="#16a34a"/>
-            <rect x="113" y="97" width="19" height="52" rx="10" fill="#4ade80"/>
-            <!-- Hands -->
-            <ellipse cx="7"   cy="152" rx="13" ry="11" fill="#fde68a"/>
-            <ellipse cx="122" cy="152" rx="13" ry="11" fill="#fde68a"/>
-            <!-- Sword on back (right side) -->
-            <g transform="rotate(-18 108 130)">
-                <rect x="103" y="72" width="10" height="88" rx="4" fill="#9ca3af"/>
-                <rect x="100" y="70" width="16" height="18" rx="4" fill="#92400e"/>
-            </g>
-            <!-- Head -->
-            <circle cx="65" cy="50" r="41" fill="#fde68a"/>
-            <!-- Hair – dark, brick-red tips -->
-            <path d="M24 52 Q20 24 42 13 Q55 4 65 4 Q75 4 88 13 Q110 24 106 52
-                     Q99 28 88 26 Q80 5 65 5 Q50 5 42 26 Q31 28 24 52Z" fill="#111"/>
-            <path d="M88 26 Q100 18 108 36 Q102 24 88 26Z" fill="#dc2626"/>
-            <!-- Forehead scar -->
-            <ellipse cx="65" cy="26" rx="9" ry="4.5" fill="#b91c1c" opacity=".85"/>
-            <!-- Eyes (red) -->
-            <ellipse cx="51" cy="51" rx="10" ry="11" fill="#fff"/>
-            <ellipse cx="79" cy="51" rx="10" ry="11" fill="#fff"/>
-            <ellipse cx="51" cy="52" rx="7"  ry="8"  fill="#dc2626"/>
-            <ellipse cx="79" cy="52" rx="7"  ry="8"  fill="#dc2626"/>
-            <ellipse cx="52" cy="51" rx="3"  ry="3.5" fill="#111"/>
-            <ellipse cx="80" cy="51" rx="3"  ry="3.5" fill="#111"/>
-            <ellipse cx="54" cy="48" rx="1.5" ry="1.5" fill="#fff" opacity=".85"/>
-            <ellipse cx="82" cy="48" rx="1.5" ry="1.5" fill="#fff" opacity=".85"/>
-            <!-- Eyebrows -->
-            <path d="M42 37 Q51 33 60 37" stroke="#333" stroke-width="3"   fill="none" stroke-linecap="round"/>
-            <path d="M70 37 Q79 33 88 37" stroke="#333" stroke-width="3"   fill="none" stroke-linecap="round"/>
-            <!-- Nose -->
-            <ellipse cx="65" cy="62" rx="3.5" ry="2.2" fill="#e8a87c" opacity=".6"/>
-            <!-- Smile -->
-            <path d="M55 70 Q65 77 75 70" stroke="#c87941" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <!-- Hanafuda earring (right) -->
-            <circle cx="109" cy="55" r="11" fill="#dc2626"/>
-            <circle cx="109" cy="55" r="8"  fill="#fff"/>
-            <circle cx="109" cy="55" r="4.5" fill="#dc2626"/>
-            <rect   x="107" y="66" width="4" height="16" rx="2" fill="#dc2626"/>
-            <circle cx="109" cy="84" r="5.5" fill="#fff"/>
-            <circle cx="109" cy="84" r="3"   fill="#dc2626"/>
-        </svg>
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-icon">🏆</span>
+      <h1>Bảng Điểm Thưởng</h1>
+      <p>Hành trình chinh phục mỗi ngày ✨</p>
     </div>
-
-    <!-- ── NEZUKO (RIGHT) ── -->
-    <div class="char-nezuko-wrap">
-        <svg viewBox="0 0 118 218" xmlns="http://www.w3.org/2000/svg" aria-label="Kamado Nezuko">
-            <!-- Legs -->
-            <rect x="28" y="150" width="22" height="54" rx="10" fill="#1a1a2e"/>
-            <rect x="56" y="150" width="22" height="54" rx="10" fill="#1a1a2e"/>
-            <!-- Feet -->
-            <ellipse cx="39" cy="205" rx="18" ry="9"  fill="#7e1d4b"/>
-            <ellipse cx="67" cy="205" rx="18" ry="9"  fill="#7e1d4b"/>
-            <!-- Kimono (pink) -->
-            <rect x="10" y="88" width="98" height="70" rx="22" fill="#f472b6"/>
-            <!-- Hemp-leaf circles on kimono -->
-            <circle cx="30"  cy="106" r="5.5" fill="#e879a0" opacity=".5"/>
-            <circle cx="60"  cy="100" r="5.5" fill="#e879a0" opacity=".5"/>
-            <circle cx="90"  cy="106" r="5.5" fill="#e879a0" opacity=".5"/>
-            <circle cx="45"  cy="122" r="5.5" fill="#e879a0" opacity=".5"/>
-            <circle cx="75"  cy="122" r="5.5" fill="#e879a0" opacity=".5"/>
-            <circle cx="30"  cy="138" r="5.5" fill="#e879a0" opacity=".5"/>
-            <circle cx="60"  cy="141" r="5.5" fill="#e879a0" opacity=".5"/>
-            <circle cx="90"  cy="138" r="5.5" fill="#e879a0" opacity=".5"/>
-            <!-- Obi belt -->
-            <rect x="16" y="132" width="86" height="20" rx="9" fill="#9f1239"/>
-            <!-- Neck -->
-            <rect x="44" y="75" width="30" height="20" rx="8" fill="#fef3c7"/>
-            <!-- Arms -->
-            <rect x="-1"  y="94" width="16" height="50" rx="8" fill="#f9a8d4"/>
-            <rect x="103" y="94" width="16" height="50" rx="8" fill="#f472b6"/>
-            <!-- Hands -->
-            <ellipse cx="7"   cy="146" rx="11" ry="10" fill="#fef3c7"/>
-            <ellipse cx="111" cy="146" rx="11" ry="10" fill="#fef3c7"/>
-            <!-- Head -->
-            <circle cx="59" cy="46" r="39" fill="#fef3c7"/>
-            <!-- Hair -->
-            <path d="M20 48 Q17 20 38 9 Q52 2 59 2 Q66 2 80 9 Q101 20 98 48
-                     Q92 24 80 21 Q74 4 59 4 Q44 4 38 21 Q26 24 20 48Z" fill="#111"/>
-            <!-- Side hair strands -->
-            <path d="M20 48 Q15 58 19 74" stroke="#111" stroke-width="14" stroke-linecap="round" fill="none"/>
-            <path d="M98 48 Q103 58 99 74" stroke="#111" stroke-width="14" stroke-linecap="round" fill="none"/>
-            <!-- Pink ribbon bow -->
-            <ellipse cx="38" cy="10" rx="13" ry="9"  fill="#f9a8d4"/>
-            <ellipse cx="80" cy="10" rx="13" ry="9"  fill="#f9a8d4"/>
-            <ellipse cx="59" cy="9"  rx="8"  ry="6"  fill="#ec4899"/>
-            <circle  cx="59" cy="9"  r="5"           fill="#f472b6"/>
-            <!-- Eyes (gentle closed – Nezuko style) -->
-            <path d="M40 47 Q50 40 60 47" stroke="#1a1a1a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-            <path d="M58 47 Q68 40 78 47" stroke="#1a1a1a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-            <!-- Eyelashes -->
-            <path d="M40 47 Q37 44 35 41" stroke="#1a1a1a" stroke-width="2"   fill="none" stroke-linecap="round"/>
-            <path d="M78 47 Q81 44 83 41" stroke="#1a1a1a" stroke-width="2"   fill="none" stroke-linecap="round"/>
-            <!-- Pink blush cheeks -->
-            <ellipse cx="40" cy="56" rx="10" ry="5.5" fill="#fb923c" opacity=".28"/>
-            <ellipse cx="78" cy="56" rx="10" ry="5.5" fill="#fb923c" opacity=".28"/>
-            <!-- Bamboo mouthpiece -->
-            <rect x="40" y="62" width="38" height="12" rx="6" fill="#78350f"/>
-            <rect x="42" y="63" width="34" height="9"  rx="5" fill="#92400e"/>
-            <rect x="51" y="62" width="3.5" height="12" rx="1.5" fill="#57200a"/>
-            <rect x="64" y="62" width="3.5" height="12" rx="1.5" fill="#57200a"/>
-            <!-- Hair clip -->
-            <rect x="16" y="38" width="15" height="9" rx="3.5" fill="#f472b6"/>
-            <rect x="18" y="39" width="11" height="7" rx="2.5" fill="#fda4c6"/>
-        </svg>
-    </div>
-
-    <!-- Login Card -->
-    <div class="login-card">
-        <span class="login-badge">⚔️ 🏆 ⚔️</span>
-        <h1>🏆 Bảng Điểm Thưởng</h1>
-        <p class="login-sub">Hành trình chinh phục mỗi ngày ✨</p>
-<div id="chars-row"></div>
-        <div id="loginError">
-            😰 Tên đăng nhập hoặc mật khẩu không đúng!
+    <div class="chars-row" id="chars-row"></div>
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="login-error" id="login-error">❌ Tên đăng nhập hoặc mật khẩu không đúng!</div>
+      <div class="form-group">
+        <label>🧑‍🚀 Tên đăng nhập</label>
+        <div class="input-wrap">
+          <input id="inp-user" type="text" placeholder="username" autocomplete="username" />
         </div>
-
-        <form id="loginForm" onsubmit="handleLogin(event)">
-            <div class="inp-wrap">
-                <input type="text"
-                       id="username"
-                       placeholder="🧑‍🚀 Tên đăng nhập"
-                       autocomplete="username">
-            </div>
-            <div class="pwd-wrap">
-                <input type="password"
-                       id="password"
-                       placeholder="🔐 Mật khẩu"
-                       autocomplete="current-password">
-                <button type="button" id="togglePassword">👁️</button>
-            </div>
-            <button type="submit" id="loginBtn">🚀 Đăng Nhập</button>
-        </form>
-    </div>
-
-</div><!-- /#loginScreen -->
-
-
-<!-- ============================================================
-     MAIN APP
-     id="mainApp" | #appHeader | #currentUser | #refreshBtn
-     #logoutBtn  | #mainNav   | #tabContent
-     Tab panels: #tab-today #tab-tasks #tab-points #tab-rewards
-                 #tab-ranking #tab-history #tab-settings
-============================================================ -->
-<div id="mainApp" style="display:none;">
-
-    <!-- Cherry blossom petals – visible only on Rewards tab (CSS toggle) -->
-    <div class="petals-container" id="petalsContainer">
-        <span class="petal">🌸</span>
-        <span class="petal">🌸</span>
-        <span class="petal">🌸</span>
-        <span class="petal">🌸</span>
-        <span class="petal">🌸</span>
-        <span class="petal">🌺</span>
-        <span class="petal">🌸</span>
-        <span class="petal">🌸</span>
-        <span class="petal">🌸</span>
-        <span class="petal">🌸</span>
-        <span class="petal">🌸</span>
-        <span class="petal">🌸</span>
-    </div>
-
-    <!-- Header -->
-    <header id="appHeader">
-        <div class="hd-left">
-            <span class="hd-title">🏆 Bảng Điểm</span>
-            <span id="currentUser">...</span>
+      </div>
+      <div class="form-group">
+        <label>🔐 Mật khẩu</label>
+        <div class="input-wrap">
+          <input id="inp-pass" type="password" placeholder="password" autocomplete="current-password" />
+          <button type="button" class="pw-toggle" onclick="togglePw()">👁️</button>
         </div>
-        <div class="hd-actions">
-            <button id="refreshBtn" title="Làm mới">🔄</button>
-            <button id="logoutBtn"  title="Đăng xuất">🚪</button>
-        </div>
-    </header>
+      </div>
+      <button type="submit" class="btn-login">🚀 Đăng Nhập</button>
+    </form>
+  </div>
+</div>
 
-    <!-- Navigation -->
-    <nav id="mainNav">
-        <button class="nav-btn active" data-tab="today">🌞 Hôm nay</button>
-        <button class="nav-btn"        data-tab="tasks">✅ Nhiệm vụ</button>
-        <button class="nav-btn"        data-tab="points">✨ Điểm</button>
-        <button class="nav-btn"        data-tab="rewards">🎁 Thưởng</button>
-        <button class="nav-btn"        data-tab="ranking">🏅 Xếp hạng</button>
-        <button class="nav-btn"        data-tab="history">📊 Lịch sử</button>
-        <button class="nav-btn"        data-tab="settings">⚙️ Cài đặt</button>
-    </nav>
-
-    <!-- Tab panels (populated by original JS) -->
-    <div id="tabContent">
-        <div id="tab-today"    class="tab-panel active"></div>
-        <div id="tab-tasks"    class="tab-panel"></div>
-        <div id="tab-points"   class="tab-panel"></div>
-        <div id="tab-rewards"  class="tab-panel"></div>
-        <div id="tab-ranking"  class="tab-panel"></div>
-        <div id="tab-history"  class="tab-panel"></div>
-        <div id="tab-settings" class="tab-panel"></div>
+<!-- ✅ APP — id="mainApp" -->
+<div id="mainApp">
+  <div class="app-header">
+    <h1>🏆 Bảng Điểm</h1>
+    <div class="header-right">
+      <!-- ✅ id="currentUser" -->
+      <span class="user-badge" id="currentUser">...</span>
+      <button class="btn-refresh" id="btn-refresh" onclick="doRefresh()" title="Làm mới">🔄</button>
+      <button class="btn-logout"  onclick="handleLogout()">🚪</button>
     </div>
+  </div>
 
-</div><!-- /#mainApp -->
+  <div class="tab-content-area">
+    <!-- ✅ class="tab-panel", tab-today có sẵn active -->
+    <div id="tab-today"    class="tab-panel active"></div>
+    <div id="tab-tasks"    class="tab-panel"></div>
+    <div id="tab-points"   class="tab-panel"></div>
+    <div id="tab-rewards"  class="tab-panel"></div>
+    <div id="tab-rankings" class="tab-panel"></div>
+    <div id="tab-history"  class="tab-panel"></div>
+    <div id="tab-settings" class="tab-panel"></div>
+  </div>
 
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="today"    onclick="switchTab('today')">
+      <span class="tab-icon">🌞</span>Hôm nay
+    </button>
+    <button class="tab-btn" data-tab="tasks"    onclick="switchTab('tasks')">
+      <span class="tab-icon">✅</span>Nhiệm vụ
+    </button>
+    <button class="tab-btn" data-tab="points"   onclick="switchTab('points')">
+      <span class="tab-icon">✨</span>Điểm
+    </button>
+    <button class="tab-btn" data-tab="rewards"  onclick="switchTab('rewards')">
+      <span class="tab-icon">🎁</span>Thưởng
+    </button>
+    <button class="tab-btn" data-tab="rankings" onclick="switchTab('rankings')">
+      <span class="tab-icon">🏅</span>Xếp hạng
+    </button>
+    <button class="tab-btn" data-tab="history"  onclick="switchTab('history')">
+      <span class="tab-icon">📊</span>Lịch sử
+    </button>
+    <button class="tab-btn" id="tab-btn-settings" data-tab="settings"
+            onclick="switchTab('settings')" style="display:none">
+      <span class="tab-icon">⚙️</span>Cài đặt
+    </button>
+  </nav>
+</div>
 
-<!-- ============================================================
-     SCRIPT TRANG TRÍ: Bật/tắt cánh hoa khi tab Thưởng active
-     (Purely visual – không chạm logic gốc)
-============================================================ -->
 <script>
-(function () {
-    var petals = document.getElementById('petalsContainer');
-    if (!petals) return;
-
-    function syncPetals() {
-        var rewards = document.getElementById('tab-rewards');
-        if (!rewards) return;
-        if (rewards.classList.contains('active') ||
-            rewards.style.display === 'block') {
-            petals.classList.add('petals-active');
-        } else {
-            petals.classList.remove('petals-active');
-        }
-    }
-
-    // Observe class & style changes on tabContent
-    var tc = document.getElementById('tabContent');
-    if (tc && window.MutationObserver) {
-        var obs = new MutationObserver(syncPetals);
-        obs.observe(tc, {
-            subtree: true, attributes: true,
-            attributeFilter: ['class', 'style']
-        });
-    }
-    syncPetals();
-})();
-</script>
-
-
-<!-- ============================================================
-     ⚠️  SCRIPT GỐC CỦA ỨNG DỤNG  ⚠️
-         (Giữ nguyên – không chỉnh sửa)
-============================================================ -->
-<script>
-// ============================================================
-// CONFIG — ĐỔI URL NÀY
-// ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbxJwpMxT1gMADbf8CGcCZDkRsX68uwHh4_1lquJ8ryg3icDns4LEVByTVFyMtJEXsqo/exec';
 
-// ============================================================
-// STATE
-// ============================================================
 let S = {
-  token:       localStorage.getItem('fq_token') || null,
-  user:        JSON.parse(localStorage.getItem('fq_user') || 'null'),
-  children:    [],
-  tasks:       [],
-  rewards:     [],
-  transactions:[],
-  dailyStatus: [],
-  redemptions: [],
-  today:       '',
-  week_start:  '',
-  activeTab:   'today',
-  taskFilter:  'all'
+  token:        localStorage.getItem('fq_token') || null,
+  user:         JSON.parse(localStorage.getItem('fq_user') || 'null'),
+  children:     [],
+  tasks:        [],
+  rewards:      [],
+  transactions: [],
+  dailyStatus:  [],
+  redemptions:  [],
+  today:        '',
+  week_start:   '',
+  activeTab:    'today',
+  taskFilter:   'all'
 };
 
 // ============================================================
-//  HELPER
+// API
 // ============================================================
-async function api(action, data = {}) {
-    console.log('API_URL =', API_URL);  // ← thêm dòng này
-
-    const body = {
-        action,
-        token:   S.token || null,
-        payload: data
-    };
-
-    console.log(`api → [${action}]`, body);
-
-    try {
-        const res = await fetch(API_URL, {
-            method:   'POST',
-            redirect: 'follow',
-            headers:  { 'Content-Type': 'text/plain;charset=utf-8' },
-            body:     JSON.stringify(body)
-        });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const json = await res.json();
-        console.log(`api ← [${action}]`, json);
-        return json;
-
-    } catch(err) {
-        console.error('fetch error:', err); // ← xem lỗi thật sự
-        throw err;
-    }
+async function api(action, payload = {}) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action, token: S.token, payload })
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
 }
 
 // ============================================================
-// FETCH ALL DATA
+// FETCH DATA
 // ============================================================
 async function fetchData(silent = false) {
-    if (!silent) showLoad(true);
-    try {
-        const r = await api('getInitialData');
-        if (r.success) {
-            S.children     = (r.children     || []).filter(c => c.status === 'active' || !c.status);
-            S.tasks        = (r.tasks        || []).filter(t => t.status === 'active');
-            S.rewards      = (r.rewards      || []).filter(rw => rw.status === 'active');
-            S.transactions = r.transactions  || [];
-            S.dailyStatus  = r.dailyStatus   || [];
-            S.redemptions  = r.redemptions   || [];
-            S.today        = r.today         || '';
-            S.week_start   = r.week_start    || '';
-            renderTab(S.activeTab);
-        } else {
-            if (!silent) toast(r.message || 'Không tải được dữ liệu', 'error');
-        }
-    } catch(e) {
-        console.error('fetchData crash:', e); // ✅ thêm dòng này
-        if (!silent) toast('⚠️ Không kết nối được server', 'error');
+  if (!silent) showLoad(true);
+  try {
+    const r = await api('getInitialData');
+    if (r.success) {
+      S.children     = (r.children     || []).filter(c => c.status === 'active' || !c.status);
+      S.tasks        = (r.tasks        || []).filter(t => t.status === 'active');
+      S.rewards      = (r.rewards      || []).filter(rw => rw.status === 'active');
+      S.transactions = r.transactions  || [];
+      S.dailyStatus  = r.dailyStatus   || [];
+      S.redemptions  = r.redemptions   || [];
+      S.today        = r.today         || '';
+      S.week_start   = r.week_start    || '';
+      renderTab(S.activeTab);
+    } else {
+      if (!silent) toast(r.message || 'Không tải được dữ liệu', 'error');
     }
-    if (!silent) showLoad(false);
+  } catch(e) {
+    console.error('fetchData error:', e); // ✅ luôn log dù silent
+    if (!silent) toast('⚠️ Không kết nối được server', 'error');
+  }
+  if (!silent) showLoad(false);
 }
 
 async function doRefresh() {
@@ -1053,7 +529,7 @@ async function doRefresh() {
 }
 
 // ============================================================
-// SCORE HELPERS (dùng giá trị pre-computed từ server)
+// SCORE / TASK HELPERS
 // ============================================================
 function childScore(childId) {
   const c = S.children.find(x => String(x.child_id) === String(childId));
@@ -1067,9 +543,6 @@ function childScore(childId) {
   };
 }
 
-// ============================================================
-// TASK HELPERS
-// ============================================================
 function isTaskDone(childId, taskId) {
   return S.dailyStatus.some(ds =>
     String(ds.child_id) === String(childId) &&
@@ -1089,45 +562,30 @@ function taskAppliesTo(task, child) {
 // LOGIN / LOGOUT
 // ============================================================
 async function handleLogin(e) {
-    e.preventDefault();
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const errEl    = document.getElementById('loginError');
-    errEl.style.display = 'none';
+  e.preventDefault();
+  const username = document.getElementById('inp-user').value.trim();
+  const password = document.getElementById('inp-pass').value.trim();
+  const errEl    = document.getElementById('login-error');
+  errEl.style.display = 'none';
 
-    if (!username || !password) { toast('Nhập username và password', 'warn'); return; }
-
-    showLoad(true);
-
-    let loginResult = null; // ← tách ra ngoài
-
-    try {
-        loginResult = await api('login', { username, password });
-    } catch(err) {
-        toast('⚠️ Không kết nối được server.', 'error');
-        showLoad(false);
-        return; // ← dừng hẳn
-    }
-
-    // ✅ Từ đây không còn nhầm lỗi network vs lỗi UI
-    if (loginResult?.success) {
-        S.token = loginResult.token;
-        S.user  = {
-            user_id:      loginResult.user_id,
-            username:     loginResult.username,
-            display_name: loginResult.display_name,
-            role:         loginResult.role,
-            child_id:     loginResult.child_id || null
-        };
-        localStorage.setItem('fq_token', loginResult.token);
-        localStorage.setItem('fq_user',  JSON.stringify(S.user));
-        showLoad(false);
-        showApp();           // ← lỗi ở đây sẽ hiện đúng trên console
-        await fetchData(true);
+  if (!username || !password) { toast('Nhập username và password', 'warn'); return; }
+  showLoad(true);
+  try {
+    const r = await api('login', { username, password });
+    if (r.success) {
+      S.token = r.token;
+      S.user  = { user_id: r.user_id, username: r.username, display_name: r.display_name, role: r.role, child_id: r.child_id || null };
+      localStorage.setItem('fq_token', r.token);
+      localStorage.setItem('fq_user',  JSON.stringify(S.user));
+      showApp();
+      await fetchData(true);
     } else {
-        errEl.style.display = 'block';
-        showLoad(false);
+      errEl.style.display = 'block';
     }
+  } catch(err) {
+    toast('⚠️ Không kết nối được server', 'error');
+  }
+  showLoad(false);
 }
 
 function handleLogout() {
@@ -1146,53 +604,30 @@ function togglePw() {
 // SESSION RESTORE
 // ============================================================
 async function init() {
-    buildLoginChars();
-
-    // ✅ Parse đúng từ localStorage
-    const savedToken = localStorage.getItem('fq_token');
-    const savedUser  = JSON.parse(localStorage.getItem('fq_user') || 'null');
-
-    if (savedToken && savedUser) {
-        S.token = savedToken;
-        S.user  = savedUser;
-
-        try {
-            const r = await api('validateSession');
-            if (r?.success) {
-                S.user = {
-                    user_id:      r.user_id,
-                    username:     r.username,
-                    display_name: r.display_name,
-                    role:         r.role,
-                    child_id:     r.child_id
-                };
-                localStorage.setItem('fq_user', JSON.stringify(S.user));
-                showLoad(false);
-                showApp();
-                await fetchData(true);
-                return;
-            }
-        } catch(e) {
-            console.warn('validateSession failed:', e);
-        }
-
-        // Token hết hạn → xóa
-        S.token = null;
-        S.user  = null;
-        localStorage.removeItem('fq_token');
-        localStorage.removeItem('fq_user');
-    }
-
-    showLoad(false);
-    showLogin();
+  buildLoginChars();
+  if (S.token && S.user) {
+    try {
+      const r = await api('validateSession');
+      if (r.success) {
+        S.user = { user_id: r.user_id, username: r.username, display_name: r.display_name, role: r.role, child_id: r.child_id };
+        localStorage.setItem('fq_user', JSON.stringify(S.user));
+        showApp();
+        await fetchData(true);
+        return;
+      }
+    } catch(e) { console.error('validateSession error:', e); }
+    S.token = null; S.user = null;
+    localStorage.removeItem('fq_token');
+    localStorage.removeItem('fq_user');
+  }
+  showLogin();
 }
 
 function buildLoginChars() {
-  // Static decorative buttons for login screen
   const row = document.getElementById('chars-row');
   const chars = [
-    { icon: '⚔️', name: 'Bố / Mẹ',     role: 'admin / scorer' },
-    { icon: '🌸', name: 'Các bé',        role: 'viewer' }
+    { icon: '⚔️', name: 'Bố / Mẹ',  role: 'admin / scorer' },
+    { icon: '🌸', name: 'Các bé',    role: 'viewer' }
   ];
   row.innerHTML = chars.map(c => `
     <div class="char-btn">
@@ -1207,72 +642,59 @@ function buildLoginChars() {
 // UI HELPERS
 // ============================================================
 function showLogin() {
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('mainApp').classList.remove('visible');
+  // ✅ dùng id mới
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('mainApp').classList.remove('visible');
 }
 
 function showApp() {
-    // Debug: xem cái nào null
-    console.log({
-        loginScreen : document.getElementById('loginScreen'),
-        mainApp     : document.getElementById('mainApp'),
-        currentUser : document.getElementById('currentUser'),
-        settingsBtn : document.getElementById('tab-btn-settings'),
-    });
+  // ✅ dùng id mới
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').classList.add('visible');
+  document.getElementById('currentUser').textContent =
+    (S.user?.display_name || '?') + ' · ' + (S.user?.role || '');
 
-    const loginScreen = document.getElementById('loginScreen');
-    const mainApp     = document.getElementById('mainApp');
-    const currentUser = document.getElementById('currentUser');
-    const settingsBtn = document.getElementById('tab-btn-settings');
-
-    if (loginScreen) loginScreen.style.display = 'none';
-    if (mainApp)     mainApp.classList.add('visible');
-    if (currentUser) currentUser.textContent =
-        (S.user?.display_name || '?') + ' · ' + (S.user?.role || '');
-
-    // ✅ Không crash nếu tab chưa tồn tại
-    if (settingsBtn) {
-        settingsBtn.style.display =
-            (S.user?.role === 'admin' || S.user?.role === 'scorer') ? '' : 'none';
-    }
-
-    switchTab('today');
+  const settingsBtn = document.getElementById('tab-btn-settings');
+  if (settingsBtn) {
+    settingsBtn.style.display =
+      (S.user?.role === 'admin' || S.user?.role === 'scorer') ? '' : 'none';
+  }
+  switchTab('today');
 }
 
 function showLoad(v) {
-    const overlay = document.getElementById('loadingOverlay');
-    if (v) {
-        overlay.style.display = 'flex';
-        overlay.classList.remove('hidden');
-    } else {
-        overlay.classList.add('hidden');
-    }
+  document.getElementById('loading').style.display = v ? 'flex' : 'none';
 }
 
 let toastTimer = null;
 function toast(msg, type = 'info') {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.className = 'toast show ' + type;
+  el.className   = 'show ' + type; // ← không prefix 'toast'
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
 }
 
+// ✅ switchTab — fix typo + dùng .tab-panel + active class
 function switchTab(tab) {
-    console.log('switchTab →', tab);
-    S.activeTab = tab;
+  console.log('switchTab →', tab); // ✅ tab, không phải tabName
+  S.activeTab = tab;
 
-    document.querySelectorAll('.tab-btn').forEach(b =>
-        b.classList.toggle('active', b.dataset.tab === tab)
-    );
-    document.querySelectorAll('.tab-content').forEach(t =>
-        t.style.display = (t.id === 'tab-' + tab) ? 'block' : 'none' // ✅ 'block'
-    );
+  // Toggle nav buttons
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab)
+  );
 
-    renderTab(tab);
+  // ✅ Toggle tab panels bằng class active
+  document.querySelectorAll('.tab-panel').forEach(p =>
+    p.classList.toggle('active', p.id === 'tab-' + tab)
+  );
+
+  renderTab(tab);
 }
 
 function renderTab(tab) {
+  console.log('renderTab →', tab);
   switch (tab) {
     case 'today':    renderToday();    break;
     case 'tasks':    renderTasks();    break;
@@ -1281,10 +703,11 @@ function renderTab(tab) {
     case 'rankings': renderRankings(); break;
     case 'history':  renderHistory();  break;
     case 'settings': renderSettings(); break;
+    default: console.warn('renderTab: unknown tab =', tab);
   }
 }
 
-// confirm modal
+// Modal
 let modalCb = null;
 function confirm(title, body, cb) {
   document.getElementById('modal-title').textContent = title;
@@ -1299,11 +722,10 @@ function closeModal() {
 
 function fmtDate(d) {
   if (!d) return '';
-  const s = String(d).substring(0, 10);
+  const s     = String(d).substring(0, 10);
   const parts = s.split('-');
   return `${parts[2]}/${parts[1]}`;
 }
-
 function fmtDatetime(d) {
   if (!d) return '';
   const dt = new Date(d);
@@ -1320,14 +742,12 @@ function renderToday() {
     el.innerHTML = '<div class="empty-state"><div class="es-icon">🌞</div><p>Đang tải dữ liệu...</p></div>';
     return;
   }
-
-  const scored = S.children.map(c => ({ ...c, ...childScore(c.child_id) }));
+  const scored      = S.children.map(c => ({ ...c, ...childScore(c.child_id) }));
   const todayLeader = scored.reduce((a,b) => a.today_score >= b.today_score ? a : b);
   const weekLeader  = scored.reduce((a,b) => a.week_score  >= b.week_score  ? a : b);
 
   let html = `
     <div class="sec-title">🌞 Hôm Nay · ${fmtDate(S.today)}</div>
-
     <div class="leaders-banner">
       <div class="leader-item">
         <span class="leader-label">🌞 Dẫn đầu hôm nay</span>
@@ -1338,7 +758,6 @@ function renderToday() {
         <span class="leader-name">${weekLeader.avatar_icon || '⭐'} ${weekLeader.child_name}</span>
       </div>
     </div>
-
     <div class="child-cards">
   `;
 
@@ -1354,32 +773,17 @@ function renderToday() {
           </div>
         </div>
         <div class="score-row">
-          <div class="score-box">
-            <div class="sv">${c.today_score}</div>
-            <div class="sl">🌞 Hôm nay</div>
-          </div>
-          <div class="score-box">
-            <div class="sv">${c.week_score}</div>
-            <div class="sl">📅 Tuần này</div>
-          </div>
-          <div class="score-box">
-            <div class="sv" style="color:var(--blue)">${c.total_score} ⭐</div>
-            <div class="sl">Ngôi sao</div>
-          </div>
+          <div class="score-box"><div class="sv">${c.today_score}</div><div class="sl">🌞 Hôm nay</div></div>
+          <div class="score-box"><div class="sv">${c.week_score}</div><div class="sl">📅 Tuần này</div></div>
+          <div class="score-box"><div class="sv" style="color:var(--blue)">${c.total_score} ⭐</div><div class="sl">Ngôi sao</div></div>
         </div>
         <div class="prog-wrap">
-          <div class="prog-label">
-            <span>Tiến độ hôm nay</span>
-            <span>${c.today_score} / ${c.daily_target}</span>
-          </div>
-          <div class="prog-bar">
-            <div class="prog-fill" style="width:${pct}%"></div>
-          </div>
+          <div class="prog-label"><span>Tiến độ hôm nay</span><span>${c.today_score} / ${c.daily_target}</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
         </div>
       </div>
     `;
   });
-
   html += '</div>';
   el.innerHTML = html;
 }
@@ -1388,24 +792,19 @@ function renderToday() {
 // RENDER: TASKS
 // ============================================================
 function renderTasks() {
-  const el = document.getElementById('tab-tasks');
+  const el         = document.getElementById('tab-tasks');
   const canInteract = S.user?.role === 'admin' || S.user?.role === 'scorer';
 
   const cats = [
-    { key: 'all',           label: '🔍 Tất cả' },
-    { key: 'Tác phong hằng ngày', label: '🌅 Tác phong' },
-    { key: 'Việc nhà',      label: '🏠 Việc nhà' },
-    { key: 'Học tập',       label: '📚 Học tập' },
-    { key: 'Điểm phát sinh',label: '⚡ Phát sinh' },
-    { key: 'Thành tích',    label: '🏆 Thành tích' }
+    { key: 'all',                  label: '🔍 Tất cả' },
+    { key: 'Tác phong hằng ngày',  label: '🌅 Tác phong' },
+    { key: 'Việc nhà',             label: '🏠 Việc nhà' },
+    { key: 'Học tập',              label: '📚 Học tập' },
+    { key: 'Điểm phát sinh',       label: '⚡ Phát sinh' },
+    { key: 'Thành tích',           label: '🏆 Thành tích' }
   ];
 
-  const activeTasks = S.tasks.filter(t => {
-    if (S.taskFilter === 'all') return true;
-    return t.category === S.taskFilter;
-  });
-
-  // Group by category
+  const activeTasks = S.tasks.filter(t => S.taskFilter === 'all' || t.category === S.taskFilter);
   const groups = {};
   activeTasks.forEach(t => {
     const cat = t.category || 'Khác';
@@ -1425,8 +824,7 @@ function renderTasks() {
 
   if (!activeTasks.length) {
     html += '<div class="empty-state"><div class="es-icon">✅</div><p>Không có nhiệm vụ nào</p></div>';
-    el.innerHTML = html;
-    return;
+    el.innerHTML = html; return;
   }
 
   Object.entries(groups).forEach(([cat, tasks]) => {
@@ -1434,7 +832,6 @@ function renderTasks() {
     tasks.forEach(task => {
       const applicable = S.children.filter(c => taskAppliesTo(task, c));
       if (!applicable.length) return;
-
       html += `
         <div class="task-item">
           <div class="task-item-head">
@@ -1459,50 +856,29 @@ function renderTasks() {
     });
     html += '</div>';
   });
-
   el.innerHTML = html;
 }
 
-function setTaskFilter(key) {
-  S.taskFilter = key;
-  renderTasks();
-}
+function setTaskFilter(key) { S.taskFilter = key; renderTasks(); }
 
-// ============================================================
-// TASK TOGGLE (complete / undo)
-// ============================================================
 async function handleTaskToggle(childId, taskId, isDone) {
   if (S.user?.role !== 'admin' && S.user?.role !== 'scorer') return;
-
   const child = S.children.find(c => String(c.child_id) === String(childId));
-  const task  = S.tasks.find(t => String(t.task_id) === String(taskId));
+  const task  = S.tasks.find(t => String(t.task_id)  === String(taskId));
   if (!child || !task) return;
 
   const lbl = document.getElementById(`lbl-${childId}-${taskId}`);
   if (lbl) { lbl.style.opacity = '0.5'; lbl.style.pointerEvents = 'none'; }
-
   showLoad(true);
   try {
-    if (!isDone) {
-      // Complete task
-      const r = await api('completeTask', { child_id: childId, task_id: taskId });
-      if (r.success) {
-        toast(`✅ ${child.child_name}: +${task.points} ⭐`, 'success');
-        await fetchData(true);
-      } else {
-        toast(r.message, 'error');
-        if (lbl) { lbl.style.opacity = ''; lbl.style.pointerEvents = ''; }
-      }
+    const action = isDone ? 'undoTask' : 'completeTask';
+    const r = await api(action, { child_id: childId, task_id: taskId });
+    if (r.success) {
+      toast(isDone ? `↩️ ${child.child_name}: -${task.points} ⭐` : `✅ ${child.child_name}: +${task.points} ⭐`, isDone ? 'warn' : 'success');
+      await fetchData(true);
     } else {
-      // Undo task
-      const r = await api('undoTask', { child_id: childId, task_id: taskId });
-      if (r.success) {
-        toast(`↩️ ${child.child_name}: -${task.points} ⭐`, 'warn');
-        await fetchData(true);
-      } else {
-        toast(r.message, 'error');
-        if (lbl) { lbl.style.opacity = ''; lbl.style.pointerEvents = ''; }
-      }
+      toast(r.message, 'error');
+      if (lbl) { lbl.style.opacity = ''; lbl.style.pointerEvents = ''; }
     }
   } catch(e) {
     toast('Lỗi kết nối', 'error');
@@ -1512,19 +888,17 @@ async function handleTaskToggle(childId, taskId, isDone) {
 }
 
 // ============================================================
-// RENDER: POINTS (bonus/penalty)
+// RENDER: POINTS
 // ============================================================
 function renderPoints() {
-  const el       = document.getElementById('tab-points');
-  const canAct   = S.user?.role === 'admin' || S.user?.role === 'scorer';
-  const recentTx = S.transactions.slice(0, 20);
-
-  let childOpts = S.children.map(c =>
-    `<option value="${c.child_id}">${c.avatar_icon || ''} ${c.child_name}</option>`
-  ).join('');
+  const el     = document.getElementById('tab-points');
+  const canAct = S.user?.role === 'admin' || S.user?.role === 'scorer';
 
   let formHtml = '';
   if (canAct) {
+    const childOpts = S.children.map(c =>
+      `<option value="${c.child_id}">${c.avatar_icon || ''} ${c.child_name}</option>`
+    ).join('');
     formHtml = `
       <div class="points-form">
         <div class="form-row">
@@ -1552,7 +926,8 @@ function renderPoints() {
     `;
   }
 
-  let txHtml = recentTx.length ? recentTx.map(tx => {
+  const recentTx = S.transactions.slice(0, 20);
+  const txHtml   = recentTx.length ? recentTx.map(tx => {
     const pts = Number(tx.points || 0);
     return `
       <div class="tx-item">
@@ -1577,10 +952,8 @@ function renderPoints() {
 
 function setBpType(type) {
   document.getElementById('bp-type').value = type;
-  const bBtn = document.getElementById('btn-bonus');
-  const pBtn = document.getElementById('btn-penalty');
-  bBtn.className = 'type-btn' + (type === 'bonus'   ? ' active-bonus'   : '');
-  pBtn.className = 'type-btn' + (type === 'penalty' ? ' active-penalty' : '');
+  document.getElementById('btn-bonus').className   = 'type-btn' + (type === 'bonus'   ? ' active-bonus'   : '');
+  document.getElementById('btn-penalty').className = 'type-btn' + (type === 'penalty' ? ' active-penalty' : '');
 }
 
 async function submitBonusPenalty() {
@@ -1588,9 +961,8 @@ async function submitBonusPenalty() {
   const type    = document.getElementById('bp-type').value;
   const note    = document.getElementById('bp-note').value.trim();
   const pts     = Number(document.getElementById('bp-pts').value);
-
-  if (!childId) { toast('Chọn bé', 'warn'); return; }
-  if (!pts || pts <= 0) { toast('Nhập số điểm hợp lệ', 'warn'); return; }
+  if (!childId)      { toast('Chọn bé', 'warn'); return; }
+  if (!pts || pts<=0){ toast('Nhập số điểm hợp lệ', 'warn'); return; }
 
   showLoad(true);
   try {
@@ -1600,9 +972,7 @@ async function submitBonusPenalty() {
       document.getElementById('bp-note').value = '';
       document.getElementById('bp-pts').value  = '';
       await fetchData(true);
-    } else {
-      toast(r.message, 'error');
-    }
+    } else { toast(r.message, 'error'); }
   } catch(e) { toast('Lỗi kết nối', 'error'); }
   showLoad(false);
 }
@@ -1611,15 +981,13 @@ async function submitBonusPenalty() {
 // RENDER: REWARDS
 // ============================================================
 function renderRewards() {
-  const el = document.getElementById('tab-rewards');
-  const canRedeem = S.user?.role === 'admin' || S.user?.role === 'scorer' || S.user?.role === 'viewer';
-
-  // For viewer: only show their child
-  const redeemChildren = S.user?.role === 'viewer'
+  const el          = document.getElementById('tab-rewards');
+  const canRedeem   = ['admin','scorer','viewer'].includes(S.user?.role);
+  const redeemKids  = S.user?.role === 'viewer'
     ? S.children.filter(c => String(c.child_id) === String(S.user.child_id))
     : S.children;
 
-  let childOpts = redeemChildren.map(c =>
+  const childOpts = redeemKids.map(c =>
     `<option value="${c.child_id}">${c.avatar_icon || ''} ${c.child_name} (${childScore(c.child_id).total_score} ⭐)</option>`
   ).join('');
 
@@ -1629,20 +997,14 @@ function renderRewards() {
       <select id="rd-child" class="form-select">${childOpts}</select>
     </div>
     <div class="rewards-grid">
-      ${S.rewards.map(rw => {
-        const maxScore = redeemChildren.length
-          ? Math.max(...redeemChildren.map(c => childScore(c.child_id).total_score))
-          : 0;
-        const canAfford = maxScore >= Number(rw.required_points);
-        return `
-          <div class="reward-card">
-            <span class="reward-icon">${rw.icon || '🎁'}</span>
-            <div class="reward-name">${rw.reward_name}</div>
-            <div class="reward-pts">${rw.required_points} ⭐</div>
-            ${canRedeem ? `<button class="btn-redeem" onclick="submitRedeem('${rw.reward_id}')">🎁 Đổi thưởng</button>` : ''}
-          </div>
-        `;
-      }).join('')}
+      ${S.rewards.map(rw => `
+        <div class="reward-card">
+          <span class="reward-icon">${rw.icon || '🎁'}</span>
+          <div class="reward-name">${rw.reward_name}</div>
+          <div class="reward-pts">${rw.required_points} ⭐</div>
+          ${canRedeem ? `<button class="btn-redeem" onclick="submitRedeem('${rw.reward_id}')">🎁 Đổi thưởng</button>` : ''}
+        </div>
+      `).join('')}
     </div>
   ` : '<div class="empty-state"><div class="es-icon">🎁</div><p>Chưa có phần thưởng nào</p></div>';
 
@@ -1669,8 +1031,8 @@ function renderRewards() {
 async function submitRedeem(rewardId) {
   const childId = document.getElementById('rd-child')?.value;
   if (!childId) { toast('Chọn bé', 'warn'); return; }
-  const child  = S.children.find(c => String(c.child_id) === String(childId));
-  const reward = S.rewards.find(r => String(r.reward_id) === String(rewardId));
+  const child  = S.children.find(c => String(c.child_id)  === String(childId));
+  const reward = S.rewards.find(r  => String(r.reward_id) === String(rewardId));
   if (!child || !reward) return;
 
   confirm(
@@ -1680,12 +1042,8 @@ async function submitRedeem(rewardId) {
       showLoad(true);
       try {
         const r = await api('redeemReward', { child_id: childId, reward_id: rewardId });
-        if (r.success) {
-          toast(r.message, 'success');
-          await fetchData(true);
-        } else {
-          toast(r.message, 'error');
-        }
+        if (r.success) { toast(r.message, 'success'); await fetchData(true); }
+        else             toast(r.message, 'error');
       } catch(e) { toast('Lỗi kết nối', 'error'); }
       showLoad(false);
     }
@@ -1701,16 +1059,15 @@ function renderRankings() {
     el.innerHTML = '<div class="empty-state"><div class="es-icon">🏅</div><p>Đang tải...</p></div>';
     return;
   }
-
   const scored = S.children
     .map(c => ({ ...c, ...childScore(c.child_id) }))
-    .sort((a, b) => b.week_score - a.week_score);
+    .sort((a,b) => b.week_score - a.week_score);
 
   const rankEmojis = ['🥇','🥈','🥉'];
+  const allScored  = S.children.map(c => ({ ...c, ...childScore(c.child_id) }));
+  const colors     = ['c1','c2','c3','c4'];
 
-  const maxWeek = scored.length ? Math.max(...scored.map(c => c.week_score), 1) : 1;
-
-  let rankCards = scored.map((c, i) => `
+  const rankCards = scored.map((c,i) => `
     <div class="rank-card">
       <div class="rank-num ${i < 3 ? 'r'+(i+1) : ''}">${rankEmojis[i] || (i+1)}</div>
       <div class="rank-info">
@@ -1721,23 +1078,16 @@ function renderRankings() {
     </div>
   `).join('');
 
-  // Compare bars
   let compareBars = '';
-  const allScored = S.children.map(c => ({ ...c, ...childScore(c.child_id) }));
-  const maxWeekAll = Math.max(...allScored.map(c => c.week_score), 1);
-  const colors = ['c1','c2','c3','c4'];
-
   ['today_score','week_score','total_score'].forEach(metric => {
-    const labels = { today_score:'Hôm nay', week_score:'Tuần này', total_score:'Ngôi sao' };
-    const maxVal = Math.max(...allScored.map(c => c[metric]), 1);
-    compareBars += `
+    const labels  = { today_score:'Hôm nay', week_score:'Tuần này', total_score:'Ngôi sao' };
+    const maxVal  = Math.max(...allScored.map(c => c[metric]), 1);
+    compareBars  += `
       <div class="compare-row">
         <span class="compare-label">${labels[metric]}</span>
         <div class="compare-bar-wrap">
           <div class="compare-bar-track">
-            ${allScored.map((c,i) => `
-              <div class="cbar ${colors[i]}" style="width:${Math.round(c[metric]/maxVal*100)}%"></div>
-            `).join('')}
+            ${allScored.map((c,i) => `<div class="cbar ${colors[i]}" style="width:${Math.round(c[metric]/maxVal*100)}%"></div>`).join('')}
           </div>
           <div class="compare-values">
             ${allScored.map(c => `<span>${c.child_name}: ${c[metric]}</span>`).join('')}
@@ -1750,7 +1100,6 @@ function renderRankings() {
   el.innerHTML = `
     <div class="sec-title">🏅 Xếp Hạng Tuần Này</div>
     <div class="rank-cards">${rankCards}</div>
-
     <div class="compare-section">
       <div class="sec-title" style="border:none;margin-bottom:12px">📊 So Sánh</div>
       ${compareBars}
@@ -1767,46 +1116,39 @@ function renderHistory() {
     el.innerHTML = '<div class="empty-state"><div class="es-icon">📊</div><p>Đang tải...</p></div>';
     return;
   }
-
-  // Build 7-day data from transactions
-  const days = 7;
+  const days    = 7;
   const dayData = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(S.today + 'T00:00:00');
+  for (let i = days-1; i >= 0; i--) {
+    const d  = new Date(S.today + 'T00:00:00');
     d.setDate(d.getDate() - i);
-    const ds = d.toISOString().substring(0, 10);
+    const ds = d.toISOString().substring(0,10);
     const entry = { date: ds, short: `${d.getDate()}/${d.getMonth()+1}`, scores: {} };
     S.children.forEach(c => {
       entry.scores[c.child_id] = S.transactions
         .filter(tx => String(tx.child_id) === String(c.child_id) && String(tx.date).substring(0,10) === ds)
-        .reduce((sum, tx) => sum + Number(tx.points || 0), 0);
+        .reduce((sum,tx) => sum + Number(tx.points || 0), 0);
     });
     dayData.push(entry);
   }
 
-  const allVals = dayData.flatMap(d => Object.values(d.scores));
-  const maxVal  = Math.max(...allVals, 1);
+  const allVals  = dayData.flatMap(d => Object.values(d.scores));
+  const maxVal   = Math.max(...allVals, 1);
+  const colors   = ['var(--red)','var(--blue)','var(--green)'];
 
-  const colors = ['var(--red)', 'var(--blue)', 'var(--green)'];
-
-  let barsHtml = dayData.map(d => {
-    const childBars = S.children.map((c, i) => {
+  const barsHtml = dayData.map(d => {
+    const childBars = S.children.map((c,i) => {
       const h = Math.max(4, Math.round((d.scores[c.child_id] / maxVal) * 100));
       return `<div class="bar b${i+1}" style="height:${h}px" title="${c.child_name}: ${d.scores[c.child_id]}"></div>`;
     }).join('');
     return `<div class="bar-group">${childBars}<span class="bar-date">${d.short}</span></div>`;
   }).join('');
 
-  const legendHtml = S.children.map((c, i) => `
-    <span>
-      <span class="legend-dot" style="background:${colors[i] || '#fff'}"></span>
-      ${c.child_name}
-    </span>
+  const legendHtml = S.children.map((c,i) => `
+    <span><span class="legend-dot" style="background:${colors[i]||'#fff'}"></span>${c.child_name}</span>
   `).join('');
 
-  // Recent transactions
-  const recentTx = S.transactions.slice(0, 30);
-  const txHtml = recentTx.length ? recentTx.map(tx => {
+  const recentTx = S.transactions.slice(0,30);
+  const txHtml   = recentTx.length ? recentTx.map(tx => {
     const pts = Number(tx.points || 0);
     return `
       <div class="tx-item">
@@ -1821,13 +1163,11 @@ function renderHistory() {
 
   el.innerHTML = `
     <div class="sec-title">📊 Lịch Sử</div>
-
     <div class="chart-wrap">
       <div class="chart-title">📈 Biểu Đồ 7 Ngày Gần Đây</div>
       <div class="bar-chart">${barsHtml}</div>
       <div class="chart-legend">${legendHtml}</div>
     </div>
-
     <div class="sec-title">📜 Giao Dịch Gần Đây</div>
     ${txHtml}
   `;
@@ -1843,73 +1183,44 @@ function renderSettings() {
     el.innerHTML = '<div class="empty-state"><div class="es-icon">🔒</div><p>Chỉ dành cho admin/scorer</p></div>';
     return;
   }
-
-  const cats = ['Tác phong hằng ngày','Việc nhà','Học tập','Điểm phát sinh','Thành tích'];
-  const catOpts = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-
-  let assignOpts = `<option value="both">👥 Cả hai</option>` +
+  const cats     = ['Tác phong hằng ngày','Việc nhà','Học tập','Điểm phát sinh','Thành tích'];
+  const catOpts  = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  const assignOpts = `<option value="both">👥 Cả hai</option>` +
     S.children.map(c => `<option value="${c.child_key || c.child_id}">${c.avatar_icon || ''} ${c.child_name}</option>`).join('');
 
-  let adminSection = '';
-  if (role === 'admin') {
-    adminSection = `
-      <div class="settings-card">
-        <h3>⚙️ Quản Lý Hệ Thống</h3>
-        <button class="btn-setting" onclick="doResetToday()">🔄 Đặt Lại Nhiệm Vụ Hôm Nay</button>
-        <button class="btn-setting danger" onclick="doResetWeek()">🗑️ Đặt Lại Điểm Tuần</button>
-      </div>
-    `;
-  }
+  const adminSection = role === 'admin' ? `
+    <div class="settings-card">
+      <h3>⚙️ Quản Lý Hệ Thống</h3>
+      <button class="btn-setting"        onclick="doResetToday()">🔄 Đặt Lại Nhiệm Vụ Hôm Nay</button>
+      <button class="btn-setting danger" onclick="doResetWeek()">🗑️ Đặt Lại Điểm Tuần</button>
+    </div>
+  ` : '';
 
   el.innerHTML = `
     <div class="sec-title">⚙️ Cài Đặt</div>
-
     <div class="settings-card">
       <h3>➕ Thêm Nhiệm Vụ Mới</h3>
       <div class="add-task-form">
-        <div class="form-row">
-          <label>Tên nhiệm vụ</label>
-          <input id="nt-name" class="form-input" type="text" placeholder="Tên nhiệm vụ..." />
-        </div>
+        <div class="form-row"><label>Tên nhiệm vụ</label><input id="nt-name" class="form-input" type="text" placeholder="Tên nhiệm vụ..." /></div>
         <div class="form-row-2">
-          <div>
-            <label>Danh mục</label>
-            <select id="nt-cat" class="form-select">${catOpts}</select>
-          </div>
-          <div>
-            <label>Số điểm</label>
-            <input id="nt-pts" class="form-input" type="number" min="1" placeholder="10" />
-          </div>
+          <div><label>Danh mục</label><select id="nt-cat" class="form-select">${catOpts}</select></div>
+          <div><label>Số điểm</label><input id="nt-pts" class="form-input" type="number" min="1" placeholder="10" /></div>
         </div>
-        <div class="form-row">
-          <label>Giao cho</label>
-          <select id="nt-assign" class="form-select">${assignOpts}</select>
-        </div>
+        <div class="form-row"><label>Giao cho</label><select id="nt-assign" class="form-select">${assignOpts}</select></div>
         <button class="btn-submit" onclick="submitAddTask()">✅ Thêm Nhiệm Vụ</button>
       </div>
     </div>
-
     <div class="settings-card">
       <h3>🎁 Thêm Phần Thưởng Mới</h3>
       <div class="add-reward-form">
-        <div class="form-row">
-          <label>Tên phần thưởng</label>
-          <input id="nr-name" class="form-input" type="text" placeholder="Tên phần thưởng..." />
-        </div>
+        <div class="form-row"><label>Tên phần thưởng</label><input id="nr-name" class="form-input" type="text" placeholder="Tên phần thưởng..." /></div>
         <div class="form-row-2">
-          <div>
-            <label>Icon</label>
-            <input id="nr-icon" class="form-input" type="text" placeholder="🎁" />
-          </div>
-          <div>
-            <label>Điểm cần</label>
-            <input id="nr-pts" class="form-input" type="number" min="1" placeholder="200" />
-          </div>
+          <div><label>Icon</label><input id="nr-icon" class="form-input" type="text" placeholder="🎁" /></div>
+          <div><label>Điểm cần</label><input id="nr-pts" class="form-input" type="number" min="1" placeholder="200" /></div>
         </div>
         <button class="btn-submit" onclick="submitAddReward()">🎁 Thêm Phần Thưởng</button>
       </div>
     </div>
-
     ${adminSection}
   `;
 }
@@ -1919,20 +1230,14 @@ async function submitAddTask() {
   const cat    = document.getElementById('nt-cat').value;
   const pts    = Number(document.getElementById('nt-pts').value);
   const assign = document.getElementById('nt-assign').value;
-
-  if (!name) { toast('Nhập tên nhiệm vụ', 'warn'); return; }
-  if (!pts || pts <= 0) { toast('Nhập số điểm hợp lệ', 'warn'); return; }
-
+  if (!name)       { toast('Nhập tên nhiệm vụ', 'warn'); return; }
+  if (!pts||pts<=0){ toast('Nhập số điểm hợp lệ', 'warn'); return; }
   showLoad(true);
   try {
-    const r = await api('addTask', { task_name: name, category: cat, points: pts, assigned_to: assign });
-    if (r.success) {
-      toast(r.message, 'success');
-      document.getElementById('nt-name').value = '';
-      document.getElementById('nt-pts').value  = '';
-      await fetchData(true);
-    } else { toast(r.message, 'error'); }
-  } catch(e) { toast('Lỗi kết nối', 'error'); }
+    const r = await api('addTask', { task_name:name, category:cat, points:pts, assigned_to:assign });
+    if (r.success) { toast(r.message,'success'); document.getElementById('nt-name').value=''; document.getElementById('nt-pts').value=''; await fetchData(true); }
+    else toast(r.message,'error');
+  } catch(e) { toast('Lỗi kết nối','error'); }
   showLoad(false);
 }
 
@@ -1940,21 +1245,14 @@ async function submitAddReward() {
   const name = document.getElementById('nr-name').value.trim();
   const icon = document.getElementById('nr-icon').value.trim() || '🎁';
   const pts  = Number(document.getElementById('nr-pts').value);
-
-  if (!name) { toast('Nhập tên phần thưởng', 'warn'); return; }
-  if (!pts || pts <= 0) { toast('Nhập số điểm hợp lệ', 'warn'); return; }
-
+  if (!name)       { toast('Nhập tên phần thưởng','warn'); return; }
+  if (!pts||pts<=0){ toast('Nhập số điểm hợp lệ','warn'); return; }
   showLoad(true);
   try {
-    const r = await api('addReward', { reward_name: name, icon, required_points: pts });
-    if (r.success) {
-      toast(r.message, 'success');
-      document.getElementById('nr-name').value = '';
-      document.getElementById('nr-icon').value = '';
-      document.getElementById('nr-pts').value  = '';
-      await fetchData(true);
-    } else { toast(r.message, 'error'); }
-  } catch(e) { toast('Lỗi kết nối', 'error'); }
+    const r = await api('addReward', { reward_name:name, icon, required_points:pts });
+    if (r.success) { toast(r.message,'success'); document.getElementById('nr-name').value=''; document.getElementById('nr-icon').value=''; document.getElementById('nr-pts').value=''; await fetchData(true); }
+    else toast(r.message,'error');
+  } catch(e) { toast('Lỗi kết nối','error'); }
   showLoad(false);
 }
 
@@ -1963,21 +1261,21 @@ async function doResetToday() {
     showLoad(true);
     try {
       const r = await api('resetToday');
-      if (r.success) { toast(r.message, 'success'); await fetchData(true); }
-      else            toast(r.message, 'error');
-    } catch(e) { toast('Lỗi kết nối', 'error'); }
+      if (r.success) { toast(r.message,'success'); await fetchData(true); }
+      else             toast(r.message,'error');
+    } catch(e) { toast('Lỗi kết nối','error'); }
     showLoad(false);
   });
 }
 
 async function doResetWeek() {
-  confirm('🗑️ Đặt lại điểm tuần?', '⚠️ Sẽ xóa toàn bộ giao dịch tuần này. Không thể hoàn tác!', async () => {
+  confirm('🗑️ Đặt lại điểm tuần?','⚠️ Sẽ xóa toàn bộ giao dịch tuần này. Không thể hoàn tác!', async () => {
     showLoad(true);
     try {
       const r = await api('resetWeek');
-      if (r.success) { toast(r.message, 'success'); await fetchData(true); }
-      else            toast(r.message, 'error');
-    } catch(e) { toast('Lỗi kết nối', 'error'); }
+      if (r.success) { toast(r.message,'success'); await fetchData(true); }
+      else             toast(r.message,'error');
+    } catch(e) { toast('Lỗi kết nối','error'); }
     showLoad(false);
   });
 }
@@ -1987,6 +1285,5 @@ async function doResetWeek() {
 // ============================================================
 init();
 </script>
-<div id="toast" class="toast"></div>
 </body>
 </html>
