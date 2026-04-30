@@ -108,18 +108,25 @@
            4. LOADING OVERLAY
         ======================================== */
         #loadingOverlay {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg,
-                var(--g400)  0%,  var(--g500)  42%,
-                var(--p300) 58%, var(--p500) 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-            z-index: 9999;
-        }
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg,
+        var(--g400)  0%,  var(--g500)  42%,
+        var(--p300) 58%, var(--p500) 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+
+#loadingOverlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
         #loadingOverlay .ld-icon {
             font-size: 68px;
             animation: wiggle .65s ease-in-out infinite;
@@ -634,7 +641,6 @@
 ============================================================ -->
 <div id="loginScreen">
 
-    <div id="chars-row"></div>
     <!-- Nezuko right-side dot pattern -->
     <div class="nezuko-bg"></div>
 
