@@ -963,7 +963,7 @@
 // ============================================================
 // CONFIG — ĐỔI URL NÀY
 // ============================================================
-const _URL = 'https://script.google.com/macros/s/AKfycbxJwpMxT1gMADbf8CGcCZDkRsX68uwHh4_1lquJ8ryg3icDns4LEVByTVFyMtJEXsqo/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxJwpMxT1gMADbf8CGcCZDkRsX68uwHh4_1lquJ8ryg3icDns4LEVByTVFyMtJEXsqo/exec';
 
 // ============================================================
 // STATE
@@ -987,26 +987,34 @@ let S = {
 //  HELPER
 // ============================================================
 async function api(action, data = {}) {
+    console.log('API_URL =', API_URL);  // ← thêm dòng này
+
     const body = {
         action,
-        token:   S.token || null,   // ← token ra ngoài
-        payload: data               // ← data vào trong payload
+        token:   S.token || null,
+        payload: data
     };
 
-    console.log(`api → [${action}]`, body); // debug
+    console.log(`api → [${action}]`, body);
 
-    const res = await fetch(API_URL, {
-        method:   'POST',
-        redirect: 'follow',
-        headers:  { 'Content-Type': 'text/plain;charset=utf-8' }, // ← tránh CORS preflight
-        body:     JSON.stringify(body)
-    });
+    try {
+        const res = await fetch(API_URL, {
+            method:   'POST',
+            redirect: 'follow',
+            headers:  { 'Content-Type': 'text/plain;charset=utf-8' },
+            body:     JSON.stringify(body)
+        });
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    const json = await res.json();
-    console.log(`api ← [${action}]`, json); // debug
-    return json;
+        const json = await res.json();
+        console.log(`api ← [${action}]`, json);
+        return json;
+
+    } catch(err) {
+        console.error('fetch error:', err); // ← xem lỗi thật sự
+        throw err;
+    }
 }
 
 // ============================================================
