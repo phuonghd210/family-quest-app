@@ -1,1906 +1,1591 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>⚔️ Kimetsu Rewards — Bảng Điểm Diệt Quỷ</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>⚔️ Bảng Điểm Diệt Quỷ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    /* =====================================================
-       CSS VARIABLES — DEMON SLAYER LIGHT THEME
-       ===================================================== */
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: 'Nunito', 'Baloo 2', sans-serif;
+      background: var(--bg-page);
+      color: var(--text);
+      font-size: 16px;
+    }
+
+    /* ============================================================
+       CSS VARIABLES — Light Theme · Demon Slayer
+    ============================================================ */
     :root {
+      /* Backgrounds */
       --bg-page:    #f0fdf4;
       --bg-card:    #ffffff;
       --bg-surface: #f9fafb;
       --bg-nav:     #ffffff;
+
+      /* Green — Tanjiro */
       --green:      #16a34a;
       --green-l:    #22c55e;
       --green-bg:   #dcfce7;
+
+      /* Pink — Nezuko */
       --pink:       #ec4899;
       --pink-l:     #f472b6;
       --pink-bg:    #fce7f3;
+
+      /* Accent */
       --gold:       #f59e0b;
       --gold-bg:    #fef3c7;
       --blue:       #3b82f6;
       --blue-bg:    #dbeafe;
       --red:        #ef4444;
       --red-l:      #f87171;
+
+      /* Text */
       --text:       #1e293b;
       --dim:        #64748b;
       --text-light: #94a3b8;
+
+      /* Border & Shadow */
       --border:     rgba(0,0,0,0.08);
       --shadow-sm:  0 2px 8px rgba(0,0,0,0.08);
       --shadow-md:  0 4px 16px rgba(0,0,0,0.12);
       --shadow-lg:  0 8px 32px rgba(0,0,0,0.15);
+
+      --radius: 20px;
     }
 
-    /* =====================================================
-       RESET & BASE
-       ===================================================== */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: 'Nunito', 'Baloo 2', sans-serif;
-      font-size: 16px;
-      background: var(--bg-page);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+    /* ============================================================
+       ANIMATIONS
+    ============================================================ */
+    @keyframes spin    { to { transform: rotate(360deg); } }
+    @keyframes fadeIn  { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes floatUp { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
 
-    /* =====================================================
-       SCROLLBAR
-       ===================================================== */
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--text-light); border-radius: 2px; }
-
-    /* =====================================================
-       KEYFRAMES
-       ===================================================== */
-    @keyframes spin       { to { transform: rotate(360deg); } }
-    @keyframes fadeInUp   { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes bounce     { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
-    @keyframes pulseSoft  { 0%,100% { transform:scale(1); } 50% { transform:scale(1.04); } }
-    @keyframes shimmer    {
-      0%   { background-position: -300% center; }
-      100% { background-position:  300% center; }
-    }
-
-    /* =====================================================
+    /* ============================================================
        LOADING
-       ===================================================== */
+    ============================================================ */
     #loading {
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.9);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 14px;
-      z-index: 9999;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(240,253,244,0.92);
+      display: none; align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px;
       backdrop-filter: blur(6px);
     }
+    #loading span { color: var(--dim); font-size: 14px; font-weight: 700; font-family: 'Nunito', sans-serif; }
     .spinner {
-      width: 52px;
-      height: 52px;
-      border: 5px solid var(--green-bg);
+      width: 48px; height: 48px;
+      border: 4px solid var(--green-bg);
       border-top-color: var(--green);
       border-radius: 50%;
-      animation: spin 0.75s linear infinite;
-    }
-    .loading-text {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--green);
+      animation: spin 0.8s linear infinite;
     }
 
-    /* =====================================================
+    /* ============================================================
        TOAST
-       ===================================================== */
+    ============================================================ */
     #toast {
-      position: fixed;
-      bottom: 84px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      padding: 12px 28px;
-      border-radius: 999px;
-      font-family: 'Nunito', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      opacity: 0;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      z-index: 9000;
-      white-space: nowrap;
+      position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%);
+      background: var(--text); color: #fff;
+      padding: 12px 24px; border-radius: 999px;
+      font-size: 14px; font-weight: 700; z-index: 8888;
+      opacity: 0; transition: opacity 0.3s;
+      max-width: 90vw; text-align: center;
       box-shadow: var(--shadow-md);
       pointer-events: none;
-      max-width: 92vw;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-family: 'Nunito', sans-serif;
     }
-    #toast.show    { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.show    { opacity: 1; }
     #toast.success { background: var(--green); color: #fff; }
     #toast.error   { background: var(--red);   color: #fff; }
-    #toast.warn    { background: var(--gold);  color: var(--text); }
+    #toast.warn    { background: var(--gold);   color: #fff; }
 
-    /* =====================================================
+    /* ============================================================
        MODAL
-       ===================================================== */
+    ============================================================ */
     #modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.45);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 8000;
-      backdrop-filter: blur(5px);
-      padding: 20px;
+      position: fixed; inset: 0; z-index: 7777;
+      background: rgba(0,0,0,0.40);
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
     }
     #modal-overlay.show { display: flex; }
-
     .modal-box {
-      background: var(--bg-card);
-      border-radius: 20px;
-      padding: 28px 24px 22px;
-      max-width: 360px;
-      width: 100%;
+      background: var(--bg-card); border-radius: 20px;
+      padding: 28px 24px; max-width: 340px; width: 90%;
       box-shadow: var(--shadow-lg);
-      animation: fadeInUp 0.25s ease;
+      animation: fadeIn 0.22s ease;
     }
-    #modal-title {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 19px;
-      font-weight: 800;
-      color: var(--text);
-      margin-bottom: 10px;
+    .modal-box h3 {
+      margin-bottom: 10px; font-size: 18px; font-weight: 800;
+      font-family: 'Baloo 2', sans-serif; color: var(--text);
     }
-    #modal-body {
-      font-size: 15px;
-      color: var(--dim);
-      line-height: 1.65;
-      margin-bottom: 22px;
-    }
-    .modal-btns {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-    }
+    .modal-box p  { color: var(--dim); font-size: 14px; margin-bottom: 24px; line-height: 1.55; }
+    .modal-btns   { display: flex; gap: 10px; }
     .modal-btns button {
-      padding: 11px 22px;
-      border-radius: 14px;
-      border: none;
-      font-family: 'Nunito', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      min-height: 44px;
+      flex: 1; padding: 12px; border-radius: 14px;
+      border: none; cursor: pointer; font-size: 14px; font-weight: 700;
+      transition: all 0.2s ease; font-family: 'Nunito', sans-serif;
     }
     .modal-btns button:hover  { transform: scale(1.03); }
     .modal-btns button:active { transform: scale(0.97); }
-    #modal-ok {
-      background: linear-gradient(135deg, var(--green-l), var(--green));
+    .btn-confirm {
+      background: linear-gradient(135deg, var(--green), #15803d);
       color: #fff;
       box-shadow: 0 4px 12px rgba(22,163,74,0.3);
     }
     .btn-cancel { background: #f1f5f9; color: var(--dim); }
 
-    /* =====================================================
-       LOGIN SCREEN
-       ===================================================== */
+    /* ============================================================
+       LOGIN — id="loginScreen"
+    ============================================================ */
     #loginScreen {
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      position: relative; overflow: hidden;
+      background: #f0fdf4;
     }
-    .login-bg {
-      position: absolute;
-      inset: 0;
-      display: flex;
-    }
-    .login-bg-left {
-      flex: 1;
-      background: linear-gradient(160deg, #dcfce7 0%, #bbf7d0 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 24px 12px;
-    }
-    .login-bg-right {
-      flex: 1;
-      background: linear-gradient(160deg, #fce7f3 0%, #fbcfe8 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 24px 12px;
-    }
-    .login-char {
-      font-size: 72px;
-      line-height: 1;
-      filter: drop-shadow(0 6px 14px rgba(0,0,0,0.14));
-      animation: bounce 3s ease-in-out infinite;
-    }
-    .login-deco { font-size: 22px; letter-spacing: 6px; }
-    .login-jp {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      font-style: italic;
-    }
-    .login-bg-left  .login-jp { color: var(--green); }
-    .login-bg-right .login-jp { color: var(--pink);  }
 
+    /* ── Decorative split halves ── */
+    .login-deco-left,
+    .login-deco-right {
+      position: absolute; top: 0; height: 100%; width: 50%;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .login-deco-left  { left: 0;  background: var(--green-bg); }
+    .login-deco-right { right: 0; background: var(--pink-bg);  }
+
+    .deco-inner      { text-align: center; padding: 24px; user-select: none; }
+    .deco-char       {
+      font-size: 76px; display: block; line-height: 1; margin-bottom: 14px;
+      animation: floatUp 3.5s ease-in-out infinite;
+    }
+    .deco-jp         {
+      font-size: 19px; font-weight: 800; font-style: italic;
+      font-family: 'Baloo 2', sans-serif; letter-spacing: 3px; margin-bottom: 10px;
+    }
+    .login-deco-left  .deco-jp { color: var(--green); }
+    .login-deco-right .deco-jp { color: var(--pink);  }
+    .deco-emojis { font-size: 22px; letter-spacing: 8px; opacity: 0.60; }
+
+    /* ── Login card ── */
     .login-card {
-      position: relative;
-      z-index: 2;
       background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.85);
       border-radius: 24px;
+      padding: 36px 28px;
+      width: 100%; max-width: 384px;
       box-shadow: var(--shadow-lg);
-      width: 100%;
-      max-width: 400px;
-      overflow: hidden;
+      position: relative; z-index: 2;
+      animation: fadeIn 0.4s ease;
     }
+    .login-logo { text-align: center; margin-bottom: 22px; }
     .login-card-header {
-      background: linear-gradient(135deg, var(--green-bg) 0%, var(--pink-bg) 100%);
-      padding: 26px 24px 18px;
-      text-align: center;
+      background: linear-gradient(135deg, var(--green-bg), var(--pink-bg));
+      border-radius: 16px; padding: 16px 12px; margin-bottom: 4px;
     }
-    .login-logo {
-      font-size: 54px;
-      display: block;
-      margin-bottom: 6px;
-      animation: bounce 2.5s ease-in-out infinite;
+    .login-logo .logo-icon {
+      font-size: 52px; display: block; margin-bottom: 8px; line-height: 1;
+      animation: floatUp 3s ease-in-out infinite;
     }
-    .login-title {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1.3;
+    .login-logo h1 {
+      font-size: 20px; font-weight: 800; font-family: 'Baloo 2', sans-serif;
+      background: linear-gradient(135deg, var(--green), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
-    .login-subtitle {
-      font-size: 13px;
-      color: var(--dim);
-      margin-top: 5px;
-    }
-    .login-card-body { padding: 22px 24px 26px; }
+    .login-logo p  { font-size: 13px; color: var(--dim); margin-top: 6px; font-family: 'Nunito', sans-serif; }
 
-    #login-error {
-      display: none;
-      background: #fee2e2;
-      color: var(--red);
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 16px;
+    .chars-row { display: flex; gap: 12px; margin-bottom: 24px; }
+    .char-btn {
+      flex: 1; background: var(--bg-surface);
+      border: 2px solid var(--border); border-radius: 14px;
+      padding: 12px 8px; cursor: pointer; text-align: center;
+      transition: all 0.2s ease; color: var(--text); min-height: 80px;
     }
+    .char-btn:hover  { border-color: var(--green-l); background: var(--green-bg); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+    .char-btn.active { border-color: var(--gold); background: var(--gold-bg); }
+    .char-btn .char-icon { font-size: 28px; display: block; margin-bottom: 4px; }
+    .char-btn .char-name { font-size: 12px; font-weight: 700; color: var(--text); }
+    .char-btn .char-role { font-size: 11px; color: var(--dim); }
 
-    .input-wrap { position: relative; margin-bottom: 14px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--dim); margin-bottom: 7px; }
+    .input-wrap { position: relative; }
     .input-wrap input {
-      width: 100%;
-      padding: 13px 16px 13px 46px;
-      border: 2px solid var(--border);
-      border-radius: 12px;
+      width: 100%; background: var(--bg-surface);
+      border: 2px solid var(--border); border-radius: 12px;
+      padding: 12px 14px; color: var(--text); font-size: 15px;
       font-family: 'Nunito', sans-serif;
-      font-size: 16px;
-      background: var(--bg-surface);
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s, background 0.2s;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .input-wrap input:focus { border-color: var(--green); background: #fff; }
-    .input-icon {
-      position: absolute;
-      left: 13px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 18px;
-      pointer-events: none;
+    .input-wrap input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--dim); cursor: pointer; font-size: 16px;
+      min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center;
     }
-    .input-eye {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 18px;
-      padding: 5px;
-      min-height: 44px;
-      min-width: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s;
+    .login-error {
+      background: #fee2e2; border: 1px solid var(--red-l);
+      border-radius: 12px; padding: 10px 14px;
+      font-size: 13px; color: var(--red); margin-bottom: 16px; display: none; font-weight: 700;
     }
-    .input-eye:hover { transform: translateY(-50%) scale(1.2); }
-
     .btn-login {
       width: 100%;
-      padding: 15px;
-      background: linear-gradient(135deg, var(--green-l), var(--green));
-      color: #fff;
-      border: none;
-      border-radius: 999px;
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 18px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      background: linear-gradient(135deg, var(--green), #15803d);
+      color: white; border: none; border-radius: 999px; padding: 14px;
+      font-size: 17px; font-weight: 800; font-family: 'Baloo 2', sans-serif;
+      cursor: pointer; transition: all 0.2s ease; margin-top: 6px;
       box-shadow: 0 4px 16px rgba(22,163,74,0.35);
-      min-height: 54px;
-      margin-top: 4px;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.5px; min-height: 50px;
     }
     .btn-login:hover  { transform: scale(1.03); box-shadow: 0 6px 24px rgba(22,163,74,0.45); }
     .btn-login:active { transform: scale(0.97); }
 
     @media (max-width: 480px) {
-      .login-bg-left, .login-bg-right { display: none; }
-      #loginScreen {
-        background: linear-gradient(135deg, var(--green-bg), var(--pink-bg));
-        padding: 20px;
-        align-items: center;
-      }
-      .login-card { max-width: 100%; }
+      .login-deco-left,
+      .login-deco-right { display: none; }
+      #loginScreen { background: var(--bg-page); padding: 16px; }
     }
 
-    /* =====================================================
-       MAIN APP
-       ===================================================== */
-    #mainApp {
-      display: none;
-      flex-direction: column;
-      min-height: 100vh;
-      padding-bottom: 70px;
-    }
+    /* ============================================================
+       APP — id="mainApp"
+    ============================================================ */
+    #mainApp { display: none; height: 100vh; flex-direction: column; overflow: hidden; }
     #mainApp.visible { display: flex; }
 
-    /* =====================================================
-       HEADER
-       ===================================================== */
+    /* ── Header ── */
     .app-header {
-      background: var(--bg-card);
-      box-shadow: var(--shadow-sm);
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      position: sticky;
-      top: 0;
-      z-index: 500;
+      background: var(--bg-card); border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0; box-shadow: var(--shadow-sm);
     }
-    .header-title {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--green);
-      flex: 1;
+    .app-header h1 { font-size: 18px; font-weight: 800; font-family: 'Baloo 2', sans-serif; color: var(--green); }
+    .header-right  { display: flex; align-items: center; gap: 10px; }
+    .user-badge {
+      font-size: 12px; color: var(--green); font-weight: 700;
+      background: var(--green-bg); border-radius: 999px; padding: 5px 12px;
     }
-    #currentUser {
-      background: var(--green-bg);
-      color: var(--green);
-      padding: 5px 13px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      max-width: 120px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    .btn-logout {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      color: var(--dim); border-radius: 999px;
+      padding: 6px 12px; font-size: 13px; cursor: pointer; font-weight: 600;
+      transition: all 0.2s ease; min-height: 32px;
     }
-    .icon-btn {
-      background: var(--bg-surface);
-      border: none;
-      border-radius: 999px;
-      width: 38px;
-      height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 17px;
-      transition: all 0.2s ease;
-      flex-shrink: 0;
+    .btn-logout:hover { color: var(--red); border-color: var(--red-l); background: #fee2e2; }
+    .btn-refresh {
+      background: none; border: none; color: var(--dim);
+      font-size: 20px; cursor: pointer; padding: 6px; transition: all 0.2s ease;
+      border-radius: 999px; min-width: 36px; min-height: 36px;
+      display: flex; align-items: center; justify-content: center;
     }
-    .icon-btn:hover  { transform: scale(1.12); background: var(--green-bg); }
-    .icon-btn:active { transform: scale(0.9); }
-    #btn-refresh.spinning { animation: spin 0.75s linear infinite; }
+    .btn-refresh:hover   { background: var(--green-bg); color: var(--green); }
+    .btn-refresh.spinning { animation: spin 0.6s linear; }
 
-    /* =====================================================
-       TAB CONTENT & PANELS
-       ===================================================== */
-    .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
-    .tab-panel { display: none; padding: 16px; }
-    .tab-panel.active { display: block; animation: fadeInUp 0.25s ease; }
-    #tab-tasks { background: #ffffff; }
+    /* ── Content area ── */
+    .tab-content-area { flex: 1; overflow-y: auto; padding: 16px 16px 80px; background: var(--bg-page); }
 
-    /* =====================================================
-       BOTTOM NAV
-       ===================================================== */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+    /* ============================================================
+       TAB PANELS — class="tab-panel"
+    ============================================================ */
+    .tab-panel        { display: none; animation: fadeIn 0.25s ease; }
+    .tab-panel.active { display: block; }
+
+    /* ── Tab nav ── */
+    .tab-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
       background: var(--bg-nav);
-      box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
-      display: flex;
-      z-index: 400;
-      min-height: 62px;
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+      display: flex; overflow-x: auto; scrollbar-width: none;
     }
+    .tab-nav::-webkit-scrollbar { display: none; }
     .tab-btn {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      border: none;
-      background: none;
-      cursor: pointer;
-      padding: 8px 2px;
-      min-height: 62px;
-      min-width: 44px;
-      color: var(--dim);
-      transition: color 0.2s ease;
+      flex: 1; min-width: 60px; min-height: 60px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 8px 6px; background: none; border: none;
+      color: var(--dim); cursor: pointer;
+      font-size: 11px; font-weight: 700; font-family: 'Nunito', sans-serif;
+      gap: 2px; transition: color 0.2s; white-space: nowrap;
       position: relative;
-      font-family: 'Nunito', sans-serif;
     }
-    .tab-btn:hover { color: var(--green); }
-    .tab-btn .tab-icon {
-      font-size: 22px;
-      line-height: 1;
-      transition: transform 0.2s;
-    }
-    .tab-btn:hover .tab-icon { transform: scale(1.15); }
-    .tab-btn .tab-label {
-      font-size: 10px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-    .tab-btn.active { color: var(--green); }
-    .tab-btn.active .tab-icon { transform: scale(1.1); }
+    .tab-btn .tab-icon { font-size: 22px; line-height: 1.2; }
+    .tab-btn.active    { color: var(--green); }
     .tab-btn.active::after {
       content: '';
-      position: absolute;
-      bottom: 5px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 5px;
-      height: 5px;
-      background: var(--green);
-      border-radius: 50%;
+      position: absolute; bottom: 5px;
+      left: 50%; transform: translateX(-50%);
+      width: 5px; height: 5px;
+      background: var(--green); border-radius: 50%;
     }
 
-    /* =====================================================
-       GLOBAL FORM ELEMENTS
-       ===================================================== */
-    input[type="text"],
-    input[type="number"],
-    input[type="password"],
-    select {
-      font-family: 'Nunito', sans-serif;
-      font-size: 15px;
-      color: var(--text);
-      background: var(--bg-surface);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 11px 13px;
-      outline: none;
-      transition: border-color 0.2s, background 0.2s;
-      width: 100%;
-      min-height: 44px;
-    }
-    input[type="text"]:focus,
-    input[type="number"]:focus,
-    select:focus { border-color: var(--green); background: #fff; }
-
-    .field-label {
-      display: block;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--dim);
-      margin-bottom: 6px;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    .form-gap { margin-bottom: 12px; }
-
-    .btn-submit {
-      width: 100%;
-      padding: 14px;
-      border-radius: 14px;
-      border: none;
-      background: linear-gradient(135deg, var(--green-l), var(--green));
-      color: #fff;
+    /* ── Section title ── */
+    .sec-title {
+      font-size: 18px; font-weight: 800;
       font-family: 'Baloo 2', sans-serif;
-      font-size: 16px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(22,163,74,0.3);
-      min-height: 50px;
-    }
-    .btn-submit:hover  { transform: scale(1.03); box-shadow: 0 6px 20px rgba(22,163,74,0.42); }
-    .btn-submit:active { transform: scale(0.97); }
-
-    /* =====================================================
-       SECTION TITLE & CARD
-       ===================================================== */
-    .section-title {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
+      margin-bottom: 16px; padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
       color: var(--text);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .card {
-      background: var(--bg-card);
-      border-radius: 20px;
-      padding: 16px;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 14px;
-    }
-    .empty-state {
-      text-align: center;
-      color: var(--dim);
-      padding: 36px 20px;
-      font-size: 15px;
-    }
-    .empty-icon { font-size: 42px; margin-bottom: 10px; }
-
-    /* =====================================================
-       CHARS ROW
-       ===================================================== */
-    #chars-row {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 2px 0 12px;
-      scrollbar-width: none;
-    }
-    #chars-row::-webkit-scrollbar { display: none; }
-    .char-chip {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      background: var(--bg-card);
-      border: 2px solid var(--border);
-      border-radius: 999px;
-      cursor: pointer;
-      white-space: nowrap;
-      font-family: 'Nunito', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      transition: all 0.2s;
-      box-shadow: var(--shadow-sm);
-      min-height: 44px;
-    }
-    .char-chip:hover:not(.active) {
-      border-color: var(--green);
-      color: var(--green);
-      transform: translateY(-2px);
-    }
-    .char-chip.active {
-      background: var(--green);
-      border-color: var(--green);
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(22,163,74,0.3);
     }
 
-    /* =====================================================
-       TODAY TAB
-       ===================================================== */
+    /* ============================================================
+       TAB: TODAY
+    ============================================================ */
     .leaders-banner {
-      background: linear-gradient(135deg, #dcfce7 0%, #fce7f3 100%);
-      border-radius: 20px;
-      padding: 16px;
-      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--green-bg), var(--pink-bg));
+      border: 1px solid rgba(22,163,74,0.12);
+      border-radius: 20px; padding: 16px;
+      margin-bottom: 16px; display: flex; gap: 12px;
       box-shadow: var(--shadow-sm);
-    }
-    .leaders-title {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 10px;
     }
     .leader-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 3px 0;
+      flex: 1; background: rgba(255,255,255,0.72);
+      border-radius: 14px; padding: 12px 14px;
     }
-    .leader-rank { font-size: 22px; width: 28px; flex-shrink: 0; }
-    .leader-name { flex: 1; font-weight: 700; font-size: 15px; }
-    .leader-pts {
+    .leader-label { font-size: 11px; color: var(--dim); display: block; margin-bottom: 4px; font-weight: 700; }
+    .leader-name  { font-size: 15px; font-weight: 800; color: var(--green); font-family: 'Baloo 2', sans-serif; }
+
+    .child-cards { display: flex; flex-direction: column; gap: 14px; }
+    .child-card  {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--green);
+      border-radius: 20px; padding: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+    .child-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .child-card-avatar { font-size: 40px; line-height: 1; }
+    .child-card-info h3   { font-size: 18px; font-weight: 800; font-family: 'Baloo 2', sans-serif; color: var(--text); }
+    .child-card-info span { font-size: 12px; color: var(--dim); font-weight: 600; }
+
+    .score-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+    .score-box {
+      border-radius: 16px; padding: 12px 6px; text-align: center;
+      border: 1px solid var(--border);
+    }
+    .score-box:nth-child(1) { background: var(--green-bg); }
+    .score-box:nth-child(2) { background: var(--gold-bg);  }
+    .score-box:nth-child(3) { background: var(--blue-bg);  }
+    .score-box .sv {
+      font-size: 22px; font-weight: 800;
       font-family: 'Baloo 2', sans-serif;
-      font-size: 16px;
-      font-weight: 800;
       color: var(--green);
     }
+    .score-box:nth-child(2) .sv { color: var(--gold); }
+    .score-box:nth-child(3) .sv { color: var(--blue); }
+    .score-box .sl { font-size: 11px; color: var(--dim); margin-top: 3px; font-weight: 600; }
 
-    .child-card {
-      background: var(--bg-card);
-      border-radius: 20px;
-      border-top: 3px solid var(--green);
-      box-shadow: var(--shadow-sm);
-      padding: 16px;
-      margin-bottom: 14px;
-      animation: fadeInUp 0.3s ease;
-    }
-    .child-card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    .child-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: var(--green-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-      flex-shrink: 0;
-    }
-    .child-name {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 18px;
-      font-weight: 800;
-    }
-    .child-tasks-done { font-size: 13px; color: var(--dim); margin-top: 2px; }
+    .prog-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-bottom: 6px; font-weight: 700; }
+    .prog-bar   { height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+    .prog-fill  { height: 100%; background: linear-gradient(90deg, var(--green), var(--gold)); border-radius: 999px; transition: width 0.5s ease; }
 
-    .score-boxes {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    .score-box { border-radius: 16px; padding: 10px 6px; text-align: center; }
-    .score-box-today { background: var(--green-bg); animation: pulseSoft 3s ease-in-out infinite; }
-    .score-box-week  { background: var(--gold-bg); }
-    .score-box-star  { background: var(--blue-bg); }
-    .score-box-label { font-size: 11px; font-weight: 600; color: var(--dim); margin-bottom: 4px; }
-    .score-box-value {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 26px;
-      font-weight: 800;
-      line-height: 1;
-    }
-    .score-box-today .score-box-value { color: var(--green); }
-    .score-box-week  .score-box-value { color: var(--gold); }
-    .score-box-star  .score-box-value { color: var(--blue); }
-
-    .progress-info {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--dim);
-      margin-bottom: 6px;
-    }
-    .progress-track {
-      height: 10px;
-      background: #e2e8f0;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--green-l), var(--gold));
-      border-radius: 999px;
-      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-      min-width: 4px;
+    /* ============================================================
+       TAB: TASKS
+    ============================================================ */
+    #tab-tasks {
+      background: #ffffff;
+      margin: -16px -16px 0 -16px;
+      padding: 16px 16px 0 16px;
     }
 
-    /* =====================================================
-       TASKS TAB
-       ===================================================== */
-    .cat-filters {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 2px 0 12px;
-      scrollbar-width: none;
-    }
-    .cat-filters::-webkit-scrollbar { display: none; }
+    .cat-filter { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-bottom: 16px; padding-bottom: 4px; }
+    .cat-filter::-webkit-scrollbar { display: none; }
     .cat-pill {
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      font-family: 'Nunito', sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      white-space: nowrap;
-      transition: all 0.2s;
-      min-height: 44px;
+      flex-shrink: 0; padding: 7px 16px; border-radius: 999px;
+      background: #f1f5f9; border: 1px solid transparent;
+      color: var(--dim); font-size: 13px; font-weight: 700;
+      cursor: pointer; white-space: nowrap; transition: all 0.2s ease; min-height: 36px;
     }
-    .cat-pill.active { background: var(--green); color: #fff; box-shadow: 0 4px 14px rgba(22,163,74,0.3); }
-    .cat-pill:not(.active) { background: #f1f5f9; color: var(--dim); }
-    .cat-pill:hover:not(.active) { background: var(--green-bg); color: var(--green); }
+    .cat-pill:hover  { background: var(--green-bg); color: var(--green); }
+    .cat-pill.active { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,0.3); }
+
+    .cat-section       { margin-bottom: 22px; }
+    .cat-section-title { font-size: 12px; font-weight: 800; color: var(--dim); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.8px; }
 
     .task-item {
       background: var(--bg-card);
+      border: 1px solid var(--border);
       border-left: 4px solid var(--green);
-      border-radius: 0 12px 12px 0;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 8px;
-      overflow: hidden;
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+      box-shadow: var(--shadow-sm); transition: all 0.2s ease;
     }
+    .task-item:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+    .task-item-head  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .task-name-text  { font-size: 15px; font-weight: 700; color: var(--text); }
+    .task-pts-badge  {
+      background: var(--gold-bg); color: var(--gold);
+      border-radius: 999px; padding: 3px 10px;
+      font-size: 12px; font-weight: 800;
+      border: 1px solid rgba(245,158,11,0.2);
+    }
+
+    .task-checks { display: flex; gap: 8px; flex-wrap: wrap; }
     .check-label {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 13px 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-      min-height: 52px;
-      font-family: 'Nunito', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-      user-select: none;
-    }
-    .check-label:hover:not(.readonly) { transform: scale(1.01); background: #f8fafc; }
-    .check-label.done { background: var(--green-bg); color: var(--green); }
-    .check-label.done .check-box { background: var(--green); border-color: var(--green); color: #fff; }
-    .check-label.readonly { cursor: default; }
-    .check-label.readonly:hover { transform: none; background: transparent; }
-    .check-box {
-      width: 24px;
-      height: 24px;
-      border: 2.5px solid #d1d5db;
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s;
-      font-size: 14px;
-      font-weight: 900;
-    }
-    .task-name { flex: 1; }
-    .task-pts-badge {
-      margin-left: auto;
-      background: var(--gold-bg);
-      color: var(--gold);
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 13px;
-      font-weight: 800;
-      padding: 3px 10px;
-      border-radius: 999px;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .task-add-form {
-      background: var(--bg-card);
-      border-left: 4px solid var(--blue);
-      border-radius: 0 20px 20px 0;
-      padding: 16px;
-      box-shadow: var(--shadow-sm);
-      margin-top: 18px;
-    }
-    .form-section-title {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 14px;
-    }
-
-    /* =====================================================
-       POINTS TAB
-       ===================================================== */
-    .points-form {
-      background: var(--bg-card);
-      border-radius: 20px;
-      padding: 18px;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 16px;
-    }
-    .type-btns { display: flex; gap: 10px; margin-bottom: 14px; }
-    .type-btn {
-      flex: 1;
-      padding: 11px 8px;
-      border-radius: 14px;
-      border: 2.5px solid var(--border);
-      background: var(--bg-surface);
-      font-family: 'Nunito', sans-serif;
-      font-size: 15px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.2s;
-      min-height: 48px;
-    }
-    .type-btn:hover  { transform: scale(1.04); }
-    .type-btn:active { transform: scale(0.97); }
-    .type-btn.active-bonus {
-      background: var(--green-bg);
-      border-color: var(--green);
-      color: var(--green);
-      box-shadow: 0 3px 10px rgba(22,163,74,0.2);
-    }
-    .type-btn.active-penalty {
-      background: #fee2e2;
-      border-color: var(--red);
-      color: var(--red);
-      box-shadow: 0 3px 10px rgba(239,68,68,0.2);
-    }
-
-    .txn-item {
-      background: var(--bg-card);
-      border-radius: 12px;
-      box-shadow: var(--shadow-sm);
-      padding: 12px 14px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .txn-positive { border-left: 4px solid var(--green); }
-    .txn-negative { border-left: 4px solid var(--red); }
-    .txn-icon { font-size: 22px; flex-shrink: 0; }
-    .txn-info { flex: 1; min-width: 0; }
-    .txn-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .txn-meta { font-size: 12px; color: var(--dim); margin-top: 2px; }
-    .txn-pts { font-family: 'Baloo 2', sans-serif; font-size: 18px; font-weight: 800; flex-shrink: 0; }
-    .txn-pts.pos { color: var(--green); }
-    .txn-pts.neg { color: var(--red); }
-
-    /* =====================================================
-       REWARDS TAB
-       ===================================================== */
-    .rewards-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    @media (min-width: 480px) { .rewards-grid { grid-template-columns: repeat(3, 1fr); } }
-
-    .reward-card {
-      background: var(--bg-card);
-      border: 2px solid var(--pink-l);
-      border-radius: 20px;
-      padding: 16px 12px;
-      text-align: center;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.2s;
-    }
-    .reward-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--pink); }
-    .reward-icon-wrap {
-      width: 60px;
-      height: 60px;
-      background: var(--pink-bg);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      margin: 0 auto 10px;
-    }
-    .reward-name { font-weight: 700; font-size: 14px; margin-bottom: 6px; color: var(--text); line-height: 1.3; }
-    .reward-pts {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--gold);
-      margin-bottom: 12px;
-    }
-    .btn-redeem {
-      width: 100%;
-      padding: 9px 6px;
-      border-radius: 999px;
-      border: none;
-      background: linear-gradient(135deg, var(--pink-l), var(--pink));
-      color: #fff;
-      font-family: 'Nunito', sans-serif;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.2s;
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg-surface); border-radius: 10px;
+      padding: 8px 14px; cursor: pointer;
+      border: 2px solid var(--border);
+      transition: all 0.2s ease; user-select: none;
       min-height: 44px;
-      box-shadow: 0 3px 10px rgba(236,72,153,0.25);
     }
-    .btn-redeem:hover  { transform: scale(1.05); box-shadow: 0 5px 16px rgba(236,72,153,0.35); }
-    .btn-redeem:active { transform: scale(0.97); }
-    .btn-redeem:disabled {
-      background: #e2e8f0;
-      color: var(--dim);
-      box-shadow: none;
-      cursor: not-allowed;
+    .check-label:hover:not(.readonly) { border-color: var(--green-l); transform: scale(1.02); box-shadow: var(--shadow-sm); }
+    .check-label.done  { background: var(--green-bg); border-color: var(--green); }
+    .check-label input[type="checkbox"] { display: none; }
+    .check-box {
+      width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; flex-shrink: 0; transition: all 0.2s ease; background: white;
     }
-    .reward-add-form {
-      background: var(--bg-card);
-      border-left: 4px solid var(--pink);
-      border-radius: 0 20px 20px 0;
-      padding: 16px;
-      box-shadow: var(--shadow-sm);
-      margin-top: 8px;
-    }
+    .check-label.done .check-box { background: var(--green); border-color: var(--green); color: white; font-size: 13px; }
+    .check-child-name  { font-size: 13px; font-weight: 600; color: var(--text); }
+    .check-label.readonly { cursor: default; pointer-events: none; opacity: 0.72; }
 
-    /* =====================================================
-       RANKINGS TAB
-       ===================================================== */
-    .rank-card {
-      background: var(--bg-card);
-      border-radius: 20px;
-      padding: 14px 16px;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: transform 0.2s;
+    /* ============================================================
+       TAB: POINTS
+    ============================================================ */
+    .points-form {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 20px;
+      box-shadow: var(--shadow-sm); margin-bottom: 4px;
     }
-    .rank-card:hover { transform: translateX(4px); }
-    .rank-card.rank-1 { background: var(--gold-bg); border: 2px solid var(--gold); box-shadow: 0 4px 18px rgba(245,158,11,0.2); }
-    .rank-card.rank-2 { border: 2px solid #9ca3af; }
-    .rank-card.rank-3 { border: 2px solid #b45309; }
-    .rank-medal { font-size: 30px; flex-shrink: 0; }
-    .rank-name { flex: 1; font-family: 'Baloo 2', sans-serif; font-size: 17px; font-weight: 800; }
-    .rank-pts { font-family: 'Baloo 2', sans-serif; font-size: 20px; font-weight: 800; color: var(--green); }
-
-    .compare-item { margin-bottom: 14px; }
-    .compare-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--dim);
-      margin-bottom: 5px;
-    }
-    .compare-track { height: 12px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
-    .compare-bar { height: 100%; border-radius: 999px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); min-width: 6px; }
-
-    /* =====================================================
-       HISTORY TAB
-       ===================================================== */
-    .chart-wrap {
-      background: var(--bg-card);
-      border-radius: 20px;
-      padding: 16px;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 16px;
-      overflow-x: auto;
-    }
-    .chart-title { font-family: 'Baloo 2', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
-    .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 130px; }
-    .bar-group { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; min-width: 28px; }
-    .bar-val { font-family: 'Baloo 2', sans-serif; font-size: 10px; font-weight: 800; }
-    .bar { width: 100%; border-radius: 8px 8px 0 0; transition: height 0.5s ease; min-height: 4px; }
-    .bar-label { font-size: 10px; color: var(--dim); font-weight: 700; margin-top: 2px; }
-
-    /* =====================================================
-       SETTINGS TAB
-       ===================================================== */
-    .settings-card {
-      background: var(--bg-card);
-      border-left: 4px solid var(--green);
-      border-radius: 0 20px 20px 0;
-      padding: 16px;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 14px;
-    }
-    .settings-card-title { font-family: 'Baloo 2', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
-    .btn-setting {
-      display: block;
-      width: 100%;
-      padding: 12px 16px;
-      background: #f8fafc;
-      border: 1.5px solid rgba(22,163,74,0.15);
-      border-radius: 12px;
-      text-align: left;
-      cursor: pointer;
+    .form-row   { margin-bottom: 16px; }
+    .form-row label { display: block; font-size: 13px; font-weight: 700; color: var(--dim); margin-bottom: 7px; }
+    .form-select, .form-input {
+      width: 100%; background: var(--bg-surface);
+      border: 2px solid var(--border); border-radius: 12px;
+      padding: 11px 14px; color: var(--text); font-size: 15px;
       font-family: 'Nunito', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 8px;
-      transition: all 0.2s;
-      min-height: 48px;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .btn-setting:hover  { background: var(--green-bg); border-color: var(--green); color: var(--green); transform: scale(1.02); }
-    .btn-setting:active { transform: scale(0.98); }
-    .btn-setting.btn-danger { background: #fff1f2; border-color: rgba(239,68,68,0.2); color: var(--red); }
-    .btn-setting.btn-danger:hover { background: #fee2e2; border-color: var(--red); color: var(--red); }
+    .form-select:focus, .form-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,0.10); }
+    .type-toggle { display: flex; gap: 10px; }
+    .type-btn {
+      flex: 1; padding: 11px; background: var(--bg-surface);
+      border: 2px solid var(--border); border-radius: 12px;
+      color: var(--dim); cursor: pointer;
+      font-size: 14px; font-weight: 700; font-family: 'Nunito', sans-serif;
+      transition: all 0.2s ease; min-height: 46px;
+    }
+    .type-btn:hover  { transform: scale(1.03); }
+    .type-btn:active { transform: scale(0.97); }
+    .type-btn.active-bonus   { background: var(--green-bg); border-color: var(--green); color: var(--green); box-shadow: 0 2px 8px rgba(22,163,74,0.18); }
+    .type-btn.active-penalty { background: #fee2e2; border-color: var(--red); color: var(--red); box-shadow: 0 2px 8px rgba(239,68,68,0.15); }
 
-    /* =====================================================
-       GLOBAL BUTTON TRANSITION
-       ===================================================== */
-    button { transition: all 0.2s ease; cursor: pointer; }
-    button:active { transform: scale(0.97); }
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, var(--green), #15803d);
+      color: white; border: none; border-radius: 14px; padding: 14px;
+      font-size: 16px; font-weight: 800; font-family: 'Baloo 2', sans-serif;
+      cursor: pointer; margin-top: 4px;
+      box-shadow: 0 4px 14px rgba(22,163,74,0.28);
+      transition: all 0.2s ease; min-height: 48px;
+    }
+    .btn-submit:hover  { transform: scale(1.02); box-shadow: 0 6px 20px rgba(22,163,74,0.38); }
+    .btn-submit:active { transform: scale(0.97); }
+
+    .recent-tx { margin-top: 20px; }
+    .tx-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; background: var(--bg-card);
+      border-radius: 14px; border: 1px solid var(--border);
+      margin-bottom: 8px; font-size: 13px;
+      box-shadow: var(--shadow-sm); transition: all 0.2s ease;
+    }
+    .tx-item:hover { box-shadow: var(--shadow-md); }
+    .tx-left .tx-name { font-weight: 700; color: var(--text); }
+    .tx-left .tx-meta { font-size: 11px; color: var(--dim); margin-top: 3px; font-weight: 600; }
+    .tx-pts     { font-weight: 800; font-size: 16px; font-family: 'Baloo 2', sans-serif; }
+    .tx-pts.pos { color: var(--green); }
+    .tx-pts.neg { color: var(--red); }
+
+    /* ============================================================
+       TAB: REWARDS
+    ============================================================ */
+    .rewards-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; }
+    .reward-card  {
+      background: var(--bg-card); border: 2px solid var(--pink-l);
+      border-radius: 20px; padding: 18px 14px; text-align: center;
+      box-shadow: var(--shadow-sm); transition: all 0.2s ease;
+    }
+    .reward-card:hover { box-shadow: 0 6px 20px rgba(236,72,153,0.15); transform: translateY(-2px); }
+    .reward-icon  {
+      font-size: 30px;
+      background: var(--pink-bg);
+      width: 60px; height: 60px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+    }
+    .reward-name  { font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+    .reward-pts   { font-size: 13px; color: var(--gold); font-weight: 800; margin-bottom: 12px; }
+    .btn-redeem   {
+      width: 100%; padding: 9px;
+      background: linear-gradient(135deg, var(--pink), #be185d);
+      border: none; color: white; border-radius: 999px;
+      font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif;
+      cursor: pointer; transition: all 0.2s ease;
+      box-shadow: 0 3px 10px rgba(236,72,153,0.28);
+    }
+    .btn-redeem:hover:not(:disabled)  { transform: scale(1.05); box-shadow: 0 5px 16px rgba(236,72,153,0.42); }
+    .btn-redeem:active:not(:disabled) { transform: scale(0.97); }
+    .btn-redeem:disabled { opacity: 0.4; cursor: not-allowed; background: var(--dim); box-shadow: none; }
+    .redeem-history { margin-top: 20px; }
+
+    /* ============================================================
+       TAB: RANKINGS
+    ============================================================ */
+    .rank-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .rank-card  {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 16px 18px;
+      display: flex; align-items: center; gap: 14px;
+      box-shadow: var(--shadow-sm); transition: all 0.2s ease;
+    }
+    .rank-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+    .rank-card:nth-child(1) { border: 2px solid var(--gold); background: var(--gold-bg); box-shadow: 0 4px 16px rgba(245,158,11,0.18); }
+    .rank-card:nth-child(2) { border: 2px solid #cbd5e1; }
+    .rank-card:nth-child(3) { border: 2px solid #cd7f32; }
+    .rank-num   { font-size: 26px; font-weight: 900; min-width: 40px; text-align: center; font-family: 'Baloo 2', sans-serif; }
+    .rank-num.r1 { color: var(--gold); }
+    .rank-num.r2 { color: #94a3b8; }
+    .rank-num.r3 { color: #cd7f32; }
+    .rank-info   { flex: 1; }
+    .rank-info h3   { font-size: 16px; font-weight: 800; color: var(--text); font-family: 'Baloo 2', sans-serif; }
+    .rank-info span { font-size: 12px; color: var(--dim); font-weight: 600; }
+    .rank-score { font-size: 20px; font-weight: 800; color: var(--gold); font-family: 'Baloo 2', sans-serif; }
+
+    .compare-section {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 16px; box-shadow: var(--shadow-sm);
+    }
+    .compare-row     { display: flex; align-items: center; margin-bottom: 10px; gap: 10px; }
+    .compare-label   { font-size: 12px; color: var(--dim); min-width: 80px; font-weight: 700; }
+    .compare-bar-wrap  { flex: 1; }
+    .compare-bar-track { height: 12px; background: #e2e8f0; border-radius: 999px; overflow: hidden; display: flex; }
+    .cbar    { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+    .cbar.c1 { background: var(--green); }
+    .cbar.c2 { background: var(--pink);  }
+    .cbar.c3 { background: var(--blue);  }
+    .cbar.c4 { background: var(--gold);  }
+    .compare-values { display: flex; gap: 10px; margin-top: 5px; font-size: 11px; color: var(--dim); font-weight: 600; flex-wrap: wrap; }
+
+    /* ============================================================
+       TAB: HISTORY
+    ============================================================ */
+    .chart-wrap  {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 16px; margin-bottom: 16px;
+      overflow-x: auto; box-shadow: var(--shadow-sm);
+    }
+    .chart-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--text); font-family: 'Baloo 2', sans-serif; }
+    .bar-chart   { display: flex; gap: 4px; align-items: flex-end; height: 120px; min-width: 280px; }
+    .bar-group   { flex: 1; display: flex; gap: 2px; align-items: flex-end; position: relative; }
+    .bar         { border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.5s ease; }
+    .bar.b1      { background: var(--red);   flex: 1; }
+    .bar.b2      { background: var(--blue);  flex: 1; }
+    .bar.b3      { background: var(--green); flex: 1; }
+    .bar-date    { position: absolute; bottom: -20px; width: 100%; text-align: center; font-size: 9px; color: var(--dim); white-space: nowrap; font-weight: 700; }
+    .chart-legend { display: flex; gap: 16px; margin-top: 26px; font-size: 12px; color: var(--dim); flex-wrap: wrap; font-weight: 700; }
+    .legend-dot   { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+    /* ============================================================
+       TAB: SETTINGS
+    ============================================================ */
+    .settings-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-left: 4px solid var(--green);
+      border-radius: 20px; padding: 18px; margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .settings-card h3 { font-size: 15px; font-weight: 800; margin-bottom: 16px; color: var(--green); font-family: 'Baloo 2', sans-serif; }
+    .btn-setting {
+      width: 100%; padding: 13px 16px; background: #f8fafc;
+      border: 1px solid var(--border); color: var(--text);
+      border-radius: 12px; font-size: 14px; font-weight: 600;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer; text-align: left; margin-bottom: 8px;
+      transition: all 0.2s ease; min-height: 46px;
+    }
+    .btn-setting:hover  { background: var(--green-bg); border-color: var(--green); color: var(--green); transform: translateX(3px); }
+    .btn-setting:active { transform: scale(0.98); }
+    .btn-setting.danger { border-color: rgba(239,68,68,0.25); color: var(--red); }
+    .btn-setting.danger:hover { background: #fee2e2; border-color: var(--red); color: var(--red); transform: translateX(3px); }
+    .add-task-form, .add-reward-form { display: flex; flex-direction: column; gap: 12px; }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ============================================================
+       EMPTY STATE
+    ============================================================ */
+    .empty-state { text-align: center; padding: 36px 20px; color: var(--dim); }
+    .empty-state .es-icon { font-size: 48px; margin-bottom: 12px; display: block; opacity: 0.65; }
+    .empty-state p { font-size: 15px; font-weight: 700; }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (min-width: 600px) {
+      .child-cards  { flex-direction: row; flex-wrap: wrap; }
+      .child-card   { flex: 1; min-width: 260px; }
+      .rewards-grid { grid-template-columns: repeat(3,1fr); }
+    }
+    @media (max-width: 380px) {
+      .score-box .sv { font-size: 18px; }
+      .rewards-grid  { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
-<!-- ==================== LOADING ==================== -->
+<!-- LOADING -->
 <div id="loading">
   <div class="spinner"></div>
-  <div class="loading-text">⚔️ Đang tải...</div>
+  <span>⚔️ Đang tải...</span>
 </div>
 
-<!-- ==================== TOAST ==================== -->
+<!-- TOAST -->
 <div id="toast"></div>
 
-<!-- ==================== MODAL ==================== -->
+<!-- MODAL -->
 <div id="modal-overlay">
   <div class="modal-box">
-    <div id="modal-title">Xác nhận</div>
-    <div id="modal-body">Bạn chắc chắn muốn thực hiện thao tác này?</div>
+    <h3 id="modal-title">Xác nhận</h3>
+    <p  id="modal-body">Bạn chắc chắn muốn thực hiện thao tác này?</p>
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="document.getElementById('modal-overlay').classList.remove('show')">❌ Hủy</button>
-      <button id="modal-ok">✅ Xác nhận</button>
+      <button class="btn-cancel"  onclick="closeModal()">❌ Hủy</button>
+      <button class="btn-confirm" id="modal-ok">✅ Xác nhận</button>
     </div>
   </div>
 </div>
 
-<!-- ==================== LOGIN SCREEN ==================== -->
+<!-- ✅ LOGIN — id="loginScreen" -->
 <div id="loginScreen">
-  <div class="login-bg">
-    <div class="login-bg-left">
-      <div class="login-char">⚔️</div>
-      <div class="login-deco">🌿 🗡️ 🌊</div>
-      <div class="login-jp">水の呼吸</div>
-    </div>
-    <div class="login-bg-right">
-      <div class="login-char">🌸</div>
-      <div class="login-deco">🌸 💮 🎋</div>
-      <div class="login-jp">鬼滅</div>
+
+  <!-- Tanjiro — bên trái -->
+  <div class="login-deco-left" aria-hidden="true">
+    <div class="deco-inner">
+      <span class="deco-char">⚔️</span>
+      <div class="deco-jp">水の呼吸</div>
+      <div class="deco-emojis">🌿🗡️🌊</div>
     </div>
   </div>
+
+  <!-- Nezuko — bên phải -->
+  <div class="login-deco-right" aria-hidden="true">
+    <div class="deco-inner">
+      <span class="deco-char">🌸</span>
+      <div class="deco-jp">鬼滅の刃</div>
+      <div class="deco-emojis">🌸💮🎋</div>
+    </div>
+  </div>
+
   <div class="login-card">
-    <div class="login-card-header">
-      <span class="login-logo">🏆</span>
-      <div class="login-title">⚔️ Bảng Điểm Diệt Quỷ</div>
-      <div class="login-subtitle">Hành trình chinh phục mỗi ngày ✨</div>
+    <div class="login-logo">
+      <div class="login-card-header">
+        <span class="logo-icon">🏆</span>
+        <h1>⚔️ Bảng Điểm Diệt Quỷ</h1>
+        <p>Kimetsu no Yaiba · Hành trình chinh phục 🌸</p>
+      </div>
     </div>
-    <div class="login-card-body">
-      <div id="login-error">❌ Tên đăng nhập hoặc mật khẩu không đúng!</div>
-      <form id="login-form" autocomplete="off">
+    <div class="chars-row" id="chars-row"></div>
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="login-error" id="login-error">❌ Tên đăng nhập hoặc mật khẩu không đúng!</div>
+      <div class="form-group">
+        <label>🧑‍🚀 Tên đăng nhập</label>
         <div class="input-wrap">
-          <span class="input-icon">🧑‍🚀</span>
-          <input type="text" id="inp-user" placeholder="Tên đăng nhập" autocomplete="username" required>
+          <input id="inp-user" type="text" placeholder="username" autocomplete="username" />
         </div>
+      </div>
+      <div class="form-group">
+        <label>🔐 Mật khẩu</label>
         <div class="input-wrap">
-          <span class="input-icon">🔐</span>
-          <input type="password" id="inp-pass" placeholder="Mật khẩu" autocomplete="current-password" required>
-          <button type="button" class="input-eye" onclick="togglePass()">👁️</button>
+          <input id="inp-pass" type="password" placeholder="password" autocomplete="current-password" />
+          <button type="button" class="pw-toggle" onclick="togglePw()">👁️</button>
         </div>
-        <button type="submit" class="btn-login">🗡️ Bắt Đầu Hành Trình</button>
-      </form>
-    </div>
+      </div>
+      <button type="submit" class="btn-login">🗡️ Bắt Đầu Hành Trình</button>
+    </form>
   </div>
 </div>
 
-<!-- ==================== MAIN APP ==================== -->
+<!-- ✅ APP — id="mainApp" -->
 <div id="mainApp">
-
-  <!-- Header -->
-  <header class="app-header">
-    <div class="header-title">🏆 Bảng Điểm</div>
-    <span id="currentUser">...</span>
-    <button id="btn-refresh" class="icon-btn" title="Làm mới">🔄</button>
-    <button class="icon-btn" onclick="logout()" title="Đăng xuất">🚪</button>
-  </header>
-
-  <!-- Tab Panels -->
-  <div class="tab-content">
-
-    <!-- ========== TAB: HÔM NAY ========== -->
-    <div id="tab-today" class="tab-panel active">
-      <div class="leaders-banner">
-        <div class="leaders-title">🌟 Chiến Binh Xuất Sắc Hôm Nay</div>
-        <div id="leaders-list"></div>
-      </div>
-      <div id="chars-row"></div>
-      <div id="today-cards"></div>
+  <div class="app-header">
+    <h1>🏆 Bảng Điểm</h1>
+    <div class="header-right">
+      <!-- ✅ id="currentUser" -->
+      <span class="user-badge" id="currentUser">...</span>
+      <button class="btn-refresh" id="btn-refresh" onclick="doRefresh()" title="Làm mới">🔄</button>
+      <button class="btn-logout"  onclick="handleLogout()">🚪</button>
     </div>
+  </div>
 
-    <!-- ========== TAB: NHIỆM VỤ ========== -->
-    <div id="tab-tasks" class="tab-panel">
-      <div class="cat-filters" id="cat-filters"></div>
-      <div id="tasks-list"></div>
-      <div class="task-add-form">
-        <div class="form-section-title">📜 Thêm Nhiệm Vụ Mới</div>
-        <div class="form-gap">
-          <label class="field-label">Tên nhiệm vụ</label>
-          <input type="text" id="nt-name" placeholder="Nhập tên nhiệm vụ...">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="field-label">Danh mục</label>
-            <input type="text" id="nt-cat" placeholder="Học tập, Nhà cửa...">
-          </div>
-          <div class="form-group">
-            <label class="field-label">Điểm</label>
-            <input type="number" id="nt-pts" placeholder="10" min="1">
-          </div>
-        </div>
-        <div class="form-gap">
-          <label class="field-label">Giao cho</label>
-          <select id="nt-assign">
-            <option value="">-- Chọn chiến binh --</option>
-          </select>
-        </div>
-        <button class="btn-submit" onclick="addTask()">➕ Thêm Nhiệm Vụ</button>
-      </div>
-    </div>
+  <div class="tab-content-area">
+    <!-- ✅ class="tab-panel" -->
+    <div id="tab-today"    class="tab-panel active"></div>
+    <div id="tab-tasks"    class="tab-panel"></div>
+    <div id="tab-points"   class="tab-panel"></div>
+    <div id="tab-rewards"  class="tab-panel"></div>
+    <div id="tab-rankings" class="tab-panel"></div>
+    <div id="tab-history"  class="tab-panel"></div>
+    <div id="tab-settings" class="tab-panel"></div>
+  </div>
 
-    <!-- ========== TAB: ĐIỂM ========== -->
-    <div id="tab-points" class="tab-panel">
-      <div class="points-form">
-        <div class="section-title">⭐ Thêm Điểm Thưởng / Phạt</div>
-        <div class="type-btns">
-          <button class="type-btn active-bonus" id="btn-bonus" onclick="setType('bonus')">🌸 Thưởng</button>
-          <button class="type-btn" id="btn-penalty" onclick="setType('penalty')">⚡ Phạt</button>
-        </div>
-        <input type="hidden" id="bp-type" value="bonus">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="field-label">Chiến binh</label>
-            <select id="bp-child">
-              <option value="">-- Chọn --</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="field-label">Số điểm</label>
-            <input type="number" id="bp-pts" placeholder="0" min="1">
-          </div>
-        </div>
-        <div class="form-gap">
-          <label class="field-label">Ghi chú</label>
-          <input type="text" id="bp-note" placeholder="Lý do thưởng / phạt...">
-        </div>
-        <button class="btn-submit" onclick="submitBonus()">🗡️ Xác Nhận</button>
-      </div>
-      <div class="section-title">📜 Lịch Sử Điểm</div>
-      <div id="txn-list"></div>
-    </div>
-
-    <!-- ========== TAB: THƯỞNG ========== -->
-    <div id="tab-rewards" class="tab-panel">
-      <div class="form-gap" style="margin-bottom:16px;">
-        <label class="field-label">Chiến Binh</label>
-        <select id="rd-child" onchange="loadRewards()">
-          <option value="">-- Chọn chiến binh --</option>
-        </select>
-      </div>
-      <div class="section-title">🌸🎁 Phần Thưởng</div>
-      <div class="rewards-grid" id="rewards-grid"></div>
-      <div class="reward-add-form">
-        <div class="form-section-title">🌸 Thêm Phần Thưởng Mới</div>
-        <div class="form-gap">
-          <label class="field-label">Tên phần thưởng</label>
-          <input type="text" id="nr-name" placeholder="Xem phim, Chơi game...">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="field-label">Icon (emoji)</label>
-            <input type="text" id="nr-icon" placeholder="🎮">
-          </div>
-          <div class="form-group">
-            <label class="field-label">Điểm cần</label>
-            <input type="number" id="nr-pts" placeholder="50" min="1">
-          </div>
-        </div>
-        <button class="btn-submit" style="background:linear-gradient(135deg,var(--pink-l),var(--pink));box-shadow:0 4px 12px rgba(236,72,153,0.3);" onclick="addReward()">➕ Thêm Phần Thưởng</button>
-      </div>
-    </div>
-
-    <!-- ========== TAB: XẾP HẠNG ========== -->
-    <div id="tab-rankings" class="tab-panel">
-      <div class="section-title">⚔️🏆 Bảng Xếp Hạng Tuần Này</div>
-      <div id="rankings-list"></div>
-      <div class="card">
-        <div class="chart-title">📊 So Sánh Điểm</div>
-        <div id="compare-bars"></div>
-      </div>
-    </div>
-
-    <!-- ========== TAB: LỊCH SỬ ========== -->
-    <div id="tab-history" class="tab-panel">
-      <div class="chart-wrap">
-        <div class="chart-title">📜 Biểu Đồ 7 Ngày Qua</div>
-        <div class="bar-chart" id="history-chart"></div>
-      </div>
-      <div class="section-title">📜 Chi Tiết Lịch Sử</div>
-      <div id="history-list"></div>
-    </div>
-
-    <!-- ========== TAB: CÀI ĐẶT ========== -->
-    <div id="tab-settings" class="tab-panel">
-      <div class="settings-card">
-        <div class="settings-card-title">🗡️ Quản Lý Chiến Binh</div>
-        <button class="btn-setting" onclick="manageChildren()">👦 Thêm / Xóa Chiến Binh</button>
-      </div>
-      <div class="settings-card">
-        <div class="settings-card-title">📜 Quản Lý Nhiệm Vụ</div>
-        <button class="btn-setting" onclick="openTab('tasks')">📋 Xem &amp; Quản Lý Nhiệm Vụ</button>
-        <button class="btn-setting" onclick="resetDailyTasks()">🔄 Reset Nhiệm Vụ Hôm Nay</button>
-      </div>
-      <div class="settings-card">
-        <div class="settings-card-title">⚙️ Hệ Thống</div>
-        <button class="btn-setting" onclick="exportData()">💾 Xuất Dữ Liệu</button>
-        <button class="btn-setting btn-danger" onclick="confirmReset()">🗑️ Xóa Toàn Bộ Dữ Liệu</button>
-      </div>
-    </div>
-
-  </div><!-- /.tab-content -->
-
-  <!-- Bottom Nav -->
-  <nav class="bottom-nav">
-    <button class="tab-btn active" data-tab="today" onclick="openTab('today')">
-      <span class="tab-icon">⚔️</span>
-      <span class="tab-label">Hôm nay</span>
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="today"    onclick="switchTab('today')">
+      <span class="tab-icon">⚔️</span>Hôm nay
     </button>
-    <button class="tab-btn" data-tab="tasks" onclick="openTab('tasks')">
-      <span class="tab-icon">📜</span>
-      <span class="tab-label">Nhiệm vụ</span>
+    <button class="tab-btn" data-tab="tasks"    onclick="switchTab('tasks')">
+      <span class="tab-icon">📜</span>Nhiệm vụ
     </button>
-    <button class="tab-btn" data-tab="points" onclick="openTab('points')">
-      <span class="tab-icon">⭐</span>
-      <span class="tab-label">Điểm</span>
+    <button class="tab-btn" data-tab="points"   onclick="switchTab('points')">
+      <span class="tab-icon">💎</span>Điểm
     </button>
-    <button class="tab-btn" data-tab="rewards" onclick="openTab('rewards')">
-      <span class="tab-icon">🏅</span>
-      <span class="tab-label">Thưởng</span>
+    <button class="tab-btn" data-tab="rewards"  onclick="switchTab('rewards')">
+      <span class="tab-icon">🌸</span>Thưởng
     </button>
-    <button class="tab-btn" data-tab="rankings" onclick="openTab('rankings')">
-      <span class="tab-icon">⚔️</span>
-      <span class="tab-label">Xếp hạng</span>
+    <button class="tab-btn" data-tab="rankings" onclick="switchTab('rankings')">
+      <span class="tab-icon">🏆</span>Xếp hạng
     </button>
-    <button class="tab-btn" data-tab="history" onclick="openTab('history')">
-      <span class="tab-icon">📜</span>
-      <span class="tab-label">Lịch sử</span>
+    <button class="tab-btn" data-tab="history"  onclick="switchTab('history')">
+      <span class="tab-icon">📅</span>Lịch sử
     </button>
-    <button class="tab-btn" data-tab="settings" id="tab-btn-settings" onclick="openTab('settings')">
-      <span class="tab-icon">🗡️</span>
-      <span class="tab-label">Cài đặt</span>
+    <button class="tab-btn" id="tab-btn-settings" data-tab="settings"
+            onclick="switchTab('settings')" style="display:none">
+      <span class="tab-icon">🗡️</span>Cài đặt
     </button>
   </nav>
-
-</div><!-- /#mainApp -->
+</div>
 
 <script>
-  /* ============================================================
-     API ENDPOINT
-     ============================================================ */
-  const API_URL = 'https://script.google.com/macros/s/AKfycbxJwpMxT1gMADbf8CGcCZDkRsX68uwHh4_1lquJ8ryg3icDns4LEVByTVFyMtJEXsqo/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxJwpMxT1gMADbf8CGcCZDkRsX68uwHh4_1lquJ8ryg3icDns4LEVByTVFyMtJEXsqo/exec';
 
-  /* ============================================================
-     STATE
-     ============================================================ */
-  let state = {
-    user:          null,
-    role:          null,
-    children:      [],
-    tasks:         [],
-    rewards:       [],
-    transactions:  [],
-    history:       [],
-    todayProgress: {}
-  };
+let S = {
+  token:        localStorage.getItem('fq_token') || null,
+  user:         JSON.parse(localStorage.getItem('fq_user') || 'null'),
+  children:     [],
+  tasks:        [],
+  rewards:      [],
+  transactions: [],
+  dailyStatus:  [],
+  redemptions:  [],
+  today:        '',
+  week_start:   '',
+  activeTab:    'today',
+  taskFilter:   'all'
+};
 
-  /* ============================================================
-     UTILITIES
-     ============================================================ */
-  function setLoading(show) {
-    document.getElementById('loading').style.display = show ? 'flex' : 'none';
-  }
-
-  function toast(msg, type) {
-    type = type || 'success';
-    var el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = 'toast show ' + type;
-    clearTimeout(el._t);
-    el._t = setTimeout(function () { el.classList.remove('show'); }, 3200);
-  }
-
-  function showModal(title, body, onOk) {
-    document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-body').textContent  = body;
-    document.getElementById('modal-overlay').classList.add('show');
-    document.getElementById('modal-ok').onclick = function () {
-      document.getElementById('modal-overlay').classList.remove('show');
-      if (typeof onOk === 'function') onOk();
-    };
-  }
-
-  /* ============================================================
-     API HELPERS
-     ============================================================ */
-  async function apiFetch(params) {
-    var url = new URL(API_URL);
-    Object.entries(params).forEach(function (kv) { url.searchParams.set(kv[0], kv[1]); });
-    var res  = await fetch(url.toString());
-    var data = await res.json();
-    return data;
-  }
-
-  async function apiPost(body) {
-    var res  = await fetch(API_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body:    JSON.stringify(body)
-    });
-    var data = await res.json();
-    return data;
-  }
-
-  /* ============================================================
-     TAB SWITCHING
-     ============================================================ */
-  function openTab(tab) {
-    document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
-    document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
-    document.getElementById('tab-' + tab).classList.add('active');
-    var btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
-    if (btn) btn.classList.add('active');
-    if      (tab === 'today')    renderToday();
-    else if (tab === 'tasks')    renderTasks();
-    else if (tab === 'points')   renderTransactions();
-    else if (tab === 'rewards')  renderRewards();
-    else if (tab === 'rankings') renderRankings();
-    else if (tab === 'history')  renderHistory();
-  }
-
-  /* ============================================================
-     LOGIN / LOGOUT
-     ============================================================ */
-  function togglePass() {
-    var inp = document.getElementById('inp-pass');
-    inp.type = inp.type === 'password' ? 'text' : 'password';
-  }
-
-  document.getElementById('login-form').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    var user = document.getElementById('inp-user').value.trim();
-    var pass = document.getElementById('inp-pass').value;
-    document.getElementById('login-error').style.display = 'none';
-    setLoading(true);
-    try {
-      var data = await apiFetch({ action: 'login', user: user, pass: pass });
-      if (data.success) {
-        state.user = user;
-        state.role = data.role || 'user';
-        document.getElementById('currentUser').textContent = '⚔️ ' + user;
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('mainApp').classList.add('visible');
-        await loadAll();
-      } else {
-        document.getElementById('login-error').style.display = 'block';
-      }
-    } catch (err) {
-      document.getElementById('login-error').style.display = 'block';
-    }
-    setLoading(false);
+// ============================================================
+// API
+// ============================================================
+async function api(action, payload = {}) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action, token: S.token, payload })
   });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
 
-  function logout() {
-    showModal('🚪 Đăng Xuất', 'Bạn muốn đăng xuất khỏi ứng dụng?', function () {
-      document.getElementById('mainApp').classList.remove('visible');
-      document.getElementById('loginScreen').style.display = 'flex';
-      document.getElementById('inp-user').value = '';
-      document.getElementById('inp-pass').value = '';
-      state = { user: null, role: null, children: [], tasks: [], rewards: [], transactions: [], history: [], todayProgress: {} };
-    });
+// ============================================================
+// FETCH DATA
+// ============================================================
+async function fetchData(silent = false) {
+  if (!silent) showLoad(true);
+  try {
+    const r = await api('getInitialData');
+    if (r.success) {
+      S.children     = (r.children     || []).filter(c => c.status === 'active' || !c.status);
+      S.tasks        = (r.tasks        || []).filter(t => t.status === 'active');
+      S.rewards      = (r.rewards      || []).filter(rw => rw.status === 'active');
+      S.transactions = r.transactions  || [];
+      S.dailyStatus  = r.dailyStatus   || [];
+      S.redemptions  = r.redemptions   || [];
+      S.today        = r.today         || '';
+      S.week_start   = r.week_start    || '';
+      renderTab(S.activeTab);
+    } else {
+      if (!silent) toast(r.message || 'Không tải được dữ liệu', 'error');
+    }
+  } catch(e) {
+    console.error('fetchData error:', e); // ✅ luôn log dù silent
+    if (!silent) toast('⚠️ Không kết nối được server', 'error');
   }
+  if (!silent) showLoad(false);
+}
 
-  /* ============================================================
-     LOAD ALL DATA
-     ============================================================ */
-  async function loadAll() {
-    setLoading(true);
-    var btn = document.getElementById('btn-refresh');
-    btn.classList.add('spinning');
+async function doRefresh() {
+  const btn = document.getElementById('btn-refresh');
+  btn.classList.add('spinning');
+  await fetchData(true);
+  btn.classList.remove('spinning');
+  toast('Đã làm mới dữ liệu ✅', 'success');
+}
+
+// ============================================================
+// SCORE / TASK HELPERS
+// ============================================================
+function childScore(childId) {
+  const c = S.children.find(x => String(x.child_id) === String(childId));
+  if (!c) return { today_score:0, week_score:0, total_score:0, earned_score:0, daily_target:50 };
+  return {
+    today_score:  Number(c.today_score  || 0),
+    week_score:   Number(c.week_score   || 0),
+    total_score:  Number(c.total_score  || 0),
+    earned_score: Number(c.earned_score || 0),
+    daily_target: Number(c.daily_target || 50)
+  };
+}
+
+function isTaskDone(childId, taskId) {
+  return S.dailyStatus.some(ds =>
+    String(ds.child_id) === String(childId) &&
+    String(ds.task_id)  === String(taskId)  &&
+    (ds.status === 'done' || ds.status === 'completed')
+  );
+}
+
+function taskAppliesTo(task, child) {
+  const at = String(task.assigned_to || 'both').toLowerCase();
+  if (at === 'both') return true;
+  return at === String(child.child_id).toLowerCase() ||
+         at === String(child.child_key || '').toLowerCase();
+}
+
+// ============================================================
+// LOGIN / LOGOUT
+// ============================================================
+async function handleLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('inp-user').value.trim();
+  const password = document.getElementById('inp-pass').value.trim();
+  const errEl    = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  if (!username || !password) { toast('Nhập username và password', 'warn'); return; }
+  showLoad(true);
+  try {
+    const r = await api('login', { username, password });
+    if (r.success) {
+      S.token = r.token;
+      S.user  = { user_id: r.user_id, username: r.username, display_name: r.display_name, role: r.role, child_id: r.child_id || null };
+      localStorage.setItem('fq_token', r.token);
+      localStorage.setItem('fq_user',  JSON.stringify(S.user));
+      showApp();
+      await fetchData(true);
+    } else {
+      errEl.style.display = 'block';
+    }
+  } catch(err) {
+    toast('⚠️ Không kết nối được server', 'error');
+  }
+  showLoad(false);
+}
+
+function handleLogout() {
+  S.token = null; S.user = null;
+  localStorage.removeItem('fq_token');
+  localStorage.removeItem('fq_user');
+  showLogin();
+}
+
+function togglePw() {
+  const inp = document.getElementById('inp-pass');
+  inp.type  = inp.type === 'password' ? 'text' : 'password';
+}
+
+// ============================================================
+// SESSION RESTORE
+// ============================================================
+async function init() {
+  buildLoginChars();
+  if (S.token && S.user) {
     try {
-      var data = await apiFetch({ action: 'getData', user: state.user });
-      if (data.success) {
-        state.children      = data.children      || [];
-        state.tasks         = data.tasks         || [];
-        state.rewards       = data.rewards       || [];
-        state.transactions  = data.transactions  || [];
-        state.history       = data.history       || [];
-        state.todayProgress = data.todayProgress || {};
-        populateSelects();
-        renderToday();
-      } else {
-        toast('⚡ ' + (data.message || 'Không thể tải dữ liệu!'), 'error');
-      }
-    } catch (err) {
-      toast('⚡ Lỗi kết nối máy chủ!', 'error');
-    }
-    btn.classList.remove('spinning');
-    setLoading(false);
-  }
-
-  document.getElementById('btn-refresh').addEventListener('click', loadAll);
-
-  function populateSelects() {
-    var children = state.children;
-    ['bp-child', 'rd-child', 'nt-assign'].forEach(function (id) {
-      var sel = document.getElementById(id);
-      if (!sel) return;
-      var prev = sel.value;
-      sel.innerHTML = children.map(function (c) {
-        return '<option value="' + c.id + '">' + (c.avatar || '⚔️') + ' ' + c.name + '</option>';
-      }).join('');
-      if (prev) sel.value = prev;
-    });
-  }
-
-  /* ============================================================
-     TODAY TAB
-     ============================================================ */
-  function renderToday() {
-    var sorted = state.children.slice().sort(function (a, b) { return (b.todayPts || 0) - (a.todayPts || 0); });
-    var medals = ['🥇', '🥈', '🥉'];
-
-    var llEl = document.getElementById('leaders-list');
-    if (llEl) {
-      if (!sorted.length) {
-        llEl.innerHTML = '<div style="color:var(--dim);font-size:14px;">Chưa có dữ liệu chiến binh</div>';
-      } else {
-        llEl.innerHTML = sorted.slice(0, 3).map(function (c, i) {
-          return '<div class="leader-item">' +
-            '<span class="leader-rank">' + (medals[i] || (i + 1) + '.') + '</span>' +
-            '<span class="leader-name">' + (c.avatar || '⚔️') + ' ' + c.name + '</span>' +
-            '<span class="leader-pts">' + (c.todayPts || 0) + ' ⭐</span>' +
-            '</div>';
-        }).join('');
-      }
-    }
-
-    var charsRow = document.getElementById('chars-row');
-    if (charsRow) {
-      charsRow.innerHTML = state.children.map(function (c) {
-        return '<div class="char-chip" onclick="selectChild(\'' + c.id + '\')">' +
-          '<span>' + (c.avatar || '⚔️') + '</span>' +
-          '<span>' + c.name + '</span>' +
-          '</div>';
-      }).join('');
-    }
-
-    var cards = document.getElementById('today-cards');
-    if (cards) {
-      if (!state.children.length) {
-        cards.innerHTML = '<div class="empty-state"><div class="empty-icon">⚔️</div>Chưa có chiến binh nào</div>';
+      const r = await api('validateSession');
+      if (r.success) {
+        S.user = { user_id: r.user_id, username: r.username, display_name: r.display_name, role: r.role, child_id: r.child_id };
+        localStorage.setItem('fq_user', JSON.stringify(S.user));
+        showApp();
+        await fetchData(true);
         return;
       }
-      cards.innerHTML = state.children.map(function (c) {
-        var todayTasks = state.tasks.filter(function (t) { return !t.assignedTo || t.assignedTo === c.id; });
-        var doneTasks  = todayTasks.filter(function (t) { return state.todayProgress[c.id + '-' + t.id]; });
-        var pct        = todayTasks.length ? Math.round((doneTasks.length / todayTasks.length) * 100) : 0;
-        return '<div class="child-card">' +
-          '<div class="child-card-header">' +
-          '<div class="child-avatar">' + (c.avatar || '⚔️') + '</div>' +
-          '<div><div class="child-name">' + c.name + '</div>' +
-          '<div class="child-tasks-done">' + doneTasks.length + '/' + todayTasks.length + ' nhiệm vụ hôm nay</div></div>' +
-          '</div>' +
-          '<div class="score-boxes">' +
-          '<div class="score-box score-box-today"><div class="score-box-label">Hôm nay</div><div class="score-box-value">' + (c.todayPts || 0) + '</div></div>' +
-          '<div class="score-box score-box-week"><div class="score-box-label">Tuần này</div><div class="score-box-value">' + (c.weekPts || 0) + '</div></div>' +
-          '<div class="score-box score-box-star"><div class="score-box-label">⭐ Sao</div><div class="score-box-value">' + (c.stars || 0) + '</div></div>' +
-          '</div>' +
-          '<div class="progress-info"><span>Tiến độ hôm nay</span><span>' + pct + '%</span></div>' +
-          '<div class="progress-track"><div class="progress-bar" style="width:' + pct + '%"></div></div>' +
-          '</div>';
-      }).join('');
-    }
+    } catch(e) { console.error('validateSession error:', e); }
+    S.token = null; S.user = null;
+    localStorage.removeItem('fq_token');
+    localStorage.removeItem('fq_user');
+  }
+  showLogin();
+}
+
+function buildLoginChars() {
+  const row = document.getElementById('chars-row');
+  const chars = [
+    { icon: '⚔️', name: 'Bố / Mẹ',  role: 'admin / scorer' },
+    { icon: '🌸', name: 'Các bé',    role: 'viewer' }
+  ];
+  row.innerHTML = chars.map(c => `
+    <div class="char-btn">
+      <span class="char-icon">${c.icon}</span>
+      <span class="char-name">${c.name}</span>
+      <span class="char-role">${c.role}</span>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function showLogin() {
+  // ✅ dùng id mới
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('mainApp').classList.remove('visible');
+}
+
+function showApp() {
+  // ✅ dùng id mới
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').classList.add('visible');
+  document.getElementById('currentUser').textContent =
+    (S.user?.display_name || '?') + ' · ' + (S.user?.role || '');
+
+  const settingsBtn = document.getElementById('tab-btn-settings');
+  if (settingsBtn) {
+    settingsBtn.style.display =
+      (S.user?.role === 'admin' || S.user?.role === 'scorer') ? '' : 'none';
+  }
+  switchTab('today');
+}
+
+function showLoad(v) {
+  document.getElementById('loading').style.display = v ? 'flex' : 'none';
+}
+
+let toastTimer = null;
+function toast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'show ' + type; // ← không prefix 'toast'
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// ✅ switchTab — fix typo + dùng .tab-panel + active class
+function switchTab(tab) {
+  console.log('switchTab →', tab); // ✅ tab, không phải tabName
+  S.activeTab = tab;
+
+  // Toggle nav buttons
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab)
+  );
+
+  // ✅ Toggle tab panels bằng class active
+  document.querySelectorAll('.tab-panel').forEach(p =>
+    p.classList.toggle('active', p.id === 'tab-' + tab)
+  );
+
+  renderTab(tab);
+}
+
+function renderTab(tab) {
+  console.log('renderTab →', tab);
+  switch (tab) {
+    case 'today':    renderToday();    break;
+    case 'tasks':    renderTasks();    break;
+    case 'points':   renderPoints();   break;
+    case 'rewards':  renderRewards();  break;
+    case 'rankings': renderRankings(); break;
+    case 'history':  renderHistory();  break;
+    case 'settings': renderSettings(); break;
+    default: console.warn('renderTab: unknown tab =', tab);
+  }
+}
+
+// Modal
+let modalCb = null;
+function confirm(title, body, cb) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').textContent  = body;
+  modalCb = cb;
+  document.getElementById('modal-overlay').classList.add('show');
+  document.getElementById('modal-ok').onclick = () => { closeModal(); if (modalCb) modalCb(); };
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const s     = String(d).substring(0, 10);
+  const parts = s.split('-');
+  return `${parts[2]}/${parts[1]}`;
+}
+function fmtDatetime(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt)) return String(d).substring(0,16);
+  return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+}
+
+// ============================================================
+// RENDER: TODAY
+// ============================================================
+function renderToday() {
+  const el = document.getElementById('tab-today');
+  if (!S.children.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">🌸</div><p>Đang tải dữ liệu...</p></div>';
+    return;
+  }
+  const scored      = S.children.map(c => ({ ...c, ...childScore(c.child_id) }));
+  const todayLeader = scored.reduce((a,b) => a.today_score >= b.today_score ? a : b);
+  const weekLeader  = scored.reduce((a,b) => a.week_score  >= b.week_score  ? a : b);
+
+  let html = `
+    <div class="sec-title">⚔️ Hôm Nay · ${fmtDate(S.today)}</div>
+    <div class="leaders-banner">
+      <div class="leader-item">
+        <span class="leader-label">⚔️ Dẫn đầu hôm nay</span>
+        <span class="leader-name">${todayLeader.avatar_icon || '⭐'} ${todayLeader.child_name}</span>
+      </div>
+      <div class="leader-item">
+        <span class="leader-label">🏆 Dẫn đầu tuần</span>
+        <span class="leader-name">${weekLeader.avatar_icon || '⭐'} ${weekLeader.child_name}</span>
+      </div>
+    </div>
+    <div class="child-cards">
+  `;
+
+  scored.forEach(c => {
+    const pct = Math.min(100, c.daily_target > 0 ? Math.round(c.today_score / c.daily_target * 100) : 0);
+    html += `
+      <div class="child-card">
+        <div class="child-card-head">
+          <span class="child-card-avatar">${c.avatar_icon || '⭐'}</span>
+          <div class="child-card-info">
+            <h3>${c.child_name}</h3>
+            <span>${c.avatar_name || ''}</span>
+          </div>
+        </div>
+        <div class="score-row">
+          <div class="score-box"><div class="sv">${c.today_score}</div><div class="sl">⚔️ Hôm nay</div></div>
+          <div class="score-box"><div class="sv">${c.week_score}</div><div class="sl">📅 Tuần này</div></div>
+          <div class="score-box"><div class="sv" style="color:var(--blue)">${c.total_score} ⭐</div><div class="sl">Ngôi sao</div></div>
+        </div>
+        <div class="prog-wrap">
+          <div class="prog-label"><span>Tiến độ hôm nay</span><span>${c.today_score} / ${c.daily_target}</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ============================================================
+// RENDER: TASKS
+// ============================================================
+function renderTasks() {
+  const el         = document.getElementById('tab-tasks');
+  const canInteract = S.user?.role === 'admin' || S.user?.role === 'scorer';
+
+  const cats = [
+    { key: 'all',                  label: '🔍 Tất cả' },
+    { key: 'Tác phong hằng ngày',  label: '🌅 Tác phong' },
+    { key: 'Việc nhà',             label: '🏠 Việc nhà' },
+    { key: 'Học tập',              label: '📚 Học tập' },
+    { key: 'Điểm phát sinh',       label: '⚡ Phát sinh' },
+    { key: 'Thành tích',           label: '🏆 Thành tích' }
+  ];
+
+  const activeTasks = S.tasks.filter(t => S.taskFilter === 'all' || t.category === S.taskFilter);
+  const groups = {};
+  activeTasks.forEach(t => {
+    const cat = t.category || 'Khác';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(t);
+  });
+
+  let html = `
+    <div class="sec-title">📜 Nhiệm Vụ Hôm Nay</div>
+    <div class="cat-filter">
+      ${cats.map(c => `
+        <div class="cat-pill ${S.taskFilter === c.key ? 'active' : ''}"
+             onclick="setTaskFilter('${c.key}')">${c.label}</div>
+      `).join('')}
+    </div>
+  `;
+
+  if (!activeTasks.length) {
+    html += '<div class="empty-state"><div class="es-icon">📜</div><p>Không có nhiệm vụ nào</p></div>';
+    el.innerHTML = html; return;
   }
 
-  function selectChild(childId) {
-    renderToday();
-  }
-
-  /* ============================================================
-     TASKS TAB
-     ============================================================ */
-  var activeCat = 'all';
-
-  function renderTasks() {
-    var cats  = ['all'];
-    state.tasks.forEach(function (t) { if (t.cat && cats.indexOf(t.cat) === -1) cats.push(t.cat); });
-
-    var catEl = document.getElementById('cat-filters');
-    if (catEl) {
-      catEl.innerHTML = cats.map(function (c) {
-        return '<button class="cat-pill' + (c === activeCat ? ' active' : '') + '" onclick="filterCat(\'' + c + '\')">' +
-          (c === 'all' ? '🗡️ Tất cả' : c) + '</button>';
-      }).join('');
-    }
-
-    var filtered = activeCat === 'all' ? state.tasks : state.tasks.filter(function (t) { return t.cat === activeCat; });
-    var listEl   = document.getElementById('tasks-list');
-    if (!listEl) return;
-
-    if (!filtered.length) {
-      listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📜</div>Chưa có nhiệm vụ nào</div>';
-      return;
-    }
-
-    var byChild = {};
-    filtered.forEach(function (t) {
-      var cid = t.assignedTo || '__all__';
-      if (!byChild[cid]) byChild[cid] = [];
-      byChild[cid].push(t);
-    });
-
-    var html = '';
-    Object.keys(byChild).forEach(function (cid) {
-      var tasks     = byChild[cid];
-      var child     = state.children.filter(function (c) { return c.id === cid; })[0];
-      var childName = child ? ((child.avatar || '⚔️') + ' ' + child.name) : '🌸 Tất cả';
-      html += '<div class="section-title" style="margin-top:14px;font-size:16px;">' + childName + '</div>';
-      tasks.forEach(function (t) {
-        var key        = cid + '-' + t.id;
-        var isDone     = !!state.todayProgress[key];
-        var isReadonly = !child || (state.role !== 'admin' && state.user !== child.name);
-        html += '<div class="task-item">' +
-          '<label id="lbl-' + cid + '-' + t.id + '"' +
-          ' class="check-label' + (isDone ? ' done' : '') + (isReadonly ? ' readonly' : '') + '"' +
-          (isReadonly ? '' : ' onclick="toggleTask(\'' + cid + '\',\'' + t.id + '\')"') + '>' +
-          '<div class="check-box">' + (isDone ? '✓' : '') + '</div>' +
-          '<span class="task-name">' + t.name + '</span>' +
-          '<span class="task-pts-badge">+' + (t.pts || 0) + ' ⭐</span>' +
-          '</label></div>';
+  Object.entries(groups).forEach(([cat, tasks]) => {
+    html += `<div class="cat-section"><div class="cat-section-title">${cat}</div>`;
+    tasks.forEach(task => {
+      const applicable = S.children.filter(c => taskAppliesTo(task, c));
+      if (!applicable.length) return;
+      html += `
+        <div class="task-item">
+          <div class="task-item-head">
+            <span class="task-name-text">${task.task_name}</span>
+            <span class="task-pts-badge">+${task.points} ⭐</span>
+          </div>
+          <div class="task-checks">
+      `;
+      applicable.forEach(child => {
+        const done = isTaskDone(child.child_id, task.task_id);
+        const ro   = !canInteract ? 'readonly' : '';
+        html += `
+          <label class="check-label ${done ? 'done' : ''} ${ro}"
+                 id="lbl-${child.child_id}-${task.task_id}"
+                 onclick="${canInteract ? `handleTaskToggle('${child.child_id}','${task.task_id}',${done})` : ''}">
+            <div class="check-box">${done ? '✓' : ''}</div>
+            <span class="check-child-name">${child.avatar_icon || ''} ${child.child_name}</span>
+          </label>
+        `;
       });
+      html += `</div></div>`;
     });
-    listEl.innerHTML = html;
-  }
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
 
-  function filterCat(cat) {
-    activeCat = cat;
-    renderTasks();
-  }
+function setTaskFilter(key) { S.taskFilter = key; renderTasks(); }
 
-  async function toggleTask(childId, taskId) {
-    var key    = childId + '-' + taskId;
-    var isDone = !!state.todayProgress[key];
-    var label  = document.getElementById('lbl-' + childId + '-' + taskId);
-    if (!label || label.classList.contains('readonly')) return;
-    setLoading(true);
-    try {
-      var data = await apiPost({ action: 'checkTask', childId: childId, taskId: taskId, done: !isDone, user: state.user });
-      if (data.success) {
-        state.todayProgress[key] = !isDone;
-        var task  = state.tasks.filter(function (t) { return t.id === taskId; })[0];
-        var child = state.children.filter(function (c) { return c.id === childId; })[0];
-        if (child && task) {
-          child.todayPts = Math.max(0, (child.todayPts || 0) + (isDone ? -(task.pts || 0) : (task.pts || 0)));
-        }
-        if (!isDone) toast('⚔️ Hoàn thành! +' + (task ? task.pts : 0) + ' ⭐', 'success');
-        renderTasks();
-      } else {
-        toast('⚡ ' + (data.message || 'Có lỗi xảy ra!'), 'error');
-      }
-    } catch (err) { toast('⚡ Không thể kết nối!', 'error'); }
-    setLoading(false);
-  }
+async function handleTaskToggle(childId, taskId, isDone) {
+  if (S.user?.role !== 'admin' && S.user?.role !== 'scorer') return;
+  const child = S.children.find(c => String(c.child_id) === String(childId));
+  const task  = S.tasks.find(t => String(t.task_id)  === String(taskId));
+  if (!child || !task) return;
 
-  async function addTask() {
-    var name   = document.getElementById('nt-name').value.trim();
-    var cat    = document.getElementById('nt-cat').value.trim();
-    var pts    = parseInt(document.getElementById('nt-pts').value) || 10;
-    var assign = document.getElementById('nt-assign').value;
-    if (!name) { toast('⚡ Vui lòng nhập tên nhiệm vụ!', 'warn'); return; }
-    setLoading(true);
-    try {
-      var data = await apiPost({ action: 'addTask', name: name, cat: cat, pts: pts, assignedTo: assign, user: state.user });
-      if (data.success) {
-        state.tasks.push(data.task || { id: data.id || ('' + Date.now()), name: name, cat: cat, pts: pts, assignedTo: assign });
-        document.getElementById('nt-name').value = '';
-        document.getElementById('nt-cat').value  = '';
-        document.getElementById('nt-pts').value  = '';
-        toast('⚔️ Đã thêm nhiệm vụ mới!', 'success');
-        renderTasks();
-      } else { toast('⚡ ' + (data.message || 'Có lỗi xảy ra!'), 'error'); }
-    } catch (err) { toast('⚡ Không thể kết nối!', 'error'); }
-    setLoading(false);
-  }
-
-  /* ============================================================
-     POINTS TAB
-     ============================================================ */
-  function setType(type) {
-    document.getElementById('bp-type').value = type;
-    document.getElementById('btn-bonus').className   = 'type-btn' + (type === 'bonus'   ? ' active-bonus'   : '');
-    document.getElementById('btn-penalty').className = 'type-btn' + (type === 'penalty' ? ' active-penalty' : '');
-  }
-
-  async function submitBonus() {
-    var childId = document.getElementById('bp-child').value;
-    var type    = document.getElementById('bp-type').value;
-    var pts     = parseInt(document.getElementById('bp-pts').value);
-    var note    = document.getElementById('bp-note').value.trim();
-    if (!childId) { toast('⚡ Vui lòng chọn chiến binh!', 'warn'); return; }
-    if (!pts || pts <= 0) { toast('⚡ Vui lòng nhập số điểm hợp lệ!', 'warn'); return; }
-    setLoading(true);
-    try {
-      var data = await apiPost({ action: 'addPoints', childId: childId, type: type, pts: pts, note: note, user: state.user });
-      if (data.success) {
-        var child   = state.children.filter(function (c) { return c.id === childId; })[0];
-        var isBonus = type === 'bonus';
-        var delta   = isBonus ? pts : -pts;
-        if (child) {
-          child.todayPts = Math.max(0, (child.todayPts || 0) + delta);
-          child.weekPts  = Math.max(0, (child.weekPts  || 0) + delta);
-        }
-        document.getElementById('bp-pts').value  = '';
-        document.getElementById('bp-note').value = '';
-        var msg = isBonus ? ('🌸 +' + pts + ' ⭐ cho ' + (child ? child.name : '') + '!') : ('⚡ -' + pts + ' điểm');
-        toast(msg, isBonus ? 'success' : 'warn');
-        state.transactions.unshift({
-          childId: childId, childName: child ? child.name : '',
-          type: type, pts: pts, note: note,
-          time: new Date().toLocaleTimeString('vi', { hour: '2-digit', minute: '2-digit' })
-        });
-        renderTransactions();
-      } else { toast('⚡ ' + (data.message || 'Có lỗi xảy ra!'), 'error'); }
-    } catch (err) { toast('⚡ Không thể kết nối!', 'error'); }
-    setLoading(false);
-  }
-
-  function renderTransactions() {
-    var listEl = document.getElementById('txn-list');
-    if (!listEl) return;
-    if (!state.transactions.length) {
-      listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📜</div>Chưa có giao dịch nào</div>';
-      return;
+  const lbl = document.getElementById(`lbl-${childId}-${taskId}`);
+  if (lbl) { lbl.style.opacity = '0.5'; lbl.style.pointerEvents = 'none'; }
+  showLoad(true);
+  try {
+    const action = isDone ? 'undoTask' : 'completeTask';
+    const r = await api(action, { child_id: childId, task_id: taskId });
+    if (r.success) {
+      toast(isDone ? `↩️ ${child.child_name}: -${task.points} ⭐` : `✅ ${child.child_name}: +${task.points} ⭐`, isDone ? 'warn' : 'success');
+      await fetchData(true);
+    } else {
+      toast(r.message, 'error');
+      if (lbl) { lbl.style.opacity = ''; lbl.style.pointerEvents = ''; }
     }
-    listEl.innerHTML = state.transactions.slice(0, 30).map(function (t) {
-      var isPos = t.type === 'bonus';
-      return '<div class="txn-item ' + (isPos ? 'txn-positive' : 'txn-negative') + '">' +
-        '<div class="txn-icon">' + (isPos ? '🌸' : '⚡') + '</div>' +
-        '<div class="txn-info">' +
-        '<div class="txn-name">' + (t.note || (isPos ? 'Thưởng điểm' : 'Trừ điểm')) + '</div>' +
-        '<div class="txn-meta">' + (t.childName || '') + ' · ' + (t.time || t.date || '') + '</div>' +
-        '</div>' +
-        '<div class="txn-pts ' + (isPos ? 'pos' : 'neg') + '">' + (isPos ? '+' : '-') + t.pts + '</div>' +
-        '</div>';
+  } catch(e) {
+    toast('Lỗi kết nối', 'error');
+    if (lbl) { lbl.style.opacity = ''; lbl.style.pointerEvents = ''; }
+  }
+  showLoad(false);
+}
+
+// ============================================================
+// RENDER: POINTS
+// ============================================================
+function renderPoints() {
+  const el     = document.getElementById('tab-points');
+  const canAct = S.user?.role === 'admin' || S.user?.role === 'scorer';
+
+  let formHtml = '';
+  if (canAct) {
+    const childOpts = S.children.map(c =>
+      `<option value="${c.child_id}">${c.avatar_icon || ''} ${c.child_name}</option>`
+    ).join('');
+    formHtml = `
+      <div class="points-form">
+        <div class="form-row">
+          <label>👶 Chọn bé</label>
+          <select id="bp-child" class="form-select">${childOpts}</select>
+        </div>
+        <div class="form-row">
+          <label>Loại</label>
+          <div class="type-toggle">
+            <button type="button" id="btn-bonus"   class="type-btn active-bonus"   onclick="setBpType('bonus')">➕ Thưởng</button>
+            <button type="button" id="btn-penalty" class="type-btn"                onclick="setBpType('penalty')">➖ Phạt</button>
+          </div>
+          <input type="hidden" id="bp-type" value="bonus" />
+        </div>
+        <div class="form-row">
+          <label>📝 Lý do</label>
+          <input id="bp-note" class="form-input" type="text" placeholder="Nhập lý do..." />
+        </div>
+        <div class="form-row">
+          <label>🔢 Số điểm</label>
+          <input id="bp-pts"  class="form-input" type="number" min="1" placeholder="VD: 10" />
+        </div>
+        <button class="btn-submit" onclick="submitBonusPenalty()">✅ Xác Nhận</button>
+      </div>
+    `;
+  }
+
+  const recentTx = S.transactions.slice(0, 20);
+  const txHtml   = recentTx.length ? recentTx.map(tx => {
+    const pts = Number(tx.points || 0);
+    return `
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="tx-name">${tx.child_name || ''} · ${tx.type || ''}</div>
+          <div class="tx-meta">${tx.note || tx.task_name || ''} · ${fmtDatetime(tx.created_at)}</div>
+        </div>
+        <div class="tx-pts ${pts >= 0 ? 'pos' : 'neg'}">${pts >= 0 ? '+' : ''}${pts}</div>
+      </div>
+    `;
+  }).join('') : '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có giao dịch nào</p></div>';
+
+  el.innerHTML = `
+    <div class="sec-title">💎 Thưởng / Phạt Điểm</div>
+    ${formHtml}
+    <div class="recent-tx">
+      <div class="sec-title" style="margin-top:20px">📜 Giao Dịch Gần Đây</div>
+      ${txHtml}
+    </div>
+  `;
+}
+
+function setBpType(type) {
+  document.getElementById('bp-type').value = type;
+  document.getElementById('btn-bonus').className   = 'type-btn' + (type === 'bonus'   ? ' active-bonus'   : '');
+  document.getElementById('btn-penalty').className = 'type-btn' + (type === 'penalty' ? ' active-penalty' : '');
+}
+
+async function submitBonusPenalty() {
+  const childId = document.getElementById('bp-child').value;
+  const type    = document.getElementById('bp-type').value;
+  const note    = document.getElementById('bp-note').value.trim();
+  const pts     = Number(document.getElementById('bp-pts').value);
+  if (!childId)      { toast('Chọn bé', 'warn'); return; }
+  if (!pts || pts<=0){ toast('Nhập số điểm hợp lệ', 'warn'); return; }
+
+  showLoad(true);
+  try {
+    const r = await api('addBonusPenalty', { child_id: childId, type, note, points: pts });
+    if (r.success) {
+      toast(r.message, 'success');
+      document.getElementById('bp-note').value = '';
+      document.getElementById('bp-pts').value  = '';
+      await fetchData(true);
+    } else { toast(r.message, 'error'); }
+  } catch(e) { toast('Lỗi kết nối', 'error'); }
+  showLoad(false);
+}
+
+// ============================================================
+// RENDER: REWARDS
+// ============================================================
+function renderRewards() {
+  const el          = document.getElementById('tab-rewards');
+  const canRedeem   = ['admin','scorer','viewer'].includes(S.user?.role);
+  const redeemKids  = S.user?.role === 'viewer'
+    ? S.children.filter(c => String(c.child_id) === String(S.user.child_id))
+    : S.children;
+
+  const childOpts = redeemKids.map(c =>
+    `<option value="${c.child_id}">${c.avatar_icon || ''} ${c.child_name} (${childScore(c.child_id).total_score} ⭐)</option>`
+  ).join('');
+
+  const rewardsHtml = S.rewards.length ? `
+    <div class="form-row" style="margin-bottom:14px">
+      <label>👶 Đổi thưởng cho</label>
+      <select id="rd-child" class="form-select">${childOpts}</select>
+    </div>
+    <div class="rewards-grid">
+      ${S.rewards.map(rw => `
+        <div class="reward-card">
+          <span class="reward-icon">${rw.icon || '🎁'}</span>
+          <div class="reward-name">${rw.reward_name}</div>
+          <div class="reward-pts">${rw.required_points} ⭐</div>
+          ${canRedeem ? `<button class="btn-redeem" onclick="submitRedeem('${rw.reward_id}')">🌸 Đổi thưởng</button>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  ` : '<div class="empty-state"><div class="es-icon">🌸</div><p>Chưa có phần thưởng nào</p></div>';
+
+  const redeemHist = S.redemptions.slice(0, 10).map(rd => `
+    <div class="tx-item">
+      <div class="tx-left">
+        <div class="tx-name">${rd.child_name} · ${rd.reward_name}</div>
+        <div class="tx-meta">${fmtDate(rd.date)} · ${rd.status || ''}</div>
+      </div>
+      <div class="tx-pts neg">-${rd.points_spent}</div>
+    </div>
+  `).join('') || '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có lịch sử đổi thưởng</p></div>';
+
+  el.innerHTML = `
+    <div class="sec-title">🌸 Phần Thưởng</div>
+    ${rewardsHtml}
+    <div class="redeem-history">
+      <div class="sec-title" style="margin-top:20px">🔖 Lịch Sử Đổi Thưởng</div>
+      ${redeemHist}
+    </div>
+  `;
+}
+
+async function submitRedeem(rewardId) {
+  const childId = document.getElementById('rd-child')?.value;
+  if (!childId) { toast('Chọn bé', 'warn'); return; }
+  const child  = S.children.find(c => String(c.child_id)  === String(childId));
+  const reward = S.rewards.find(r  => String(r.reward_id) === String(rewardId));
+  if (!child || !reward) return;
+
+  confirm(
+    '🌸 Xác nhận đổi thưởng',
+    `${child.child_name} đổi "${reward.reward_name}" tốn ${reward.required_points} ⭐`,
+    async () => {
+      showLoad(true);
+      try {
+        const r = await api('redeemReward', { child_id: childId, reward_id: rewardId });
+        if (r.success) { toast(r.message, 'success'); await fetchData(true); }
+        else             toast(r.message, 'error');
+      } catch(e) { toast('Lỗi kết nối', 'error'); }
+      showLoad(false);
+    }
+  );
+}
+
+// ============================================================
+// RENDER: RANKINGS
+// ============================================================
+function renderRankings() {
+  const el = document.getElementById('tab-rankings');
+  if (!S.children.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">🏆</div><p>Đang tải...</p></div>';
+    return;
+  }
+  const scored = S.children
+    .map(c => ({ ...c, ...childScore(c.child_id) }))
+    .sort((a,b) => b.week_score - a.week_score);
+
+  const rankEmojis = ['🥇','🥈','🥉'];
+  const allScored  = S.children.map(c => ({ ...c, ...childScore(c.child_id) }));
+  const colors     = ['c1','c2','c3','c4'];
+
+  const rankCards = scored.map((c,i) => `
+    <div class="rank-card">
+      <div class="rank-num ${i < 3 ? 'r'+(i+1) : ''}">${rankEmojis[i] || (i+1)}</div>
+      <div class="rank-info">
+        <h3>${c.avatar_icon || ''} ${c.child_name}</h3>
+        <span>Tổng: ${c.total_score} ⭐ · Hôm nay: ${c.today_score}</span>
+      </div>
+      <div class="rank-score">${c.week_score} ⭐</div>
+    </div>
+  `).join('');
+
+  let compareBars = '';
+  ['today_score','week_score','total_score'].forEach(metric => {
+    const labels  = { today_score:'Hôm nay', week_score:'Tuần này', total_score:'Ngôi sao' };
+    const maxVal  = Math.max(...allScored.map(c => c[metric]), 1);
+    compareBars  += `
+      <div class="compare-row">
+        <span class="compare-label">${labels[metric]}</span>
+        <div class="compare-bar-wrap">
+          <div class="compare-bar-track">
+            ${allScored.map((c,i) => `<div class="cbar ${colors[i]}" style="width:${Math.round(c[metric]/maxVal*100)}%"></div>`).join('')}
+          </div>
+          <div class="compare-values">
+            ${allScored.map(c => `<span>${c.child_name}: ${c[metric]}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  el.innerHTML = `
+    <div class="sec-title">🏆 Xếp Hạng Tuần Này</div>
+    <div class="rank-cards">${rankCards}</div>
+    <div class="compare-section">
+      <div class="sec-title" style="border:none;margin-bottom:12px">📊 So Sánh</div>
+      ${compareBars}
+    </div>
+  `;
+}
+
+// ============================================================
+// RENDER: HISTORY
+// ============================================================
+function renderHistory() {
+  const el = document.getElementById('tab-history');
+  if (!S.children.length || !S.today) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">📅</div><p>Đang tải...</p></div>';
+    return;
+  }
+  const days    = 7;
+  const dayData = [];
+  for (let i = days-1; i >= 0; i--) {
+    const d  = new Date(S.today + 'T00:00:00');
+    d.setDate(d.getDate() - i);
+    const ds = d.toISOString().substring(0,10);
+    const entry = { date: ds, short: `${d.getDate()}/${d.getMonth()+1}`, scores: {} };
+    S.children.forEach(c => {
+      entry.scores[c.child_id] = S.transactions
+        .filter(tx => String(tx.child_id) === String(c.child_id) && String(tx.date).substring(0,10) === ds)
+        .reduce((sum,tx) => sum + Number(tx.points || 0), 0);
+    });
+    dayData.push(entry);
+  }
+
+  const allVals  = dayData.flatMap(d => Object.values(d.scores));
+  const maxVal   = Math.max(...allVals, 1);
+  const colors   = ['var(--red)','var(--blue)','var(--green)'];
+
+  const barsHtml = dayData.map(d => {
+    const childBars = S.children.map((c,i) => {
+      const h = Math.max(4, Math.round((d.scores[c.child_id] / maxVal) * 100));
+      return `<div class="bar b${i+1}" style="height:${h}px" title="${c.child_name}: ${d.scores[c.child_id]}"></div>`;
     }).join('');
+    return `<div class="bar-group">${childBars}<span class="bar-date">${d.short}</span></div>`;
+  }).join('');
+
+  const legendHtml = S.children.map((c,i) => `
+    <span><span class="legend-dot" style="background:${colors[i]||'#fff'}"></span>${c.child_name}</span>
+  `).join('');
+
+  const recentTx = S.transactions.slice(0,30);
+  const txHtml   = recentTx.length ? recentTx.map(tx => {
+    const pts = Number(tx.points || 0);
+    return `
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="tx-name">${tx.child_name || ''} · ${tx.note || tx.task_name || tx.type || ''}</div>
+          <div class="tx-meta">${fmtDatetime(tx.created_at)} · ${tx.created_by_name || ''}</div>
+        </div>
+        <div class="tx-pts ${pts >= 0 ? 'pos' : 'neg'}">${pts >= 0 ? '+' : ''}${pts}</div>
+      </div>
+    `;
+  }).join('') : '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có dữ liệu</p></div>';
+
+  el.innerHTML = `
+    <div class="sec-title">📅 Lịch Sử</div>
+    <div class="chart-wrap">
+      <div class="chart-title">📈 Biểu Đồ 7 Ngày Gần Đây</div>
+      <div class="bar-chart">${barsHtml}</div>
+      <div class="chart-legend">${legendHtml}</div>
+    </div>
+    <div class="sec-title">📜 Giao Dịch Gần Đây</div>
+    ${txHtml}
+  `;
+}
+
+// ============================================================
+// RENDER: SETTINGS
+// ============================================================
+function renderSettings() {
+  const el   = document.getElementById('tab-settings');
+  const role = S.user?.role;
+  if (role !== 'admin' && role !== 'scorer') {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">🔒</div><p>Chỉ dành cho admin/scorer</p></div>';
+    return;
   }
+  const cats     = ['Tác phong hằng ngày','Việc nhà','Học tập','Điểm phát sinh','Thành tích'];
+  const catOpts  = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  const assignOpts = `<option value="both">👥 Cả hai</option>` +
+    S.children.map(c => `<option value="${c.child_key || c.child_id}">${c.avatar_icon || ''} ${c.child_name}</option>`).join('');
 
-  /* ============================================================
-     REWARDS TAB
-     ============================================================ */
-  function loadRewards() { renderRewards(); }
+  const adminSection = role === 'admin' ? `
+    <div class="settings-card">
+      <h3>🗡️ Quản Lý Hệ Thống</h3>
+      <button class="btn-setting"        onclick="doResetToday()">🔄 Đặt Lại Nhiệm Vụ Hôm Nay</button>
+      <button class="btn-setting danger" onclick="doResetWeek()">🗑️ Đặt Lại Điểm Tuần</button>
+    </div>
+  ` : '';
 
-  function renderRewards() {
-    var childId = (document.getElementById('rd-child') || {}).value || '';
-    var child   = state.children.filter(function (c) { return c.id === childId; })[0];
-    var grid    = document.getElementById('rewards-grid');
-    if (!grid) return;
-    if (!state.rewards.length) {
-      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🌸</div>Chưa có phần thưởng nào</div>';
-      return;
-    }
-    grid.innerHTML = state.rewards.map(function (r) {
-      var canRedeem = child && (child.weekPts || 0) >= (r.pts || 0);
-      return '<div class="reward-card">' +
-        '<div class="reward-icon-wrap">' + (r.icon || '🎁') + '</div>' +
-        '<div class="reward-name">' + r.name + '</div>' +
-        '<div class="reward-pts">' + (r.pts || 0) + ' ⭐</div>' +
-        '<button class="btn-redeem"' + (!canRedeem ? ' disabled' : '') +
-        (canRedeem ? ' onclick="redeemReward(\'' + r.id + '\')"' : '') + '>' +
-        (canRedeem ? '🌸 Đổi Thưởng' : '⚡ Chưa đủ điểm') +
-        '</button></div>';
-    }).join('');
-  }
+  el.innerHTML = `
+    <div class="sec-title">🗡️ Cài Đặt</div>
+    <div class="settings-card">
+      <h3>➕ Thêm Nhiệm Vụ Mới</h3>
+      <div class="add-task-form">
+        <div class="form-row"><label>Tên nhiệm vụ</label><input id="nt-name" class="form-input" type="text" placeholder="Tên nhiệm vụ..." /></div>
+        <div class="form-row-2">
+          <div><label>Danh mục</label><select id="nt-cat" class="form-select">${catOpts}</select></div>
+          <div><label>Số điểm</label><input id="nt-pts" class="form-input" type="number" min="1" placeholder="10" /></div>
+        </div>
+        <div class="form-row"><label>Giao cho</label><select id="nt-assign" class="form-select">${assignOpts}</select></div>
+        <button class="btn-submit" onclick="submitAddTask()">✅ Thêm Nhiệm Vụ</button>
+      </div>
+    </div>
+    <div class="settings-card">
+      <h3>🌸 Thêm Phần Thưởng Mới</h3>
+      <div class="add-reward-form">
+        <div class="form-row"><label>Tên phần thưởng</label><input id="nr-name" class="form-input" type="text" placeholder="Tên phần thưởng..." /></div>
+        <div class="form-row-2">
+          <div><label>Icon</label><input id="nr-icon" class="form-input" type="text" placeholder="🎁" /></div>
+          <div><label>Điểm cần</label><input id="nr-pts" class="form-input" type="number" min="1" placeholder="200" /></div>
+        </div>
+        <button class="btn-submit" onclick="submitAddReward()">🌸 Thêm Phần Thưởng</button>
+      </div>
+    </div>
+    ${adminSection}
+  `;
+}
 
-  async function redeemReward(rewardId) {
-    var childId = (document.getElementById('rd-child') || {}).value || '';
-    var child   = state.children.filter(function (c) { return c.id === childId; })[0];
-    var reward  = state.rewards.filter(function (r) { return r.id === rewardId; })[0];
-    if (!child || !reward) return;
-    showModal(
-      '🌸 Đổi ' + reward.name + '?',
-      'Dùng ' + reward.pts + ' ⭐ của ' + child.name + ' để đổi ' + reward.name + '?',
-      async function () {
-        setLoading(true);
-        try {
-          var data = await apiPost({ action: 'redeemReward', childId: childId, rewardId: rewardId, user: state.user });
-          if (data.success) {
-            child.weekPts = Math.max(0, (child.weekPts || 0) - (reward.pts || 0));
-            toast('🌸 ' + child.name + ' đã đổi được ' + reward.name + '!', 'success');
-            renderRewards();
-          } else { toast('⚡ ' + (data.message || 'Có lỗi xảy ra!'), 'error'); }
-        } catch (err) { toast('⚡ Không thể kết nối!', 'error'); }
-        setLoading(false);
-      }
-    );
-  }
+async function submitAddTask() {
+  const name   = document.getElementById('nt-name').value.trim();
+  const cat    = document.getElementById('nt-cat').value;
+  const pts    = Number(document.getElementById('nt-pts').value);
+  const assign = document.getElementById('nt-assign').value;
+  if (!name)       { toast('Nhập tên nhiệm vụ', 'warn'); return; }
+  if (!pts||pts<=0){ toast('Nhập số điểm hợp lệ', 'warn'); return; }
+  showLoad(true);
+  try {
+    const r = await api('addTask', { task_name:name, category:cat, points:pts, assigned_to:assign });
+    if (r.success) { toast(r.message,'success'); document.getElementById('nt-name').value=''; document.getElementById('nt-pts').value=''; await fetchData(true); }
+    else toast(r.message,'error');
+  } catch(e) { toast('Lỗi kết nối','error'); }
+  showLoad(false);
+}
 
-  async function addReward() {
-    var name = document.getElementById('nr-name').value.trim();
-    var icon = document.getElementById('nr-icon').value.trim() || '🎁';
-    var pts  = parseInt(document.getElementById('nr-pts').value) || 50;
-    if (!name) { toast('⚡ Vui lòng nhập tên phần thưởng!', 'warn'); return; }
-    setLoading(true);
+async function submitAddReward() {
+  const name = document.getElementById('nr-name').value.trim();
+  const icon = document.getElementById('nr-icon').value.trim() || '🎁';
+  const pts  = Number(document.getElementById('nr-pts').value);
+  if (!name)       { toast('Nhập tên phần thưởng','warn'); return; }
+  if (!pts||pts<=0){ toast('Nhập số điểm hợp lệ','warn'); return; }
+  showLoad(true);
+  try {
+    const r = await api('addReward', { reward_name:name, icon, required_points:pts });
+    if (r.success) { toast(r.message,'success'); document.getElementById('nr-name').value=''; document.getElementById('nr-icon').value=''; document.getElementById('nr-pts').value=''; await fetchData(true); }
+    else toast(r.message,'error');
+  } catch(e) { toast('Lỗi kết nối','error'); }
+  showLoad(false);
+}
+
+async function doResetToday() {
+  confirm('🔄 Đặt lại nhiệm vụ?', 'Xóa toàn bộ tick hôm nay (điểm không đổi). Chắc chắn?', async () => {
+    showLoad(true);
     try {
-      var data = await apiPost({ action: 'addReward', name: name, icon: icon, pts: pts, user: state.user });
-      if (data.success) {
-        state.rewards.push(data.reward || { id: data.id || ('' + Date.now()), name: name, icon: icon, pts: pts });
-        document.getElementById('nr-name').value = '';
-        document.getElementById('nr-icon').value = '';
-        document.getElementById('nr-pts').value  = '';
-        toast('🌸 Đã thêm phần thưởng mới!', 'success');
-        renderRewards();
-      } else { toast('⚡ ' + (data.message || 'Có lỗi xảy ra!'), 'error'); }
-    } catch (err) { toast('⚡ Không thể kết nối!', 'error'); }
-    setLoading(false);
-  }
+      const r = await api('resetToday');
+      if (r.success) { toast(r.message,'success'); await fetchData(true); }
+      else             toast(r.message,'error');
+    } catch(e) { toast('Lỗi kết nối','error'); }
+    showLoad(false);
+  });
+}
 
-  /* ============================================================
-     RANKINGS TAB
-     ============================================================ */
-  var COMPARE_COLORS = ['#16a34a', '#ec4899', '#f59e0b', '#3b82f6', '#8b5cf6'];
+async function doResetWeek() {
+  confirm('🗑️ Đặt lại điểm tuần?','⚠️ Sẽ xóa toàn bộ giao dịch tuần này. Không thể hoàn tác!', async () => {
+    showLoad(true);
+    try {
+      const r = await api('resetWeek');
+      if (r.success) { toast(r.message,'success'); await fetchData(true); }
+      else             toast(r.message,'error');
+    } catch(e) { toast('Lỗi kết nối','error'); }
+    showLoad(false);
+  });
+}
 
-  function renderRankings() {
-    var sorted = state.children.slice().sort(function (a, b) { return (b.weekPts || 0) - (a.weekPts || 0); });
-    var medals = ['🥇', '🥈', '🥉'];
-    var rCls   = ['rank-1', 'rank-2', 'rank-3'];
-
-    var listEl = document.getElementById('rankings-list');
-    if (listEl) {
-      listEl.innerHTML = sorted.length ? sorted.map(function (c, i) {
-        return '<div class="rank-card ' + (rCls[i] || '') + '">' +
-          '<span class="rank-medal">' + (medals[i] || (i + 1)) + '</span>' +
-          '<div class="rank-name">' + (c.avatar || '⚔️') + ' ' + c.name + '</div>' +
-          '<div class="rank-pts">' + (c.weekPts || 0) + ' ⭐</div>' +
-          '</div>';
-      }).join('') : '<div class="empty-state"><div class="empty-icon">⚔️</div>Chưa có dữ liệu</div>';
-    }
-
-    var maxPts = Math.max.apply(null, sorted.map(function (c) { return c.weekPts || 0; }).concat([1]));
-    var barsEl = document.getElementById('compare-bars');
-    if (barsEl) {
-      barsEl.innerHTML = sorted.map(function (c, i) {
-        var pct = Math.round(((c.weekPts || 0) / maxPts) * 100);
-        return '<div class="compare-item">' +
-          '<div class="compare-header"><span>' + c.name + '</span><span>' + (c.weekPts || 0) + ' ⭐</span></div>' +
-          '<div class="compare-track"><div class="compare-bar" style="width:' + pct + '%;background:' + COMPARE_COLORS[i % COMPARE_COLORS.length] + ';"></div></div>' +
-          '</div>';
-      }).join('');
-    }
-  }
-
-  /* ============================================================
-     HISTORY TAB
-     ============================================================ */
-  var HISTORY_COLORS = ['#16a34a', '#ec4899', '#f59e0b', '#3b82f6', '#8b5cf6'];
-
-  function renderHistory() {
-    var chartEl = document.getElementById('history-chart');
-    if (chartEl) {
-      if (!state.history || !state.history.length) {
-        chartEl.innerHTML = '<div class="empty-state" style="width:100%;"><div class="empty-icon">📜</div>Chưa có dữ liệu</div>';
-      } else {
-        var maxVal = 1;
-        state.history.forEach(function (h) {
-          Object.values(h.points || {}).forEach(function (v) { if (v > maxVal) maxVal = v; });
-        });
-        chartEl.innerHTML = state.history.map(function (h) {
-          var bars = state.children.map(function (c, ci) {
-            var val = ((h.points || {})[c.id]) || 0;
-            var ht  = Math.round((val / maxVal) * 100);
-            return '<div class="bar" title="' + c.name + ': ' + val + '" style="height:' + Math.max(ht, 3) + 'px;background:' + HISTORY_COLORS[ci % HISTORY_COLORS.length] + ';"></div>';
-          }).join('');
-          return '<div class="bar-group">' + bars + '<div class="bar-label">' + (h.label || '') + '</div></div>';
-        }).join('');
-      }
-    }
-
-    var histListEl = document.getElementById('history-list');
-    if (histListEl) {
-      if (!state.transactions.length) {
-        histListEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📜</div>Chưa có lịch sử</div>';
-      } else {
-        histListEl.innerHTML = state.transactions.slice(0, 40).map(function (t) {
-          var isPos = t.type === 'bonus';
-          return '<div class="txn-item ' + (isPos ? 'txn-positive' : 'txn-negative') + '">' +
-            '<div class="txn-icon">' + (isPos ? '🌸' : '⚡') + '</div>' +
-            '<div class="txn-info">' +
-            '<div class="txn-name">' + (t.note || (isPos ? 'Thưởng' : 'Phạt')) + '</div>' +
-            '<div class="txn-meta">' + (t.childName || '') + ' · ' + (t.date || t.time || '') + '</div>' +
-            '</div>' +
-            '<div class="txn-pts ' + (isPos ? 'pos' : 'neg') + '">' + (isPos ? '+' : '-') + t.pts + '</div>' +
-            '</div>';
-        }).join('');
-      }
-    }
-  }
-
-  /* ============================================================
-     SETTINGS
-     ============================================================ */
-  function manageChildren() {
-    toast('⚙️ Tính năng đang phát triển', 'warn');
-  }
-
-  function resetDailyTasks() {
-    showModal('🔄 Reset Nhiệm Vụ', 'Reset tất cả nhiệm vụ hôm nay về chưa hoàn thành?', async function () {
-      setLoading(true);
-      try {
-        var data = await apiPost({ action: 'resetDaily', user: state.user });
-        if (data.success) {
-          state.todayProgress = {};
-          state.children.forEach(function (c) { c.todayPts = 0; });
-          toast('🔄 Đã reset nhiệm vụ hôm nay!', 'success');
-          renderToday();
-        } else { toast('⚡ ' + (data.message || 'Có lỗi xảy ra!'), 'error'); }
-      } catch (err) { toast('⚡ Không thể kết nối!', 'error'); }
-      setLoading(false);
-    });
-  }
-
-  function exportData() {
-    setLoading(true);
-    setTimeout(function () {
-      try {
-        var blob = new Blob(
-          [JSON.stringify({ children: state.children, tasks: state.tasks, rewards: state.rewards, transactions: state.transactions }, null, 2)],
-          { type: 'application/json' }
-        );
-        var url = URL.createObjectURL(blob);
-        var a   = document.createElement('a');
-        a.href  = url; a.download = 'family-quest-data.json'; a.click();
-        URL.revokeObjectURL(url);
-        toast('💾 Đã xuất dữ liệu!', 'success');
-      } catch (err) { toast('⚡ Không thể xuất dữ liệu!', 'error'); }
-      setLoading(false);
-    }, 400);
-  }
-
-  function confirmReset() {
-    showModal('⚠️ Xóa Toàn Bộ', 'KHÔNG THỂ HOÀN TÁC! Bạn chắc chắn muốn xóa toàn bộ dữ liệu?', async function () {
-      setLoading(true);
-      try {
-        var data = await apiPost({ action: 'resetAll', user: state.user });
-        if (data.success) {
-          toast('🗑️ Đã xóa toàn bộ dữ liệu!', 'warn');
-          await loadAll();
-        } else { toast('⚡ ' + (data.message || 'Không có quyền thực hiện!'), 'error'); }
-      } catch (err) { toast('⚡ Không thể kết nối!', 'error'); }
-      setLoading(false);
-    });
-  }
+// ============================================================
+// START
+// ============================================================
+init();
 </script>
 </body>
 </html>
