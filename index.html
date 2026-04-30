@@ -1258,14 +1258,18 @@ function toast(msg, type = 'info') {
 }
 
 function switchTab(tab) {
-  S.activeTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.tab === tab)
-  );
-  document.querySelectorAll('.tab-content').forEach(t =>
-    t.style.display = (t.id === 'tab-' + tab) ? '' : 'none'
-  );
-  renderTab(tab);
+    console.log('switchTab →', tab); // ✅ sửa tabName → tab
+
+    S.activeTab = tab;
+
+    document.querySelectorAll('.tab-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.tab === tab)
+    );
+    document.querySelectorAll('.tab-content').forEach(t =>
+        t.style.display = (t.id === 'tab-' + tab) ? '' : 'none'
+    );
+
+    renderTab(tab);
 }
 
 function renderTab(tab) {
