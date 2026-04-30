@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>⚔️ Bảng Điểm Diệt Quỷ</title>
+  <title>⚔️ Bảng Theo dõi điểm thưởng</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -1240,13 +1240,13 @@ function renderPoints() {
         <div class="tx-pts ${pts >= 0 ? 'pos' : 'neg'}">${pts >= 0 ? '+' : ''}${pts}</div>
       </div>
     `;
-  }).join('') : '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có giao dịch nào</p></div>';
+  }).join('') : '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có hoạt động nào</p></div>';
 
   el.innerHTML = `
     <div class="sec-title">💎 Thưởng / Phạt Điểm</div>
     ${formHtml}
     <div class="recent-tx">
-      <div class="sec-title" style="margin-top:20px">📜 Giao Dịch Gần Đây</div>
+      <div class="sec-title" style="margin-top:20px">📜 Hoạt Động Gần Đây</div>
       ${txHtml}
     </div>
   `;
