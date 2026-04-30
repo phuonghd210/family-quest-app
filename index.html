@@ -1088,23 +1088,37 @@ function togglePw() {
 // SESSION RESTORE
 // ============================================================
 async function init() {
-  buildLoginChars();
-  if (S.token && S.user) {
-    try {
-      const r = await api('validateSession');
-      if (r.success) {
-        S.user = { user_id: r.user_id, username: r.username, display_name: r.display_name, role: r.role, child_id: r.child_id };
-        localStorage.setItem('fq_user', JSON.stringify(S.user));
-        showApp();
-        await fetchData(true);
-        return;
-      }
-    } catch(e) {}
-    S.token = null; S.user = null;
-    localStorage.removeItem('fq_token');
-    localStorage.removeItem('fq_user');
-  }
-  showLogin();
+    buildLoginChars();
+
+    if (S.token && S.user) {
+        try {
+            const r = await api('validateSession');
+            if (r.success) {
+                S.user = {
+                    user_id: r.user_id,
+                    username: r.username,
+                    display_name: r.display_name,
+                    role: r.role,
+                    child_id: r.child_id
+                };
+                localStorage.setItem('fq_user', JSON.stringify(S.user));
+                showLoad(false); // ← thêm
+                showApp();
+                await fetchData(true);
+                return;
+            }
+        } catch(e) {
+            console.warn('validateSession failed:', e); // ← đừng nuốt lỗi âm thầm
+        }
+
+        S.token = null;
+        S.user = null;
+        localStorage.removeItem('fq_token');
+        localStorage.removeItem('fq_user');
+    }
+
+    showLoad(false); // ← thêm (cả trường hợp không có token)
+    showLogin();
 }
 
 function buildLoginChars() {
