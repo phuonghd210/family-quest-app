@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>🏆 Bảng Điểm Thưởng</title>
+  <style>
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: #0a0f1e;
+      color: #e2e8f0;
+      font-size: 15px;
+    }
+
+    /* ============================================================
+       VARIABLES
+    ============================================================ */
+    :root {
+      --red:    #c9184a;
+      --red-l:  #ff4d79;
+      --gold:   #f5c518;
+      --blue:   #4cc9f0;
+      --green:  #43aa8b;
+      --purple: #7b2d8b;
+      --bg0:    #0a0f1e;
+      --bg1:    #131929;
+      --bg2:    #1e2840;
+      --bg3:    #243050;
+      --border: rgba(255,255,255,0.08);
+      --text:   #e2e8f0;
+      --dim:    #8892a4;
+      --radius: 14px;
+    }
+
+    /* ============================================================
+       LOADING
+    ============================================================ */
+    #loading {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(10,15,30,0.88);
+      display: none; align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px;
+    }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid var(--bg3);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================================================
+       TOAST
+    ============================================================ */
+    #toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: var(--bg3); color: var(--text);
+      padding: 10px 20px; border-radius: 30px;
+      font-size: 14px; z-index: 8888;
+      opacity: 0; transition: opacity 0.3s;
+      max-width: 90vw; text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; }
+    #toast.success { background: var(--green); }
+    #toast.error   { background: var(--red); }
+    #toast.warn    { background: #d97706; }
+
+    /* ============================================================
+       MODAL CONFIRM
+    ============================================================ */
+    #modal-overlay {
+      position: fixed; inset: 0; z-index: 7777;
+      background: rgba(0,0,0,0.7);
+      display: none; align-items: center; justify-content: center;
+    }
+    #modal-overlay.show { display: flex; }
+    .modal-box {
+      background: var(--bg2); border-radius: var(--radius);
+      padding: 24px; max-width: 340px; width: 90%;
+      border: 1px solid var(--border);
+    }
+    .modal-box h3 { margin-bottom: 10px; font-size: 17px; }
+    .modal-box p  { color: var(--dim); font-size: 14px; margin-bottom: 20px; }
+    .modal-btns   { display: flex; gap: 10px; }
+    .modal-btns button {
+      flex: 1; padding: 10px; border-radius: 8px;
+      border: none; cursor: pointer; font-size: 14px; font-weight: 600;
+    }
+    .btn-confirm { background: var(--red); color: white; }
+    .btn-cancel  { background: var(--bg3); color: var(--text); }
+
+    /* ============================================================
+       LOGIN SCREEN
+    ============================================================ */
+    #login-screen {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 28px;
+      width: 100%; max-width: 380px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .login-logo {
+      text-align: center; margin-bottom: 28px;
+    }
+    .login-logo .logo-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+    .login-logo h1 { font-size: 20px; font-weight: 700; }
+    .login-logo p  { font-size: 13px; color: var(--dim); margin-top: 4px; }
+
+    .chars-row {
+      display: flex; gap: 12px; margin-bottom: 24px;
+    }
+    .char-btn {
+      flex: 1;
+      background: var(--bg2);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 8px;
+      cursor: pointer; text-align: center;
+      transition: border-color 0.2s, background 0.2s;
+      color: var(--text);
+    }
+    .char-btn:hover { border-color: var(--red); background: var(--bg3); }
+    .char-btn.active { border-color: var(--gold); background: var(--bg3); }
+    .char-btn .char-icon { font-size: 28px; display: block; margin-bottom: 4px; }
+    .char-btn .char-name { font-size: 12px; font-weight: 600; }
+    .char-btn .char-role { font-size: 11px; color: var(--dim); }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+    .input-wrap { position: relative; }
+    .input-wrap input {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: var(--text); font-size: 15px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .input-wrap input:focus { border-color: var(--red); }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--dim); cursor: pointer;
+      font-size: 16px;
+    }
+    .login-error {
+      background: rgba(201,24,74,0.15);
+      border: 1px solid var(--red);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px; color: var(--red);
+      margin-bottom: 14px; display: none;
+    }
+    .btn-login {
+      width: 100%;
+      background: linear-gradient(135deg, var(--red), #a11040);
+      color: white; border: none;
+      border-radius: 12px; padding: 13px;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 4px;
+    }
+    .btn-login:hover { opacity: 0.9; }
+
+    /* ============================================================
+       APP LAYOUT
+    ============================================================ */
+    #app { display: none; height: 100vh; flex-direction: column; overflow: hidden; }
+    #app.visible { display: flex; }
+
+    .app-header {
+      background: var(--bg1);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .app-header h1 { font-size: 16px; font-weight: 700; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .user-badge {
+      font-size: 12px; color: var(--dim);
+      background: var(--bg2); border-radius: 20px;
+      padding: 4px 10px;
+    }
+    .btn-logout {
+      background: var(--bg2); border: 1px solid var(--border);
+      color: var(--dim); border-radius: 8px;
+      padding: 5px 10px; font-size: 12px; cursor: pointer;
+    }
+    .btn-logout:hover { color: var(--red); border-color: var(--red); }
+    .btn-refresh {
+      background: none; border: none; color: var(--dim);
+      font-size: 18px; cursor: pointer; padding: 4px;
+      transition: transform 0.3s;
+    }
+    .btn-refresh.spinning { animation: spin 0.6s linear; }
+
+    .tab-content-area {
+      flex: 1; overflow-y: auto;
+      padding: 16px 16px 80px;
+    }
+
+    /* ============================================================
+       TAB NAV (bottom)
+    ============================================================ */
+    .tab-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      background: var(--bg1);
+      border-top: 1px solid var(--border);
+      display: flex; overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex: 1; min-width: 60px;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 6px;
+      background: none; border: none; color: var(--dim);
+      cursor: pointer; font-size: 10px; gap: 3px;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn .tab-icon { font-size: 20px; }
+    .tab-btn.active { color: var(--gold); }
+
+    /* ============================================================
+       SECTION TITLE
+    ============================================================ */
+    .sec-title {
+      font-size: 17px; font-weight: 700;
+      margin-bottom: 14px; padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ============================================================
+       TODAY TAB
+    ============================================================ */
+    .leaders-banner {
+      background: linear-gradient(135deg, #1e1040, #2a1060);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex; gap: 12px;
+    }
+    .leader-item {
+      flex: 1;
+      background: rgba(0,0,0,0.25);
+      border-radius: 10px; padding: 10px 12px;
+    }
+    .leader-label { font-size: 11px; color: var(--dim); display: block; margin-bottom: 4px; }
+    .leader-name  { font-size: 14px; font-weight: 700; color: var(--gold); }
+
+    .child-cards { display: flex; flex-direction: column; gap: 14px; }
+    .child-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      overflow: hidden; position: relative;
+    }
+    .child-card-head {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 14px;
+    }
+    .child-card-avatar { font-size: 36px; }
+    .child-card-info h3 { font-size: 17px; font-weight: 700; }
+    .child-card-info span { font-size: 12px; color: var(--dim); }
+
+    .score-row {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 8px; margin-bottom: 14px;
+    }
+    .score-box {
+      background: var(--bg2);
+      border-radius: 10px; padding: 10px 6px;
+      text-align: center;
+    }
+    .score-box .sv { font-size: 20px; font-weight: 700; color: var(--gold); }
+    .score-box .sl { font-size: 11px; color: var(--dim); margin-top: 2px; }
+
+    .prog-wrap { }
+    .prog-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-bottom: 5px; }
+    .prog-bar { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+    .prog-fill { height: 100%; background: linear-gradient(90deg, var(--red), var(--gold)); border-radius: 4px; transition: width 0.5s; }
+
+    /* ============================================================
+       TASKS TAB
+    ============================================================ */
+    .cat-filter {
+      display: flex; gap: 8px; overflow-x: auto;
+      scrollbar-width: none; margin-bottom: 16px; padding-bottom: 2px;
+    }
+    .cat-filter::-webkit-scrollbar { display: none; }
+    .cat-pill {
+      flex-shrink: 0;
+      padding: 6px 14px; border-radius: 20px;
+      background: var(--bg2); border: 1px solid var(--border);
+      color: var(--dim); font-size: 13px; cursor: pointer;
+      white-space: nowrap; transition: all 0.2s;
+    }
+    .cat-pill.active {
+      background: var(--red); border-color: var(--red);
+      color: white;
+    }
+
+    .cat-section { margin-bottom: 20px; }
+    .cat-section-title {
+      font-size: 13px; font-weight: 600; color: var(--dim);
+      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .task-item {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+    }
+    .task-item-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    .task-name-text { font-size: 14px; font-weight: 600; }
+    .task-pts-badge {
+      background: rgba(245,197,24,0.15);
+      color: var(--gold);
+      border-radius: 6px; padding: 2px 8px;
+      font-size: 12px; font-weight: 700;
+      white-space: nowrap;
+    }
+    .task-checks { display: flex; gap: 8px; flex-wrap: wrap; }
+    .check-label {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg2); border-radius: 8px;
+      padding: 6px 12px; cursor: pointer;
+      border: 1px solid var(--border);
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+    }
+    .check-label:hover { border-color: var(--red); }
+    .check-label.done {
+      background: rgba(67,170,139,0.15);
+      border-color: var(--green);
+    }
+    .check-label input[type="checkbox"] { display: none; }
+    .check-box {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .check-label.done .check-box {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+    .check-child-name { font-size: 13px; }
+
+    /* viewer — no interaction */
+    .check-label.readonly { cursor: default; pointer-events: none; opacity: 0.8; }
+
+    /* ============================================================
+       POINTS TAB
+    ============================================================ */
+    .points-form {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+    .form-row { margin-bottom: 14px; }
+    .form-row label { display: block; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+    .form-select, .form-input, .form-textarea {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text); font-size: 14px; outline: none;
+    }
+    .form-select:focus, .form-input:focus { border-color: var(--red); }
+    .type-toggle { display: flex; gap: 8px; }
+    .type-btn {
+      flex: 1; padding: 9px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--dim);
+      cursor: pointer; font-size: 13px; font-weight: 600;
+      transition: all 0.2s;
+    }
+    .type-btn.active-bonus  { background: rgba(67,170,139,0.2); border-color: var(--green);  color: var(--green); }
+    .type-btn.active-penalty { background: rgba(201,24,74,0.2); border-color: var(--red); color: var(--red); }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, var(--red), #a11040);
+      color: white; border: none; border-radius: 10px;
+      padding: 12px; font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 4px;
+    }
+
+    .recent-tx { margin-top: 20px; }
+    .tx-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 12px;
+      background: var(--bg1); border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 6px; font-size: 13px;
+    }
+    .tx-left .tx-name { font-weight: 600; }
+    .tx-left .tx-meta { font-size: 11px; color: var(--dim); margin-top: 2px; }
+    .tx-pts { font-weight: 700; font-size: 15px; }
+    .tx-pts.pos { color: var(--green); }
+    .tx-pts.neg { color: var(--red); }
+
+    /* ============================================================
+       REWARDS TAB
+    ============================================================ */
+    .rewards-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+    .reward-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px;
+      text-align: center;
+    }
+    .reward-icon { font-size: 32px; margin-bottom: 6px; display: block; }
+    .reward-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .reward-pts  { font-size: 12px; color: var(--gold); margin-bottom: 10px; }
+    .btn-redeem {
+      width: 100%; padding: 7px;
+      background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px;
+      font-size: 12px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-redeem:hover:not(:disabled) { background: var(--red); border-color: var(--red); }
+    .btn-redeem:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .redeem-history { margin-top: 20px; }
+
+    /* ============================================================
+       RANKINGS TAB
+    ============================================================ */
+    .rank-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .rank-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .rank-num { font-size: 24px; font-weight: 900; min-width: 36px; text-align: center; }
+    .rank-num.r1 { color: var(--gold); }
+    .rank-num.r2 { color: #b0b0c0; }
+    .rank-num.r3 { color: #cd7f32; }
+    .rank-info { flex: 1; }
+    .rank-info h3 { font-size: 15px; font-weight: 700; }
+    .rank-info span { font-size: 12px; color: var(--dim); }
+    .rank-score { font-size: 18px; font-weight: 700; color: var(--gold); }
+
+    .compare-section {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px;
+    }
+    .compare-row {
+      display: flex; align-items: center;
+      margin-bottom: 8px; gap: 8px;
+    }
+    .compare-label { font-size: 12px; color: var(--dim); min-width: 80px; }
+    .compare-bar-wrap { flex: 1; }
+    .compare-bar-track { height: 10px; background: var(--bg3); border-radius: 5px; overflow: hidden; display: flex; }
+    .cbar { height: 100%; border-radius: 5px; transition: width 0.5s; }
+    .cbar.c1 { background: var(--red); }
+    .cbar.c2 { background: var(--blue); }
+    .compare-values { display: flex; gap: 8px; margin-top: 4px; font-size: 11px; color: var(--dim); }
+
+    /* ============================================================
+       HISTORY TAB
+    ============================================================ */
+    .chart-wrap {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+    .chart-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+    .bar-chart {
+      display: flex; gap: 4px; align-items: flex-end;
+      height: 120px; min-width: 280px;
+    }
+    .bar-group { flex: 1; display: flex; gap: 2px; align-items: flex-end; position: relative; }
+    .bar { border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.5s; cursor: default; }
+    .bar.b1 { background: var(--red); flex: 1; }
+    .bar.b2 { background: var(--blue); flex: 1; }
+    .bar-date { position: absolute; bottom: -18px; width: 100%; text-align: center; font-size: 9px; color: var(--dim); white-space: nowrap; }
+
+    .chart-legend { display: flex; gap: 14px; margin-top: 24px; font-size: 12px; color: var(--dim); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+    /* ============================================================
+       SETTINGS TAB
+    ============================================================ */
+    .settings-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      margin-bottom: 14px;
+    }
+    .settings-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--gold); }
+    .btn-setting {
+      width: 100%; padding: 11px 14px;
+      background: var(--bg2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px;
+      font-size: 14px; cursor: pointer; text-align: left;
+      margin-bottom: 8px; transition: border-color 0.2s;
+    }
+    .btn-setting:hover { border-color: var(--red); }
+    .btn-setting.danger { border-color: rgba(201,24,74,0.3); color: var(--red); }
+    .btn-setting.danger:hover { background: rgba(201,24,74,0.15); }
+
+    .add-task-form, .add-reward-form {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* ============================================================
+       EMPTY STATE
+    ============================================================ */
+    .empty-state { text-align: center; padding: 30px; color: var(--dim); }
+    .empty-state .es-icon { font-size: 40px; margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (min-width: 600px) {
+      .child-cards { flex-direction: row; flex-wrap: wrap; }
+      .child-card  { flex: 1; min-width: 260px; }
+      .rewards-grid { grid-template-columns: repeat(3,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOADING
+============================================================ -->
+<div id="loading">
+  <div class="spinner"></div>
+  <span style="color:var(--dim);font-size:13px">Đang tải...</span>
+</div>
+
+<!-- ============================================================
+     TOAST
+============================================================ -->
+<div id="toast"></div>
+
+<!-- ============================================================
+     MODAL CONFIRM
+============================================================ -->
+<div id="modal-overlay">
+  <div class="modal-box">
+    <h3 id="modal-title">Xác nhận</h3>
+    <p  id="modal-body">Bạn chắc chắn muốn thực hiện thao tác này?</p>
+    <div class="modal-btns">
+      <button class="btn-cancel"  onclick="closeModal()">❌ Hủy</button>
+      <button class="btn-confirm" id="modal-ok">✅ Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     LOGIN
+============================================================ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-icon">🏆</span>
+      <h1>Bảng Điểm Thưởng</h1>
+      <p>Hành trình chinh phục mỗi ngày ✨</p>
+    </div>
+
+    <div class="chars-row" id="chars-row">
+      <!-- filled by JS from DB -->
+    </div>
+
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="login-error" id="login-error">❌ Tên đăng nhập hoặc mật khẩu không đúng!</div>
+      <div class="form-group">
+        <label>🧑‍🚀 Tên đăng nhập</label>
+        <div class="input-wrap">
+          <input id="inp-user" type="text" placeholder="username" autocomplete="username" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>🔐 Mật khẩu</label>
+        <div class="input-wrap">
+          <input id="inp-pass" type="password" placeholder="password" autocomplete="current-password" />
+          <button type="button" class="pw-toggle" onclick="togglePw()">👁️</button>
+        </div>
+      </div>
+      <button type="submit" class="btn-login">🚀 Đăng Nhập</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP
+============================================================ -->
+<div id="app">
+  <!-- Header -->
+  <div class="app-header">
+    <h1>🏆 Bảng Điểm</h1>
+    <div class="header-right">
+      <span class="user-badge" id="user-badge">...</span>
+      <button class="btn-refresh" id="btn-refresh" onclick="doRefresh()" title="Làm mới">🔄</button>
+      <button class="btn-logout" onclick="handleLogout()">🚪</button>
+    </div>
+  </div>
+
+  <!-- Tab Contents -->
+  <div class="tab-content-area">
+
+    <!-- TODAY -->
+    <div id="tab-today" class="tab-content"></div>
+
+    <!-- TASKS -->
+    <div id="tab-tasks" class="tab-content" style="display:none"></div>
+
+    <!-- POINTS -->
+    <div id="tab-points" class="tab-content" style="display:none"></div>
+
+    <!-- REWARDS -->
+    <div id="tab-rewards" class="tab-content" style="display:none"></div>
+
+    <!-- RANKINGS -->
+    <div id="tab-rankings" class="tab-content" style="display:none"></div>
+
+    <!-- HISTORY -->
+    <div id="tab-history" class="tab-content" style="display:none"></div>
+
+    <!-- SETTINGS -->
+    <div id="tab-settings" class="tab-content" style="display:none"></div>
+
+  </div>
+
+  <!-- Tab Nav -->
+  <nav class="tab-nav" id="tab-nav">
+    <button class="tab-btn active" data-tab="today"    onclick="switchTab('today')">
+      <span class="tab-icon">🌞</span>Hôm nay
+    </button>
+    <button class="tab-btn" data-tab="tasks"    onclick="switchTab('tasks')">
+      <span class="tab-icon">✅</span>Nhiệm vụ
+    </button>
+    <button class="tab-btn" data-tab="points"   onclick="switchTab('points')">
+      <span class="tab-icon">✨</span>Điểm
+    </button>
+    <button class="tab-btn" data-tab="rewards"  onclick="switchTab('rewards')">
+      <span class="tab-icon">🎁</span>Thưởng
+    </button>
+    <button class="tab-btn" data-tab="rankings" onclick="switchTab('rankings')">
+      <span class="tab-icon">🏅</span>Xếp hạng
+    </button>
+    <button class="tab-btn" data-tab="history"  onclick="switchTab('history')">
+      <span class="tab-icon">📊</span>Lịch sử
+    </button>
+    <button class="tab-btn" id="tab-btn-settings" data-tab="settings" onclick="switchTab('settings')" style="display:none">
+      <span class="tab-icon">⚙️</span>Cài đặt
+    </button>
+  </nav>
+</div>
+
+<!-- ============================================================
+     SCRIPT
+============================================================ -->
+<script>
+// ============================================================
+// CONFIG — ĐỔI URL NÀY
+// ============================================================
+const API_URL = 'https://script.google.com/macros/s/AKfycbxJwpMxT1gMADbf8CGcCZDkRsX68uwHh4_1lquJ8ryg3icDns4LEVByTVFyMtJEXsqo/exec';
+
+// ============================================================
+// STATE
+// ============================================================
+let S = {
+  token:       localStorage.getItem('fq_token') || null,
+  user:        JSON.parse(localStorage.getItem('fq_user') || 'null'),
+  children:    [],
+  tasks:       [],
+  rewards:     [],
+  transactions:[],
+  dailyStatus: [],
+  redemptions: [],
+  today:       '',
+  week_start:  '',
+  activeTab:   'today',
+  taskFilter:  'all'
+};
+
+// ============================================================
+// API HELPER
+// ============================================================
+async function api(action, payload = {}) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action, token: S.token, payload })
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+// ============================================================
+// FETCH ALL DATA
+// ============================================================
+async function fetchData(silent = false) {
+  if (!silent) showLoad(true);
+  try {
+    const r = await api('getInitialData');
+    if (r.success) {
+      S.children     = (r.children     || []).filter(c => c.status === 'active' || !c.status);
+      S.tasks        = (r.tasks        || []).filter(t => t.status === 'active');
+      S.rewards      = (r.rewards      || []).filter(rw => rw.status === 'active');
+      S.transactions = r.transactions  || [];
+      S.dailyStatus  = r.dailyStatus   || [];
+      S.redemptions  = r.redemptions   || [];
+      S.today        = r.today         || '';
+      S.week_start   = r.week_start    || '';
+      renderTab(S.activeTab);
+    } else {
+      if (!silent) toast(r.message || 'Không tải được dữ liệu', 'error');
+    }
+  } catch(e) {
+    if (!silent) toast('⚠️ Không kết nối được server', 'error');
+  }
+  if (!silent) showLoad(false);
+}
+
+async function doRefresh() {
+  const btn = document.getElementById('btn-refresh');
+  btn.classList.add('spinning');
+  await fetchData(true);
+  btn.classList.remove('spinning');
+  toast('Đã làm mới dữ liệu ✅', 'success');
+}
+
+// ============================================================
+// SCORE HELPERS (dùng giá trị pre-computed từ server)
+// ============================================================
+function childScore(childId) {
+  const c = S.children.find(x => String(x.child_id) === String(childId));
+  if (!c) return { today_score:0, week_score:0, total_score:0, earned_score:0, daily_target:50 };
+  return {
+    today_score:  Number(c.today_score  || 0),
+    week_score:   Number(c.week_score   || 0),
+    total_score:  Number(c.total_score  || 0),
+    earned_score: Number(c.earned_score || 0),
+    daily_target: Number(c.daily_target || 50)
+  };
+}
+
+// ============================================================
+// TASK HELPERS
+// ============================================================
+function isTaskDone(childId, taskId) {
+  return S.dailyStatus.some(ds =>
+    String(ds.child_id) === String(childId) &&
+    String(ds.task_id)  === String(taskId)  &&
+    (ds.status === 'done' || ds.status === 'completed')
+  );
+}
+
+function taskAppliesTo(task, child) {
+  const at = String(task.assigned_to || 'both').toLowerCase();
+  if (at === 'both') return true;
+  return at === String(child.child_id).toLowerCase() ||
+         at === String(child.child_key || '').toLowerCase();
+}
+
+// ============================================================
+// LOGIN / LOGOUT
+// ============================================================
+async function handleLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('inp-user').value.trim();
+  const password = document.getElementById('inp-pass').value.trim();
+  const errEl    = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  if (!username || !password) { toast('Nhập username và password', 'warn'); return; }
+
+  showLoad(true);
+  try {
+    const r = await api('login', { username, password });
+    if (r.success) {
+      S.token = r.token;
+      S.user  = {
+        user_id:      r.user_id,
+        username:     r.username,
+        display_name: r.display_name,
+        role:         r.role,
+        child_id:     r.child_id || null
+      };
+      localStorage.setItem('fq_token', r.token);
+      localStorage.setItem('fq_user',  JSON.stringify(S.user));
+      showApp();
+      await fetchData(true);
+      showLoad(false);
+    } else {
+      errEl.style.display = 'block';
+      showLoad(false);
+    }
+  } catch(err) {
+    toast('⚠️ Không kết nối được server. Kiểm tra API_URL và thử lại.', 'error');
+    showLoad(false);
+  }
+}
+
+function handleLogout() {
+  S.token = null; S.user = null;
+  localStorage.removeItem('fq_token');
+  localStorage.removeItem('fq_user');
+  showLogin();
+}
+
+function togglePw() {
+  const inp = document.getElementById('inp-pass');
+  inp.type  = inp.type === 'password' ? 'text' : 'password';
+}
+
+// ============================================================
+// SESSION RESTORE
+// ============================================================
+async function init() {
+  buildLoginChars();
+  if (S.token && S.user) {
+    try {
+      const r = await api('validateSession');
+      if (r.success) {
+        S.user = { user_id: r.user_id, username: r.username, display_name: r.display_name, role: r.role, child_id: r.child_id };
+        localStorage.setItem('fq_user', JSON.stringify(S.user));
+        showApp();
+        await fetchData(true);
+        return;
+      }
+    } catch(e) {}
+    S.token = null; S.user = null;
+    localStorage.removeItem('fq_token');
+    localStorage.removeItem('fq_user');
+  }
+  showLogin();
+}
+
+function buildLoginChars() {
+  // Static decorative buttons for login screen
+  const row = document.getElementById('chars-row');
+  const chars = [
+    { icon: '⚔️', name: 'Bố / Mẹ',     role: 'admin / scorer' },
+    { icon: '🌸', name: 'Các bé',        role: 'viewer' }
+  ];
+  row.innerHTML = chars.map(c => `
+    <div class="char-btn">
+      <span class="char-icon">${c.icon}</span>
+      <span class="char-name">${c.name}</span>
+      <span class="char-role">${c.role}</span>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function showLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').classList.remove('visible');
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('user-badge').textContent =
+    (S.user?.display_name || '?') + ' · ' + (S.user?.role || '');
+  // Show settings tab only for admin/scorer
+  const settingsBtn = document.getElementById('tab-btn-settings');
+  if (S.user?.role === 'admin' || S.user?.role === 'scorer') {
+    settingsBtn.style.display = '';
+  }
+  switchTab('today');
+}
+
+function showLoad(v) {
+  document.getElementById('loading').style.display = v ? 'flex' : 'none';
+}
+
+let toastTimer = null;
+function toast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+function switchTab(tab) {
+  S.activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab)
+  );
+  document.querySelectorAll('.tab-content').forEach(t =>
+    t.style.display = (t.id === 'tab-' + tab) ? '' : 'none'
+  );
+  renderTab(tab);
+}
+
+function renderTab(tab) {
+  switch (tab) {
+    case 'today':    renderToday();    break;
+    case 'tasks':    renderTasks();    break;
+    case 'points':   renderPoints();   break;
+    case 'rewards':  renderRewards();  break;
+    case 'rankings': renderRankings(); break;
+    case 'history':  renderHistory();  break;
+    case 'settings': renderSettings(); break;
+  }
+}
+
+// confirm modal
+let modalCb = null;
+function confirm(title, body, cb) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').textContent  = body;
+  modalCb = cb;
+  document.getElementById('modal-overlay').classList.add('show');
+  document.getElementById('modal-ok').onclick = () => { closeModal(); if (modalCb) modalCb(); };
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const s = String(d).substring(0, 10);
+  const parts = s.split('-');
+  return `${parts[2]}/${parts[1]}`;
+}
+
+function fmtDatetime(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt)) return String(d).substring(0,16);
+  return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+}
+
+// ============================================================
+// RENDER: TODAY
+// ============================================================
+function renderToday() {
+  const el = document.getElementById('tab-today');
+  if (!S.children.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">🌞</div><p>Đang tải dữ liệu...</p></div>';
+    return;
+  }
+
+  const scored = S.children.map(c => ({ ...c, ...childScore(c.child_id) }));
+  const todayLeader = scored.reduce((a,b) => a.today_score >= b.today_score ? a : b);
+  const weekLeader  = scored.reduce((a,b) => a.week_score  >= b.week_score  ? a : b);
+
+  let html = `
+    <div class="sec-title">🌞 Hôm Nay · ${fmtDate(S.today)}</div>
+
+    <div class="leaders-banner">
+      <div class="leader-item">
+        <span class="leader-label">🌞 Dẫn đầu hôm nay</span>
+        <span class="leader-name">${todayLeader.avatar_icon || '⭐'} ${todayLeader.child_name}</span>
+      </div>
+      <div class="leader-item">
+        <span class="leader-label">📅 Dẫn đầu tuần</span>
+        <span class="leader-name">${weekLeader.avatar_icon || '⭐'} ${weekLeader.child_name}</span>
+      </div>
+    </div>
+
+    <div class="child-cards">
+  `;
+
+  scored.forEach(c => {
+    const pct = Math.min(100, c.daily_target > 0 ? Math.round(c.today_score / c.daily_target * 100) : 0);
+    html += `
+      <div class="child-card">
+        <div class="child-card-head">
+          <span class="child-card-avatar">${c.avatar_icon || '⭐'}</span>
+          <div class="child-card-info">
+            <h3>${c.child_name}</h3>
+            <span>${c.avatar_name || ''}</span>
+          </div>
+        </div>
+        <div class="score-row">
+          <div class="score-box">
+            <div class="sv">${c.today_score}</div>
+            <div class="sl">🌞 Hôm nay</div>
+          </div>
+          <div class="score-box">
+            <div class="sv">${c.week_score}</div>
+            <div class="sl">📅 Tuần này</div>
+          </div>
+          <div class="score-box">
+            <div class="sv" style="color:var(--blue)">${c.total_score} ⭐</div>
+            <div class="sl">Ngôi sao</div>
+          </div>
+        </div>
+        <div class="prog-wrap">
+          <div class="prog-label">
+            <span>Tiến độ hôm nay</span>
+            <span>${c.today_score} / ${c.daily_target}</span>
+          </div>
+          <div class="prog-bar">
+            <div class="prog-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ============================================================
+// RENDER: TASKS
+// ============================================================
+function renderTasks() {
+  const el = document.getElementById('tab-tasks');
+  const canInteract = S.user?.role === 'admin' || S.user?.role === 'scorer';
+
+  const cats = [
+    { key: 'all',           label: '🔍 Tất cả' },
+    { key: 'Tác phong hằng ngày', label: '🌅 Tác phong' },
+    { key: 'Việc nhà',      label: '🏠 Việc nhà' },
+    { key: 'Học tập',       label: '📚 Học tập' },
+    { key: 'Điểm phát sinh',label: '⚡ Phát sinh' },
+    { key: 'Thành tích',    label: '🏆 Thành tích' }
+  ];
+
+  const activeTasks = S.tasks.filter(t => {
+    if (S.taskFilter === 'all') return true;
+    return t.category === S.taskFilter;
+  });
+
+  // Group by category
+  const groups = {};
+  activeTasks.forEach(t => {
+    const cat = t.category || 'Khác';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(t);
+  });
+
+  let html = `
+    <div class="sec-title">✅ Nhiệm Vụ Hôm Nay</div>
+    <div class="cat-filter">
+      ${cats.map(c => `
+        <div class="cat-pill ${S.taskFilter === c.key ? 'active' : ''}"
+             onclick="setTaskFilter('${c.key}')">${c.label}</div>
+      `).join('')}
+    </div>
+  `;
+
+  if (!activeTasks.length) {
+    html += '<div class="empty-state"><div class="es-icon">✅</div><p>Không có nhiệm vụ nào</p></div>';
+    el.innerHTML = html;
+    return;
+  }
+
+  Object.entries(groups).forEach(([cat, tasks]) => {
+    html += `<div class="cat-section"><div class="cat-section-title">${cat}</div>`;
+    tasks.forEach(task => {
+      const applicable = S.children.filter(c => taskAppliesTo(task, c));
+      if (!applicable.length) return;
+
+      html += `
+        <div class="task-item">
+          <div class="task-item-head">
+            <span class="task-name-text">${task.task_name}</span>
+            <span class="task-pts-badge">+${task.points} ⭐</span>
+          </div>
+          <div class="task-checks">
+      `;
+      applicable.forEach(child => {
+        const done = isTaskDone(child.child_id, task.task_id);
+        const ro   = !canInteract ? 'readonly' : '';
+        html += `
+          <label class="check-label ${done ? 'done' : ''} ${ro}"
+                 id="lbl-${child.child_id}-${task.task_id}"
+                 onclick="${canInteract ? `handleTaskToggle('${child.child_id}','${task.task_id}',${done})` : ''}">
+            <div class="check-box">${done ? '✓' : ''}</div>
+            <span class="check-child-name">${child.avatar_icon || ''} ${child.child_name}</span>
+          </label>
+        `;
+      });
+      html += `</div></div>`;
+    });
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
+function setTaskFilter(key) {
+  S.taskFilter = key;
+  renderTasks();
+}
+
+// ============================================================
+// TASK TOGGLE (complete / undo)
+// ============================================================
+async function handleTaskToggle(childId, taskId, isDone) {
+  if (S.user?.role !== 'admin' && S.user?.role !== 'scorer') return;
+
+  const child = S.children.find(c => String(c.child_id) === String(childId));
+  const task  = S.tasks.find(t => String(t.task_id) === String(taskId));
+  if (!child || !task) return;
+
+  const lbl = document.getElementById(`lbl-${childId}-${taskId}`);
+  if (lbl) { lbl.style.opacity = '0.5'; lbl.style.pointerEvents = 'none'; }
+
+  showLoad(true);
+  try {
+    if (!isDone) {
+      // Complete task
+      const r = await api('completeTask', { child_id: childId, task_id: taskId });
+      if (r.success) {
+        toast(`✅ ${child.child_name}: +${task.points} ⭐`, 'success');
+        await fetchData(true);
+      } else {
+        toast(r.message, 'error');
+        if (lbl) { lbl.style.opacity = ''; lbl.style.pointerEvents = ''; }
+      }
+    } else {
+      // Undo task
+      const r = await api('undoTask', { child_id: childId, task_id: taskId });
+      if (r.success) {
+        toast(`↩️ ${child.child_name}: -${task.points} ⭐`, 'warn');
+        await fetchData(true);
+      } else {
+        toast(r.message, 'error');
+        if (lbl) { lbl.style.opacity = ''; lbl.style.pointerEvents = ''; }
+      }
+    }
+  } catch(e) {
+    toast('Lỗi kết nối', 'error');
+    if (lbl) { lbl.style.opacity = ''; lbl.style.pointerEvents = ''; }
+  }
+  showLoad(false);
+}
+
+// ============================================================
+// RENDER: POINTS (bonus/penalty)
+// ============================================================
+function renderPoints() {
+  const el       = document.getElementById('tab-points');
+  const canAct   = S.user?.role === 'admin' || S.user?.role === 'scorer';
+  const recentTx = S.transactions.slice(0, 20);
+
+  let childOpts = S.children.map(c =>
+    `<option value="${c.child_id}">${c.avatar_icon || ''} ${c.child_name}</option>`
+  ).join('');
+
+  let formHtml = '';
+  if (canAct) {
+    formHtml = `
+      <div class="points-form">
+        <div class="form-row">
+          <label>👶 Chọn bé</label>
+          <select id="bp-child" class="form-select">${childOpts}</select>
+        </div>
+        <div class="form-row">
+          <label>Loại</label>
+          <div class="type-toggle">
+            <button type="button" id="btn-bonus"   class="type-btn active-bonus"   onclick="setBpType('bonus')">➕ Thưởng</button>
+            <button type="button" id="btn-penalty" class="type-btn"                onclick="setBpType('penalty')">➖ Phạt</button>
+          </div>
+          <input type="hidden" id="bp-type" value="bonus" />
+        </div>
+        <div class="form-row">
+          <label>📝 Lý do</label>
+          <input id="bp-note" class="form-input" type="text" placeholder="Nhập lý do..." />
+        </div>
+        <div class="form-row">
+          <label>🔢 Số điểm</label>
+          <input id="bp-pts"  class="form-input" type="number" min="1" placeholder="VD: 10" />
+        </div>
+        <button class="btn-submit" onclick="submitBonusPenalty()">✅ Xác Nhận</button>
+      </div>
+    `;
+  }
+
+  let txHtml = recentTx.length ? recentTx.map(tx => {
+    const pts = Number(tx.points || 0);
+    return `
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="tx-name">${tx.child_name || ''} · ${tx.type || ''}</div>
+          <div class="tx-meta">${tx.note || tx.task_name || ''} · ${fmtDatetime(tx.created_at)}</div>
+        </div>
+        <div class="tx-pts ${pts >= 0 ? 'pos' : 'neg'}">${pts >= 0 ? '+' : ''}${pts}</div>
+      </div>
+    `;
+  }).join('') : '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có giao dịch nào</p></div>';
+
+  el.innerHTML = `
+    <div class="sec-title">✨ Thưởng / Phạt Điểm</div>
+    ${formHtml}
+    <div class="recent-tx">
+      <div class="sec-title" style="margin-top:20px">📜 Giao Dịch Gần Đây</div>
+      ${txHtml}
+    </div>
+  `;
+}
+
+function setBpType(type) {
+  document.getElementById('bp-type').value = type;
+  const bBtn = document.getElementById('btn-bonus');
+  const pBtn = document.getElementById('btn-penalty');
+  bBtn.className = 'type-btn' + (type === 'bonus'   ? ' active-bonus'   : '');
+  pBtn.className = 'type-btn' + (type === 'penalty' ? ' active-penalty' : '');
+}
+
+async function submitBonusPenalty() {
+  const childId = document.getElementById('bp-child').value;
+  const type    = document.getElementById('bp-type').value;
+  const note    = document.getElementById('bp-note').value.trim();
+  const pts     = Number(document.getElementById('bp-pts').value);
+
+  if (!childId) { toast('Chọn bé', 'warn'); return; }
+  if (!pts || pts <= 0) { toast('Nhập số điểm hợp lệ', 'warn'); return; }
+
+  showLoad(true);
+  try {
+    const r = await api('addBonusPenalty', { child_id: childId, type, note, points: pts });
+    if (r.success) {
+      toast(r.message, 'success');
+      document.getElementById('bp-note').value = '';
+      document.getElementById('bp-pts').value  = '';
+      await fetchData(true);
+    } else {
+      toast(r.message, 'error');
+    }
+  } catch(e) { toast('Lỗi kết nối', 'error'); }
+  showLoad(false);
+}
+
+// ============================================================
+// RENDER: REWARDS
+// ============================================================
+function renderRewards() {
+  const el = document.getElementById('tab-rewards');
+  const canRedeem = S.user?.role === 'admin' || S.user?.role === 'scorer' || S.user?.role === 'viewer';
+
+  // For viewer: only show their child
+  const redeemChildren = S.user?.role === 'viewer'
+    ? S.children.filter(c => String(c.child_id) === String(S.user.child_id))
+    : S.children;
+
+  let childOpts = redeemChildren.map(c =>
+    `<option value="${c.child_id}">${c.avatar_icon || ''} ${c.child_name} (${childScore(c.child_id).total_score} ⭐)</option>`
+  ).join('');
+
+  const rewardsHtml = S.rewards.length ? `
+    <div class="form-row" style="margin-bottom:14px">
+      <label>👶 Đổi thưởng cho</label>
+      <select id="rd-child" class="form-select">${childOpts}</select>
+    </div>
+    <div class="rewards-grid">
+      ${S.rewards.map(rw => {
+        const maxScore = redeemChildren.length
+          ? Math.max(...redeemChildren.map(c => childScore(c.child_id).total_score))
+          : 0;
+        const canAfford = maxScore >= Number(rw.required_points);
+        return `
+          <div class="reward-card">
+            <span class="reward-icon">${rw.icon || '🎁'}</span>
+            <div class="reward-name">${rw.reward_name}</div>
+            <div class="reward-pts">${rw.required_points} ⭐</div>
+            ${canRedeem ? `<button class="btn-redeem" onclick="submitRedeem('${rw.reward_id}')">🎁 Đổi thưởng</button>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  ` : '<div class="empty-state"><div class="es-icon">🎁</div><p>Chưa có phần thưởng nào</p></div>';
+
+  const redeemHist = S.redemptions.slice(0, 10).map(rd => `
+    <div class="tx-item">
+      <div class="tx-left">
+        <div class="tx-name">${rd.child_name} · ${rd.reward_name}</div>
+        <div class="tx-meta">${fmtDate(rd.date)} · ${rd.status || ''}</div>
+      </div>
+      <div class="tx-pts neg">-${rd.points_spent}</div>
+    </div>
+  `).join('') || '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có lịch sử đổi thưởng</p></div>';
+
+  el.innerHTML = `
+    <div class="sec-title">🎁 Phần Thưởng</div>
+    ${rewardsHtml}
+    <div class="redeem-history">
+      <div class="sec-title" style="margin-top:20px">🔖 Lịch Sử Đổi Thưởng</div>
+      ${redeemHist}
+    </div>
+  `;
+}
+
+async function submitRedeem(rewardId) {
+  const childId = document.getElementById('rd-child')?.value;
+  if (!childId) { toast('Chọn bé', 'warn'); return; }
+  const child  = S.children.find(c => String(c.child_id) === String(childId));
+  const reward = S.rewards.find(r => String(r.reward_id) === String(rewardId));
+  if (!child || !reward) return;
+
+  confirm(
+    '🎁 Xác nhận đổi thưởng',
+    `${child.child_name} đổi "${reward.reward_name}" tốn ${reward.required_points} ⭐`,
+    async () => {
+      showLoad(true);
+      try {
+        const r = await api('redeemReward', { child_id: childId, reward_id: rewardId });
+        if (r.success) {
+          toast(r.message, 'success');
+          await fetchData(true);
+        } else {
+          toast(r.message, 'error');
+        }
+      } catch(e) { toast('Lỗi kết nối', 'error'); }
+      showLoad(false);
+    }
+  );
+}
+
+// ============================================================
+// RENDER: RANKINGS
+// ============================================================
+function renderRankings() {
+  const el = document.getElementById('tab-rankings');
+  if (!S.children.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">🏅</div><p>Đang tải...</p></div>';
+    return;
+  }
+
+  const scored = S.children
+    .map(c => ({ ...c, ...childScore(c.child_id) }))
+    .sort((a, b) => b.week_score - a.week_score);
+
+  const rankEmojis = ['🥇','🥈','🥉'];
+
+  const maxWeek = scored.length ? Math.max(...scored.map(c => c.week_score), 1) : 1;
+
+  let rankCards = scored.map((c, i) => `
+    <div class="rank-card">
+      <div class="rank-num ${i < 3 ? 'r'+(i+1) : ''}">${rankEmojis[i] || (i+1)}</div>
+      <div class="rank-info">
+        <h3>${c.avatar_icon || ''} ${c.child_name}</h3>
+        <span>Tổng: ${c.total_score} ⭐ · Hôm nay: ${c.today_score}</span>
+      </div>
+      <div class="rank-score">${c.week_score} ⭐</div>
+    </div>
+  `).join('');
+
+  // Compare bars
+  let compareBars = '';
+  const allScored = S.children.map(c => ({ ...c, ...childScore(c.child_id) }));
+  const maxWeekAll = Math.max(...allScored.map(c => c.week_score), 1);
+  const colors = ['c1','c2','c3','c4'];
+
+  ['today_score','week_score','total_score'].forEach(metric => {
+    const labels = { today_score:'Hôm nay', week_score:'Tuần này', total_score:'Ngôi sao' };
+    const maxVal = Math.max(...allScored.map(c => c[metric]), 1);
+    compareBars += `
+      <div class="compare-row">
+        <span class="compare-label">${labels[metric]}</span>
+        <div class="compare-bar-wrap">
+          <div class="compare-bar-track">
+            ${allScored.map((c,i) => `
+              <div class="cbar ${colors[i]}" style="width:${Math.round(c[metric]/maxVal*100)}%"></div>
+            `).join('')}
+          </div>
+          <div class="compare-values">
+            ${allScored.map(c => `<span>${c.child_name}: ${c[metric]}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  el.innerHTML = `
+    <div class="sec-title">🏅 Xếp Hạng Tuần Này</div>
+    <div class="rank-cards">${rankCards}</div>
+
+    <div class="compare-section">
+      <div class="sec-title" style="border:none;margin-bottom:12px">📊 So Sánh</div>
+      ${compareBars}
+    </div>
+  `;
+}
+
+// ============================================================
+// RENDER: HISTORY
+// ============================================================
+function renderHistory() {
+  const el = document.getElementById('tab-history');
+  if (!S.children.length || !S.today) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">📊</div><p>Đang tải...</p></div>';
+    return;
+  }
+
+  // Build 7-day data from transactions
+  const days = 7;
+  const dayData = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(S.today + 'T00:00:00');
+    d.setDate(d.getDate() - i);
+    const ds = d.toISOString().substring(0, 10);
+    const entry = { date: ds, short: `${d.getDate()}/${d.getMonth()+1}`, scores: {} };
+    S.children.forEach(c => {
+      entry.scores[c.child_id] = S.transactions
+        .filter(tx => String(tx.child_id) === String(c.child_id) && String(tx.date).substring(0,10) === ds)
+        .reduce((sum, tx) => sum + Number(tx.points || 0), 0);
+    });
+    dayData.push(entry);
+  }
+
+  const allVals = dayData.flatMap(d => Object.values(d.scores));
+  const maxVal  = Math.max(...allVals, 1);
+
+  const colors = ['var(--red)', 'var(--blue)', 'var(--green)'];
+
+  let barsHtml = dayData.map(d => {
+    const childBars = S.children.map((c, i) => {
+      const h = Math.max(4, Math.round((d.scores[c.child_id] / maxVal) * 100));
+      return `<div class="bar b${i+1}" style="height:${h}px" title="${c.child_name}: ${d.scores[c.child_id]}"></div>`;
+    }).join('');
+    return `<div class="bar-group">${childBars}<span class="bar-date">${d.short}</span></div>`;
+  }).join('');
+
+  const legendHtml = S.children.map((c, i) => `
+    <span>
+      <span class="legend-dot" style="background:${colors[i] || '#fff'}"></span>
+      ${c.child_name}
+    </span>
+  `).join('');
+
+  // Recent transactions
+  const recentTx = S.transactions.slice(0, 30);
+  const txHtml = recentTx.length ? recentTx.map(tx => {
+    const pts = Number(tx.points || 0);
+    return `
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="tx-name">${tx.child_name || ''} · ${tx.note || tx.task_name || tx.type || ''}</div>
+          <div class="tx-meta">${fmtDatetime(tx.created_at)} · ${tx.created_by_name || ''}</div>
+        </div>
+        <div class="tx-pts ${pts >= 0 ? 'pos' : 'neg'}">${pts >= 0 ? '+' : ''}${pts}</div>
+      </div>
+    `;
+  }).join('') : '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có dữ liệu</p></div>';
+
+  el.innerHTML = `
+    <div class="sec-title">📊 Lịch Sử</div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">📈 Biểu Đồ 7 Ngày Gần Đây</div>
+      <div class="bar-chart">${barsHtml}</div>
+      <div class="chart-legend">${legendHtml}</div>
+    </div>
+
+    <div class="sec-title">📜 Giao Dịch Gần Đây</div>
+    ${txHtml}
+  `;
+}
+
+// ============================================================
+// RENDER: SETTINGS
+// ============================================================
+function renderSettings() {
+  const el   = document.getElementById('tab-settings');
+  const role = S.user?.role;
+  if (role !== 'admin' && role !== 'scorer') {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">🔒</div><p>Chỉ dành cho admin/scorer</p></div>';
+    return;
+  }
+
+  const cats = ['Tác phong hằng ngày','Việc nhà','Học tập','Điểm phát sinh','Thành tích'];
+  const catOpts = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  let assignOpts = `<option value="both">👥 Cả hai</option>` +
+    S.children.map(c => `<option value="${c.child_key || c.child_id}">${c.avatar_icon || ''} ${c.child_name}</option>`).join('');
+
+  let adminSection = '';
+  if (role === 'admin') {
+    adminSection = `
+      <div class="settings-card">
+        <h3>⚙️ Quản Lý Hệ Thống</h3>
+        <button class="btn-setting" onclick="doResetToday()">🔄 Đặt Lại Nhiệm Vụ Hôm Nay</button>
+        <button class="btn-setting danger" onclick="doResetWeek()">🗑️ Đặt Lại Điểm Tuần</button>
+      </div>
+    `;
+  }
+
+  el.innerHTML = `
+    <div class="sec-title">⚙️ Cài Đặt</div>
+
+    <div class="settings-card">
+      <h3>➕ Thêm Nhiệm Vụ Mới</h3>
+      <div class="add-task-form">
+        <div class="form-row">
+          <label>Tên nhiệm vụ</label>
+          <input id="nt-name" class="form-input" type="text" placeholder="Tên nhiệm vụ..." />
+        </div>
+        <div class="form-row-2">
+          <div>
+            <label>Danh mục</label>
+            <select id="nt-cat" class="form-select">${catOpts}</select>
+          </div>
+          <div>
+            <label>Số điểm</label>
+            <input id="nt-pts" class="form-input" type="number" min="1" placeholder="10" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Giao cho</label>
+          <select id="nt-assign" class="form-select">${assignOpts}</select>
+        </div>
+        <button class="btn-submit" onclick="submitAddTask()">✅ Thêm Nhiệm Vụ</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3>🎁 Thêm Phần Thưởng Mới</h3>
+      <div class="add-reward-form">
+        <div class="form-row">
+          <label>Tên phần thưởng</label>
+          <input id="nr-name" class="form-input" type="text" placeholder="Tên phần thưởng..." />
+        </div>
+        <div class="form-row-2">
+          <div>
+            <label>Icon</label>
+            <input id="nr-icon" class="form-input" type="text" placeholder="🎁" />
+          </div>
+          <div>
+            <label>Điểm cần</label>
+            <input id="nr-pts" class="form-input" type="number" min="1" placeholder="200" />
+          </div>
+        </div>
+        <button class="btn-submit" onclick="submitAddReward()">🎁 Thêm Phần Thưởng</button>
+      </div>
+    </div>
+
+    ${adminSection}
+  `;
+}
+
+async function submitAddTask() {
+  const name   = document.getElementById('nt-name').value.trim();
+  const cat    = document.getElementById('nt-cat').value;
+  const pts    = Number(document.getElementById('nt-pts').value);
+  const assign = document.getElementById('nt-assign').value;
+
+  if (!name) { toast('Nhập tên nhiệm vụ', 'warn'); return; }
+  if (!pts || pts <= 0) { toast('Nhập số điểm hợp lệ', 'warn'); return; }
+
+  showLoad(true);
+  try {
+    const r = await api('addTask', { task_name: name, category: cat, points: pts, assigned_to: assign });
+    if (r.success) {
+      toast(r.message, 'success');
+      document.getElementById('nt-name').value = '';
+      document.getElementById('nt-pts').value  = '';
+      await fetchData(true);
+    } else { toast(r.message, 'error'); }
+  } catch(e) { toast('Lỗi kết nối', 'error'); }
+  showLoad(false);
+}
+
+async function submitAddReward() {
+  const name = document.getElementById('nr-name').value.trim();
+  const icon = document.getElementById('nr-icon').value.trim() || '🎁';
+  const pts  = Number(document.getElementById('nr-pts').value);
+
+  if (!name) { toast('Nhập tên phần thưởng', 'warn'); return; }
+  if (!pts || pts <= 0) { toast('Nhập số điểm hợp lệ', 'warn'); return; }
+
+  showLoad(true);
+  try {
+    const r = await api('addReward', { reward_name: name, icon, required_points: pts });
+    if (r.success) {
+      toast(r.message, 'success');
+      document.getElementById('nr-name').value = '';
+      document.getElementById('nr-icon').value = '';
+      document.getElementById('nr-pts').value  = '';
+      await fetchData(true);
+    } else { toast(r.message, 'error'); }
+  } catch(e) { toast('Lỗi kết nối', 'error'); }
+  showLoad(false);
+}
+
+async function doResetToday() {
+  confirm('🔄 Đặt lại nhiệm vụ?', 'Xóa toàn bộ tick hôm nay (điểm không đổi). Chắc chắn?', async () => {
+    showLoad(true);
+    try {
+      const r = await api('resetToday');
+      if (r.success) { toast(r.message, 'success'); await fetchData(true); }
+      else            toast(r.message, 'error');
+    } catch(e) { toast('Lỗi kết nối', 'error'); }
+    showLoad(false);
+  });
+}
+
+async function doResetWeek() {
+  confirm('🗑️ Đặt lại điểm tuần?', '⚠️ Sẽ xóa toàn bộ giao dịch tuần này. Không thể hoàn tác!', async () => {
+    showLoad(true);
+    try {
+      const r = await api('resetWeek');
+      if (r.success) { toast(r.message, 'success'); await fetchData(true); }
+      else            toast(r.message, 'error');
+    } catch(e) { toast('Lỗi kết nối', 'error'); }
+    showLoad(false);
+  });
+}
+
+// ============================================================
+// START
+// ============================================================
+init();
+</script>
+</body>
+</html>
