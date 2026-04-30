@@ -809,7 +809,7 @@
             😰 Tên đăng nhập hoặc mật khẩu không đúng!
         </div>
 
-        <form id="loginForm">
+        <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="inp-wrap">
                 <input type="text"
                        id="username"
@@ -1037,6 +1037,7 @@ function taskAppliesTo(task, child) {
 // LOGIN / LOGOUT
 // ============================================================
 async function handleLogin(e) {
+    console.log('handleLogin called', e); // ← thêm dòng này
     e.preventDefault();
     const username = document.getElementById('username').value.trim();  // ✅
     const password = document.getElementById('password').value.trim();  // ✅
