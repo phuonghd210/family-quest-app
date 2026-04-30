@@ -1037,39 +1037,39 @@ function taskAppliesTo(task, child) {
 // LOGIN / LOGOUT
 // ============================================================
 async function handleLogin(e) {
-  e.preventDefault();
-  const username = document.getElementById('inp-user').value.trim();
-  const password = document.getElementById('inp-pass').value.trim();
-  const errEl    = document.getElementById('login-error');
-  errEl.style.display = 'none';
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();  // ✅
+    const password = document.getElementById('password').value.trim();  // ✅
+    const errEl    = document.getElementById('loginError');             // ✅
+    errEl.style.display = 'none';
 
-  if (!username || !password) { toast('Nhập username và password', 'warn'); return; }
+    if (!username || !password) { toast('Nhập username và password', 'warn'); return; }
 
-  showLoad(true);
-  try {
-    const r = await api('login', { username, password });
-    if (r.success) {
-      S.token = r.token;
-      S.user  = {
-        user_id:      r.user_id,
-        username:     r.username,
-        display_name: r.display_name,
-        role:         r.role,
-        child_id:     r.child_id || null
-      };
-      localStorage.setItem('fq_token', r.token);
-      localStorage.setItem('fq_user',  JSON.stringify(S.user));
-      showApp();
-      await fetchData(true);
-      showLoad(false);
-    } else {
-      errEl.style.display = 'block';
-      showLoad(false);
+    showLoad(true);
+    try {
+        const r = await api('login', { username, password });
+        if (r.success) {
+            S.token = r.token;
+            S.user  = {
+                user_id:      r.user_id,
+                username:     r.username,
+                display_name: r.display_name,
+                role:         r.role,
+                child_id:     r.child_id || null
+            };
+            localStorage.setItem('fq_token', r.token);
+            localStorage.setItem('fq_user',  JSON.stringify(S.user));
+            showLoad(false); // ← chuyển lên trước showApp
+            showApp();
+            await fetchData(true);
+        } else {
+            errEl.style.display = 'block';
+            showLoad(false);
+        }
+    } catch(err) {
+        toast('⚠️ Không kết nối được server.', 'error');
+        showLoad(false);
     }
-  } catch(err) {
-    toast('⚠️ Không kết nối được server. Kiểm tra API_URL và thử lại.', 'error');
-    showLoad(false);
-  }
 }
 
 function handleLogout() {
