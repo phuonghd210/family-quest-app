@@ -1021,26 +1021,27 @@ async function api(action, data = {}) {
 // FETCH ALL DATA
 // ============================================================
 async function fetchData(silent = false) {
-  if (!silent) showLoad(true);
-  try {
-    const r = await api('getInitialData');
-    if (r.success) {
-      S.children     = (r.children     || []).filter(c => c.status === 'active' || !c.status);
-      S.tasks        = (r.tasks        || []).filter(t => t.status === 'active');
-      S.rewards      = (r.rewards      || []).filter(rw => rw.status === 'active');
-      S.transactions = r.transactions  || [];
-      S.dailyStatus  = r.dailyStatus   || [];
-      S.redemptions  = r.redemptions   || [];
-      S.today        = r.today         || '';
-      S.week_start   = r.week_start    || '';
-      renderTab(S.activeTab);
-    } else {
-      if (!silent) toast(r.message || 'Không tải được dữ liệu', 'error');
+    if (!silent) showLoad(true);
+    try {
+        const r = await api('getInitialData');
+        if (r.success) {
+            S.children     = (r.children     || []).filter(c => c.status === 'active' || !c.status);
+            S.tasks        = (r.tasks        || []).filter(t => t.status === 'active');
+            S.rewards      = (r.rewards      || []).filter(rw => rw.status === 'active');
+            S.transactions = r.transactions  || [];
+            S.dailyStatus  = r.dailyStatus   || [];
+            S.redemptions  = r.redemptions   || [];
+            S.today        = r.today         || '';
+            S.week_start   = r.week_start    || '';
+            renderTab(S.activeTab);
+        } else {
+            if (!silent) toast(r.message || 'Không tải được dữ liệu', 'error');
+        }
+    } catch(e) {
+        console.error('fetchData crash:', e); // ✅ thêm dòng này
+        if (!silent) toast('⚠️ Không kết nối được server', 'error');
     }
-  } catch(e) {
-    if (!silent) toast('⚠️ Không kết nối được server', 'error');
-  }
-  if (!silent) showLoad(false);
+    if (!silent) showLoad(false);
 }
 
 async function doRefresh() {
@@ -1258,15 +1259,14 @@ function toast(msg, type = 'info') {
 }
 
 function switchTab(tab) {
-    console.log('switchTab →', tab); // ✅ sửa tabName → tab
-
+    console.log('switchTab →', tab);
     S.activeTab = tab;
 
     document.querySelectorAll('.tab-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.tab === tab)
     );
     document.querySelectorAll('.tab-content').forEach(t =>
-        t.style.display = (t.id === 'tab-' + tab) ? '' : 'none'
+        t.style.display = (t.id === 'tab-' + tab) ? 'block' : 'none' // ✅ 'block'
     );
 
     renderTab(tab);
