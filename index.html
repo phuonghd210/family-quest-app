@@ -1127,25 +1127,31 @@ function buildLoginChars() {
 // UI HELPERS
 // ============================================================
 function showLogin() {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app').classList.remove('visible');
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainApp').classList.remove('visible');
 }
 
 function showApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').classList.add('visible');
-  document.getElementById('user-badge').textContent =
-    (S.user?.display_name || '?') + ' · ' + (S.user?.role || '');
-  // Show settings tab only for admin/scorer
-  const settingsBtn = document.getElementById('tab-btn-settings');
-  if (S.user?.role === 'admin' || S.user?.role === 'scorer') {
-    settingsBtn.style.display = '';
-  }
-  switchTab('today');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').classList.add('visible');
+    document.getElementById('currentUser').textContent =
+        (S.user?.display_name || '?') + ' · ' + (S.user?.role || '');
+
+    const settingsBtn = document.getElementById('tab-btn-settings');
+    if (S.user?.role === 'admin' || S.user?.role === 'scorer') {
+        settingsBtn.style.display = '';
+    }
+    switchTab('today');
 }
 
 function showLoad(v) {
-  document.getElementById('loading').style.display = v ? 'flex' : 'none';
+    const overlay = document.getElementById('loadingOverlay');
+    if (v) {
+        overlay.style.display = 'flex';
+        overlay.classList.remove('hidden');
+    } else {
+        overlay.classList.add('hidden');
+    }
 }
 
 let toastTimer = null;
