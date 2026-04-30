@@ -986,13 +986,24 @@ let S = {
 // ============================================================
 // API HELPER
 // ============================================================
-async function api(action, payload = {}) {
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    body: JSON.stringify({ action, token: S.token, payload })
-  });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json();
+async function api(action, data = {}) {
+    const payload = { action, ...data };
+
+    // Đính token nếu có
+    if (S.token && !payload.token) payload.token = S.token;
+
+    const res = await fetch(API_URL, {
+        method:   'POST',
+        redirect: 'follow',          // ← FIX chính cho lỗi 302
+        headers:  { 'Content-Type': 'application/json' },
+        body:     JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const json = await res.json();
+    console.log(`api [${action}] →`, json);  // debug
+    return json;
 }
 
 // ============================================================
