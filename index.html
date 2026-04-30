@@ -987,18 +987,26 @@ let S = {
 //  HELPER
 // ============================================================
 async function api(action, data = {}) {
-    const payload = { action, ...data };
-    if (S.token && !payload.token) payload.token = S.token;
+    const body = {
+        action,
+        token:   S.token || null,   // ← token ra ngoài
+        payload: data               // ← data vào trong payload
+    };
+
+    console.log(`api → [${action}]`, body); // debug
 
     const res = await fetch(API_URL, {
         method:   'POST',
         redirect: 'follow',
-        headers:  { 'Content-Type': 'text/plain;charset=utf-8' }, // ← SỬA chỗ này
-        body:     JSON.stringify(payload)
+        headers:  { 'Content-Type': 'text/plain;charset=utf-8' }, // ← tránh CORS preflight
+        body:     JSON.stringify(body)
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+
+    const json = await res.json();
+    console.log(`api ← [${action}]`, json); // debug
+    return json;
 }
 
 // ============================================================
