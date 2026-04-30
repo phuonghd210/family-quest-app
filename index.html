@@ -1066,38 +1066,43 @@ function taskAppliesTo(task, child) {
 // LOGIN / LOGOUT
 // ============================================================
 async function handleLogin(e) {
-    console.log('handleLogin called', e); // ← thêm dòng này
     e.preventDefault();
-    const username = document.getElementById('username').value.trim();  // ✅
-    const password = document.getElementById('password').value.trim();  // ✅
-    const errEl    = document.getElementById('loginError');             // ✅
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const errEl    = document.getElementById('loginError');
     errEl.style.display = 'none';
 
     if (!username || !password) { toast('Nhập username và password', 'warn'); return; }
 
     showLoad(true);
+
+    let loginResult = null; // ← tách ra ngoài
+
     try {
-        const r = await api('login', { username, password });
-        if (r.success) {
-            S.token = r.token;
-            S.user  = {
-                user_id:      r.user_id,
-                username:     r.username,
-                display_name: r.display_name,
-                role:         r.role,
-                child_id:     r.child_id || null
-            };
-            localStorage.setItem('fq_token', r.token);
-            localStorage.setItem('fq_user',  JSON.stringify(S.user));
-            showLoad(false); // ← chuyển lên trước showApp
-            showApp();
-            await fetchData(true);
-        } else {
-            errEl.style.display = 'block';
-            showLoad(false);
-        }
+        loginResult = await api('login', { username, password });
     } catch(err) {
         toast('⚠️ Không kết nối được server.', 'error');
+        showLoad(false);
+        return; // ← dừng hẳn
+    }
+
+    // ✅ Từ đây không còn nhầm lỗi network vs lỗi UI
+    if (loginResult?.success) {
+        S.token = loginResult.token;
+        S.user  = {
+            user_id:      loginResult.user_id,
+            username:     loginResult.username,
+            display_name: loginResult.display_name,
+            role:         loginResult.role,
+            child_id:     loginResult.child_id || null
+        };
+        localStorage.setItem('fq_token', loginResult.token);
+        localStorage.setItem('fq_user',  JSON.stringify(S.user));
+        showLoad(false);
+        showApp();           // ← lỗi ở đây sẽ hiện đúng trên console
+        await fetchData(true);
+    } else {
+        errEl.style.display = 'block';
         showLoad(false);
     }
 }
@@ -1120,34 +1125,42 @@ function togglePw() {
 async function init() {
     buildLoginChars();
 
-    if (S.token && S.user) {
+    // ✅ Parse đúng từ localStorage
+    const savedToken = localStorage.getItem('fq_token');
+    const savedUser  = JSON.parse(localStorage.getItem('fq_user') || 'null');
+
+    if (savedToken && savedUser) {
+        S.token = savedToken;
+        S.user  = savedUser;
+
         try {
             const r = await api('validateSession');
-            if (r.success) {
+            if (r?.success) {
                 S.user = {
-                    user_id: r.user_id,
-                    username: r.username,
+                    user_id:      r.user_id,
+                    username:     r.username,
                     display_name: r.display_name,
-                    role: r.role,
-                    child_id: r.child_id
+                    role:         r.role,
+                    child_id:     r.child_id
                 };
                 localStorage.setItem('fq_user', JSON.stringify(S.user));
-                showLoad(false); // ← thêm
+                showLoad(false);
                 showApp();
                 await fetchData(true);
                 return;
             }
         } catch(e) {
-            console.warn('validateSession failed:', e); // ← đừng nuốt lỗi âm thầm
+            console.warn('validateSession failed:', e);
         }
 
+        // Token hết hạn → xóa
         S.token = null;
-        S.user = null;
+        S.user  = null;
         localStorage.removeItem('fq_token');
         localStorage.removeItem('fq_user');
     }
 
-    showLoad(false); // ← thêm (cả trường hợp không có token)
+    showLoad(false);
     showLogin();
 }
 
@@ -1176,15 +1189,30 @@ function showLogin() {
 }
 
 function showApp() {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('mainApp').classList.add('visible');
-    document.getElementById('currentUser').textContent =
+    // Debug: xem cái nào null
+    console.log({
+        loginScreen : document.getElementById('loginScreen'),
+        mainApp     : document.getElementById('mainApp'),
+        currentUser : document.getElementById('currentUser'),
+        settingsBtn : document.getElementById('tab-btn-settings'),
+    });
+
+    const loginScreen = document.getElementById('loginScreen');
+    const mainApp     = document.getElementById('mainApp');
+    const currentUser = document.getElementById('currentUser');
+    const settingsBtn = document.getElementById('tab-btn-settings');
+
+    if (loginScreen) loginScreen.style.display = 'none';
+    if (mainApp)     mainApp.classList.add('visible');
+    if (currentUser) currentUser.textContent =
         (S.user?.display_name || '?') + ' · ' + (S.user?.role || '');
 
-    const settingsBtn = document.getElementById('tab-btn-settings');
-    if (S.user?.role === 'admin' || S.user?.role === 'scorer') {
-        settingsBtn.style.display = '';
+    // ✅ Không crash nếu tab chưa tồn tại
+    if (settingsBtn) {
+        settingsBtn.style.display =
+            (S.user?.role === 'admin' || S.user?.role === 'scorer') ? '' : 'none';
     }
+
     switchTab('today');
 }
 
