@@ -765,8 +765,7 @@
   </nav>
 </div>
 
-<script type="module">
-import { request as apiRequest } from './src/apiClient.js';
+<script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbxJwpMxT1gMADbf8CGcCZDkRsX68uwHh4_1lquJ8ryg3icDns4LEVByTVFyMtJEXsqo/exec';
 
 let S = {
@@ -788,12 +787,12 @@ let S = {
 // API
 // ============================================================
 async function api(action, payload = {}) {
-  return apiRequest({
-    apiUrl: API_URL,
-    action,
-    token: S.token,
-    payload
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action, token: S.token, payload })
   });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
 }
 
 // ============================================================
