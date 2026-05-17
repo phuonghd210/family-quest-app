@@ -782,6 +782,32 @@ let S = {
   activeTab:    'today',
   taskFilter:   'all'
 };
+  const State = {
+  get() {
+    return S;
+  },
+
+  setSession({ token, user }) {
+    S.token = token ?? null;
+    S.user = user ?? null;
+  },
+
+  clearSession() {
+    S.token = null;
+    S.user = null;
+  },
+
+  setData(partial = {}) {
+    Object.assign(S, partial);
+  },
+
+  setActiveTab(tab) {
+    State.setActiveTab(tab);
+  },
+
+  setTaskFilter(filterKey) {
+    function setTaskFilter(key) { State.setTaskFilter(key); renderTasks(); }
+};
 
 // ============================================================
 // API
@@ -960,7 +986,7 @@ async function handleLogin(e) {
 }
 
 function handleLogout() {
-  S.token = null; S.user = null;
+  State.clearSession();
   localStorage.removeItem('fq_token');
   localStorage.removeItem('fq_user');
   showLogin();
