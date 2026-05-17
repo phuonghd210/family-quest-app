@@ -36,3 +36,22 @@
 - Rollback PR:
 - Recovery time:
 - Follow-up action:
+
+## 6) Known bad patterns (Do NOT merge directly to production)
+- Converting `<script>` to `<script type="module">` in `index.html`.
+- Adding `import ... from ...` to runtime script without validated hosting support.
+- Mixing multiple refactors (API + state + rendering) in one PR.
+- Large PRs touching many unrelated areas.
+
+## 7) Incident triage (when app breaks silently)
+1. Confirm symptom (e.g., cannot login, no visible toast).
+2. Open browser DevTools Console and refresh page.
+3. If red runtime error exists:
+   - Capture first error line and message.
+   - Revert latest merged PR immediately.
+4. If no console error:
+   - Check Network tab for failed API calls.
+   - Verify deployment actually points to latest commit.
+5. After recovery:
+   - Record incident in template section.
+   - Add preventive checklist item if needed.
