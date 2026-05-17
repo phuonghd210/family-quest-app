@@ -786,13 +786,82 @@ let S = {
 // ============================================================
 // API
 // ============================================================
+const ApiClient = {
+  classifyError(error, httpStatus = null, action = '') {
+    if (httpStatus && Number.isFinite(httpStatus)) return 'http';
+    const msg = String(error?.message || '').toLowerCase();
+
+    if (
+      msg.includes('failed to fetch') ||
+      msg.includes('networkerror') ||
+      msg.includes('load failed') ||
+      msg.includes('network')
+    ) return 'network';
+
+    if (action === 'login' || action === 'validateSession') return 'auth';
+    if (msg.includes('json') || msg.includes('parse')) return 'parse';
+    return 'unknown';
+  },
+
+  logEvent(event = {}) {
+    try {
+      console.log('[apiClient]', {
+        ts: new Date().toISOString(),
+        layer: event.layer || 'api',
+        action: event.action || '',
+        severity: event.severity || 'info',
+        error_type: event.error_type || null,
+        http_status: event.http_status ?? null,
+        message: event.message || '',
+        meta: event.meta || {}
+      });
+    } catch (_e) {}
+  },
+
+  async request({ apiUrl, action, token = null, payload = {} }) {
+    const startedAt = Date.now();
+    try {
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        body: JSON.stringify({ action, token, payload })
+      });
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const data = await res.json();
+
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response envelope');
+      }
+
+      this.logEvent({
+        action,
+        severity: 'info',
+        message: 'request_success',
+        meta: { duration_ms: Date.now() - startedAt }
+      });
+
+      return data;
+    } catch (error) {
+      this.logEvent({
+        action,
+        severity: 'error',
+        error_type: this.classifyError(error, null, action),
+        message: String(error?.message || error),
+        meta: { duration_ms: Date.now() - startedAt }
+      });
+      throw error;
+    }
+  }
+};
+  
 async function api(action, payload = {}) {
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    body: JSON.stringify({ action, token: S.token, payload })
+  return ApiClient.request({
+    apiUrl: API_URL,
+    action,
+    token: S.token,
+    payload
   });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json();
 }
 
 // ============================================================
