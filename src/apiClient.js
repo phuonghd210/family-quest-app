@@ -92,32 +92,15 @@ export async function request({ apiUrl, action, token = null, payload = {} }) {
     });
 
     if (!res.ok) {
-      const err = new Error(`HTTP ${res.status}`);
-      const errorType = classifyError({ error: err, httpStatus: res.status, action });
-      logEvent({
-        action,
-        severity: 'error',
-        error_type: errorType,
-        http_status: res.status,
-        message: err.message,
-        meta: { duration_ms: Date.now() - startedAt }
-      });
-      throw err;
+  const err = new Error(`HTTP ${res.status}`);
+  throw err;
     }
 
     const data = await res.json();
 
     if (!isValidEnvelope(data)) {
-      const err = new Error('Invalid response envelope');
-      const errorType = classifyError({ error: err, action });
-      logEvent({
-        action,
-        severity: 'error',
-        error_type: errorType,
-        message: err.message,
-        meta: { duration_ms: Date.now() - startedAt }
-      });
-      throw err;
+  const err = new Error('Invalid response envelope');
+  throw err;
     }
 
     logEvent({
