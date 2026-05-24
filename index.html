@@ -1275,21 +1275,7 @@ function renderTasks() {
     const canInteract = S.user?.role === 'admin' || S.user?.role === 'scorer';
     const activeTasks = S.tasks.filter(t => S.taskFilter === 'all' || t.category === S.taskFilter);
     const groups = tasksGroupByCategory(activeTasks);
-  
-    const pendingCount = getPendingTaskChangeList().length;
-if (canInteract) {
-  html += `
-    <div class="pending-bar">
-      <span>📝 Thay đổi chờ xác nhận: <b>${pendingCount}</b></span>
-      <button class="btn-submit" ${pendingCount ? '' : 'disabled'} onclick="submitPendingTasks()">
-        ✅ Xác nhận
-      </button>
-      <button class="btn-cancel" ${pendingCount ? '' : 'disabled'} onclick="cancelPendingTasks()">
-        ↩️ Hủy
-      </button>
-    </div>
-  `;
-}
+
   function cancelPendingTasks() {
   if (S.isSubmittingTasks) return;
   resetPendingTaskChanges();
