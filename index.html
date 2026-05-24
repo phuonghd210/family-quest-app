@@ -1283,10 +1283,10 @@ function renderPoints() {
   const canAct = S.user?.role === 'admin' || S.user?.role === 'scorer';
 
   let formHtml = '';
-  if (canAct) {
-const childOpts = redeemKids.map(c =>
-  `<option value="${esc(c.child_id)}">${esc(c.avatar_icon || '')} ${esc(c.child_name)} (${childScore(c.child_id).total_score} ⭐)</option>`
-).join('');
+if (canAct) {
+  const childOpts = S.children.map(c =>
+    `<option value="${esc(c.child_id)}">${esc(c.avatar_icon || '')} ${esc(c.child_name)}</option>`
+  ).join('');
     formHtml = `
       <div class="points-form">
         <div class="form-row">
