@@ -1338,7 +1338,12 @@ function buildRecentTxHtml(transactions) {
     `;
   }).join('');
 }
-  <div class="es-icon">📜</div><p>Chưa có dữ liệu</p></div>';
+
+function renderPoints() {
+  const el = document.getElementById('tab-points');
+  const canAct = S.user?.role === 'admin' || S.user?.role === 'scorer';
+  const formHtml = buildPointsFormHtml({ canAct, children: S.children });
+  const txHtml = buildRecentTxHtml(S.transactions);
 
   el.innerHTML = `
     <div class="sec-title">💎 Thưởng / Phạt Điểm</div>
