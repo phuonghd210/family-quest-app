@@ -768,9 +768,13 @@
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbxJwpMxT1gMADbf8CGcCZDkRsX68uwHh4_1lquJ8ryg3icDns4LEVByTVFyMtJEXsqo/exec';
 
+function safeParseUser(raw) {
+  try { return JSON.parse(raw || 'null'); }
+  catch { return null; }
+}
 let S = {
   token:        localStorage.getItem('fq_token') || null,
-  user:         JSON.parse(localStorage.getItem('fq_user') || 'null'),
+  user:         safeParseUser(localStorage.getItem('fq_user')),
   children:     [],
   tasks:        [],
   rewards:      [],
