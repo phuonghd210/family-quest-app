@@ -1232,15 +1232,17 @@ function renderTasks() {
         const done = isTaskDone(child.child_id, task.task_id);
         const ro   = !canInteract ? 'readonly' : '';
         html += `
-          <label
-                id="lbl-${child.child_id}-${task.task_id}"
-                data-child-id="${esc(child.child_id)}"
-                data-task-id="${esc(task.task_id)}"
-                data-is-done="${done ? '1' : '0'}"
-                onclick="handleTaskToggleClick(event)">
-            <div class="check-box">${done ? '✓' : ''}</div>
-            <span class="check-child-name">${child.avatar_icon || ''} ${esc(child.child_name)}</span>
-          </label>
+<label
+  id="lbl-${child.child_id}-${task.task_id}"
+  class="task-check ${done ? 'done' : ''}"
+  data-child-id="${esc(child.child_id)}"
+  data-task-id="${esc(task.task_id)}"
+  data-is-done="${done ? '1' : '0'}"
+  onclick="handleTaskToggleClick(event)">
+  <input type="checkbox" ${done ? 'checked' : ''} />
+  <span class="check-icon">${done ? '✅' : '⬜'}</span>
+  <span class="check-name">${esc(child.avatar_icon || '')} ${esc(child.child_name)}</span>
+</label>
         `;
       });
       html += `</div></div>`;
