@@ -1032,6 +1032,16 @@ function showApp() {
 function showLoad(v) {
   document.getElementById('loading').style.display = v ? 'flex' : 'none';
 }
+function runUiSelfCheck() {
+  const requiredIds = ['loginScreen', 'mainApp', 'tab-tasks', 'modal-overlay', 'loading'];
+  const missing = requiredIds.filter(id => !document.getElementById(id));
+  if (missing.length) {
+    console.warn('[UI self-check] Missing required DOM ids:', missing.join(', '));
+  }
+  if (typeof setTaskFilter !== 'function') {
+    console.warn('[UI self-check] setTaskFilter handler is missing or not in global scope');
+  }
+}
 
 let toastTimer = null;
 function toast(msg, type = 'info') {
@@ -1185,11 +1195,18 @@ function tasksBuildFilterHtml(taskFilter) {
       ${cats.map(c => `
         <div class="cat-pill ${taskFilter === c.key ? 'active' : ''}"
              onclick="setTaskFilter('${esc(c.key)}')">${esc(c.label)}</div>
+             data-filter-key="${esc(c.key)}">${esc(c.label)}</div>
       `).join('')}
     </div>
   `;
 }
-
+function handleTaskFilterClick(event) {
+  const pill = event.target.closest('.cat-pill');
+  if (!pill) return;
+  const filterKey = pill.dataset.filterKey;
+  if (!filterKey) return;
+  setTaskFilter(filterKey);
+}
 function tasksGroupByCategory(tasks) {
   const groups = {};
   tasks.forEach(t => {
@@ -1226,6 +1243,7 @@ function renderTasks() {
     <div class="sec-title">📜 Nhiệm Vụ Hôm Nay</div>
     ${tasksBuildFilterHtml(S.taskFilter)}
   `;
+  el.onclick = handleTaskFilterClick;
 
   if (!activeTasks.length) {
     html += '<div class="empty-state"><div class="es-icon">📜</div><p>Không có nhiệm vụ nào</p></div>';
@@ -1813,6 +1831,8 @@ async function doResetWeek() {
 // ============================================================
 // START
 // ============================================================
+// Guardrail: lightweight self-check to catch accidental DOM/function regressions early.
+runUiSelfCheck();
 init();
 </script>
 </body>
