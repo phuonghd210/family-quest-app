@@ -1170,47 +1170,76 @@ function renderToday() {
 // ============================================================
 // RENDER: TASKS
 // ============================================================
-function renderTasks() {
-  const el         = document.getElementById('tab-tasks');
-  const canInteract = S.user?.role === 'admin' || S.user?.role === 'scorer';
-
+function tasksBuildFilterHtml(taskFilter) {
   const cats = [
-    { key: 'all',                  label: '🔍 Tất cả' },
-    { key: 'Tác phong hằng ngày',  label: '🌅 Tác phong' },
-    { key: 'Việc nhà',             label: '🏠 Việc nhà' },
-    { key: 'Học tập',              label: '📚 Học tập' },
-    { key: 'Điểm phát sinh',       label: '⚡ Phát sinh' },
-    { key: 'Thành tích',           label: '🏆 Thành tích' }
+    { key: 'all',                 label: '🔍 Tất cả' },
+    { key: 'Tác phong hằng ngày', label: '🌅 Tác phong' },
+    { key: 'Việc nhà',            label: '🏠 Việc nhà' },
+    { key: 'Học tập',             label: '📚 Học tập' },
+    { key: 'Điểm phát sinh',      label: '⚡ Phát sinh' },
+    { key: 'Thành tích',          label: '🏆 Thành tích' }
   ];
 
-  const activeTasks = S.tasks.filter(t => S.taskFilter === 'all' || t.category === S.taskFilter);
+  return `
+    <div class="cat-filter">
+      ${cats.map(c => `
+        <div class="cat-pill ${taskFilter === c.key ? 'active' : ''}"
+             onclick="setTaskFilter('${esc(c.key)}')">${esc(c.label)}</div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function tasksGroupByCategory(tasks) {
   const groups = {};
-  activeTasks.forEach(t => {
+  tasks.forEach(t => {
     const cat = t.category || 'Khác';
     if (!groups[cat]) groups[cat] = [];
     groups[cat].push(t);
   });
+  return groups;
+}
+
+function tasksBuildChildCheckHtml({ child, task, done, canInteract }) {
+  return `
+    <label
+      id="lbl-${child.child_id}-${task.task_id}"
+      class="task-check ${done ? 'done' : ''} ${canInteract ? '' : 'disabled'}"
+      data-child-id="${esc(child.child_id)}"
+      data-task-id="${esc(task.task_id)}"
+      data-is-done="${done ? '1' : '0'}"
+      ${canInteract ? 'onclick="handleTaskToggleClick(event)"' : ''}>
+      <span class="check-icon">${done ? '✅' : '⬜'}</span>
+      <span class="check-name">${esc(child.avatar_icon || '')} ${esc(child.child_name)}</span>
+    </label>
+  `;
+}
+
+function renderTasks() {
+  const el = document.getElementById('tab-tasks');
+  const canInteract = S.user?.role === 'admin' || S.user?.role === 'scorer';
+
+  const activeTasks = S.tasks.filter(t => S.taskFilter === 'all' || t.category === S.taskFilter);
+  const groups = tasksGroupByCategory(activeTasks);
 
   let html = `
     <div class="sec-title">📜 Nhiệm Vụ Hôm Nay</div>
-    <div class="cat-filter">
-      ${cats.map(c => `
-        <div class="cat-pill ${S.taskFilter === c.key ? 'active' : ''}"
-             onclick="setTaskFilter('${c.key}')">${c.label}</div>
-      `).join('')}
-    </div>
+    ${tasksBuildFilterHtml(S.taskFilter)}
   `;
 
   if (!activeTasks.length) {
     html += '<div class="empty-state"><div class="es-icon">📜</div><p>Không có nhiệm vụ nào</p></div>';
-    el.innerHTML = html; return;
+    el.innerHTML = html;
+    return;
   }
 
   Object.entries(groups).forEach(([cat, tasks]) => {
     html += `<div class="cat-section"><div class="cat-section-title">${esc(cat)}</div>`;
+
     tasks.forEach(task => {
       const applicable = S.children.filter(c => taskAppliesTo(task, c));
       if (!applicable.length) return;
+
       html += `
         <div class="task-item">
           <div class="task-item-head">
@@ -1219,30 +1248,26 @@ function renderTasks() {
           </div>
           <div class="task-checks">
       `;
+
       applicable.forEach(child => {
         const done = isTaskDone(child.child_id, task.task_id);
-        const ro   = !canInteract ? 'readonly' : '';
-        html += `
-<label
-  id="lbl-${child.child_id}-${task.task_id}"
-  class="task-check ${done ? 'done' : ''}"
-  data-child-id="${esc(child.child_id)}"
-  data-task-id="${esc(task.task_id)}"
-  data-is-done="${done ? '1' : '0'}"
-  onclick="handleTaskToggleClick(event)">
-  <span class="check-icon">${done ? '✅' : '⬜'}</span>
-  <span class="check-name">${esc(child.avatar_icon || '')} ${esc(child.child_name)}</span>
-</label>
-        `;
+        html += tasksBuildChildCheckHtml({ child, task, done, canInteract });
       });
+
       html += `</div></div>`;
     });
-    html += '</div>';
+
+    html += `</div>`;
   });
+
   el.innerHTML = html;
 }
 
-function setTaskFilter(key) { S.taskFilter = key; renderTasks(); }
+function setTaskFilter(key) {
+  S.taskFilter = key;
+  renderTasks();
+}
+
 function handleTaskToggleClick(e) {
   const el = e?.currentTarget;
   const childId = el?.dataset?.childId || '';
@@ -1256,29 +1281,48 @@ function handleTaskToggleClick(e) {
 
   handleTaskToggle(childId, taskId, isDone);
 }
+
 async function handleTaskToggle(childId, taskId, isDone) {
   if (S.user?.role !== 'admin' && S.user?.role !== 'scorer') return;
+
   const child = S.children.find(c => String(c.child_id) === String(childId));
   const task  = S.tasks.find(t => String(t.task_id)  === String(taskId));
   if (!child || !task) return;
 
   const lbl = document.getElementById(`lbl-${childId}-${taskId}`);
-  if (lbl) { lbl.style.opacity = '0.5'; lbl.style.pointerEvents = 'none'; }
+  if (lbl) {
+    lbl.style.opacity = '0.5';
+    lbl.style.pointerEvents = 'none';
+  }
+
   showLoad(true);
   try {
     const action = isDone ? 'undoTask' : 'completeTask';
     const r = await api(action, { child_id: childId, task_id: taskId });
+
     if (r.success) {
-      toast(isDone ? `↩️ ${esc(child.child_name)}: -${task.points} ⭐` : `✅ ${esc(child.child_name)}: +${task.points} ⭐`, isDone ? 'warn' : 'success');
+      toast(
+        isDone
+          ? `↩️ ${esc(child.child_name)}: -${Number(task.points || 0)} ⭐`
+          : `✅ ${esc(child.child_name)}: +${Number(task.points || 0)} ⭐`,
+        isDone ? 'warn' : 'success'
+      );
       await fetchData(true);
     } else {
       toast(r.message, 'error');
-      if (lbl) { lbl.style.opacity = ''; lbl.style.pointerEvents = ''; }
+      if (lbl) {
+        lbl.style.opacity = '';
+        lbl.style.pointerEvents = '';
+      }
     }
-  } catch(e) {
+  } catch (e) {
     toast('Lỗi kết nối', 'error');
-    if (lbl) { lbl.style.opacity = ''; lbl.style.pointerEvents = ''; }
+    if (lbl) {
+      lbl.style.opacity = '';
+      lbl.style.pointerEvents = '';
+    }
   }
+
   showLoad(false);
 }
 
@@ -1572,7 +1616,7 @@ function renderRankings() {
     el.innerHTML = '<div class="empty-state"><div class="es-icon">📅</div><p>Đang tải...</p></div>';
     return;
   }
-  const days = S.historyDays === 30 ? 30 : 7;
+  const days = Number(S.historyDays) === 30 ? 30 : 7;
 
 const historyFilterHtml = `
   <div class="form-row" style="margin-bottom:12px">
@@ -1591,11 +1635,11 @@ const historyFilterHtml = `
     const entry = { date: ds, short: `${d.getDate()}/${d.getMonth()+1}`, scores: {} };
     S.children.forEach(c => {
       entry.scores[c.child_id] = S.transactions
-        .filter(tx => {
-  const txDay = String(tx.date || tx.created_at || '').substring(0,10);
-  return String(tx.child_id) === String(c.child_id) && txDay === ds;
-})
-        .reduce((sum,tx) => sum + Number(tx.points || 0), 0);
+  .filter(tx => {
+    const txDay = String(tx.date || tx.created_at || '').substring(0,10);
+    return String(tx.child_id) === String(c.child_id) && txDay === ds;
+  })
+  .reduce((sum,tx) => sum + Number(tx.points || 0), 0);
     });
     dayData.push(entry);
   }
