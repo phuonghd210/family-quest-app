@@ -781,7 +781,51 @@ let S = {
   week_start:   '',
   activeTab:    'today',
   taskFilter:   'all',
-  historyDays:  7
+  historyDays:  7,
+  // key: `${child_id}::${task_id}` -> { child_id, task_id, fromDone, toDone }
+  pendingTaskChanges: {},
+  isSubmittingTasks: false
+}
+function taskPendingKey(childId, taskId) {
+  return `${String(childId)}::${String(taskId)}`;
+}
+
+function getEffectiveTaskDone(childId, taskId) {
+  const key = taskPendingKey(childId, taskId);
+  const p = S.pendingTaskChanges[key];
+  if (p) return !!p.toDone;
+  return isTaskDone(childId, taskId);
+}
+
+function upsertPendingTaskChange(childId, taskId, currentDone) {
+  const key = taskPendingKey(childId, taskId);
+  const existing = S.pendingTaskChanges[key];
+
+  if (!existing) {
+    S.pendingTaskChanges[key] = {
+      child_id: String(childId),
+      task_id: String(taskId),
+      fromDone: !!currentDone,
+      toDone: !currentDone
+    };
+    return;
+  }
+
+  // Toggle lần nữa
+  existing.toDone = !existing.toDone;
+
+  // Nếu quay về trạng thái ban đầu thì xóa pending
+  if (existing.toDone === existing.fromDone) {
+    delete S.pendingTaskChanges[key];
+  }
+}
+
+function getPendingTaskChangeList() {
+  return Object.values(S.pendingTaskChanges);
+}
+
+function resetPendingTaskChanges() {
+  S.pendingTaskChanges = {};
 };
 
 // ============================================================
@@ -1237,6 +1281,91 @@ function renderTasks() {
 
   const activeTasks = S.tasks.filter(t => S.taskFilter === 'all' || t.category === S.taskFilter);
   const groups = tasksGroupByCategory(activeTasks);
+  const pendingCount = getPendingTaskChangeList().length;
+if (canInteract) {
+  html += `
+    <div class="pending-bar">
+      <span>📝 Thay đổi chờ xác nhận: <b>${pendingCount}</b></span>
+      <button class="btn-submit" ${pendingCount ? '' : 'disabled'} onclick="submitPendingTasks()">
+        ✅ Xác nhận
+      </button>
+      <button class="btn-cancel" ${pendingCount ? '' : 'disabled'} onclick="cancelPendingTasks()">
+        ↩️ Hủy
+      </button>
+    </div>
+  `;
+}
+  function cancelPendingTasks() {
+  if (S.isSubmittingTasks) return;
+  resetPendingTaskChanges();
+  renderTasks();
+  toast('Đã hủy thay đổi chờ xác nhận', 'warn');
+}
+
+async function submitPendingTasks() {
+  if (S.user?.role !== 'admin' && S.user?.role !== 'scorer') return;
+  if (S.isSubmittingTasks) return;
+
+  const changes = getPendingTaskChangeList();
+  if (!changes.length) {
+    toast('Không có thay đổi để xác nhận', 'warn');
+    return;
+  }
+
+  S.isSubmittingTasks = true;
+  showLoad(true);
+
+  let ok = 0;
+  const fail = [];
+
+  try {
+    for (let i = 0; i < changes.length; i++) {
+      const c = changes[i];
+      const action = c.toDone ? 'completeTask' : 'undoTask';
+
+      toast(`Đang gửi ${i + 1}/${changes.length}...`, 'info');
+
+      try {
+        const r = await api(action, { child_id: c.child_id, task_id: c.task_id });
+        if (r.success) {
+          ok++;
+        } else {
+          fail.push({ ...c, message: r.message || 'Lỗi không xác định' });
+        }
+      } catch (e) {
+        fail.push({ ...c, message: 'Lỗi kết nối' });
+      }
+    }
+
+    // reload nguồn sự thật từ server
+    await fetchData(true);
+
+    if (fail.length === 0) {
+      resetPendingTaskChanges();
+      renderTasks();
+      toast(`✅ Đã xác nhận ${ok}/${changes.length} thay đổi`, 'success');
+      return;
+    }
+
+    // partial fail: giữ lại fail để user retry
+    const retryMap = {};
+    fail.forEach(f => {
+      const k = taskPendingKey(f.child_id, f.task_id);
+      retryMap[k] = {
+        child_id: f.child_id,
+        task_id: f.task_id,
+        fromDone: !f.toDone, // sau fetchData, từ trạng thái server
+        toDone: f.toDone
+      };
+    });
+    S.pendingTaskChanges = retryMap;
+    renderTasks();
+    toast(`⚠️ Thành công ${ok}/${changes.length}, lỗi ${fail.length} (có thể thử lại)`, 'warn');
+  } finally {
+    S.isSubmittingTasks = false;
+    showLoad(false);
+  }
+}
 
   let html = `
     <div class="sec-title">📜 Nhiệm Vụ Hôm Nay</div>
@@ -1267,8 +1396,8 @@ function renderTasks() {
       `;
 
       applicable.forEach(child => {
-        const done = isTaskDone(child.child_id, task.task_id);
-        html += tasksBuildChildCheckHtml({ child, task, done, canInteract });
+          const done = getEffectiveTaskDone(child.child_id, task.task_id);
+          html += tasksBuildChildCheckHtml({ child, task, done, canInteract });
       });
 
       html += `</div></div>`;
@@ -1296,7 +1425,11 @@ function handleTaskToggleClick(e) {
     return;
   }
 
-  handleTaskToggle(childId, taskId, isDone);
+  if (S.user?.role !== 'admin' && S.user?.role !== 'scorer') return;
+  if (S.isSubmittingTasks) return;
+
+  upsertPendingTaskChange(childId, taskId, isDone);
+  renderTasks();
 }
 
 async function handleTaskToggle(childId, taskId, isDone) {
