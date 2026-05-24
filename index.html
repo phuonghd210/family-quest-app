@@ -1194,20 +1194,30 @@ function tasksBuildFilterHtml(taskFilter) {
 
   return `
     <div class="cat-filter">
-  ${cats.map(c => `
-    <div class="cat-pill ${taskFilter === c.key ? 'active' : ''}"
-         data-filter-key="${esc(c.key)}">${esc(c.label)}</div>
-  `).join('')}
-</div>
+      ${cats.map(c => `
+        <div class="cat-pill ${taskFilter === c.key ? 'active' : ''}"
+             data-filter-key="${esc(c.key)}">${esc(c.label)}</div>
+      `).join('')}
+    </div>
   `;
 }
-function handleTaskFilterClick(event) {
-  const pill = event.target.closest('.cat-pill');
-  if (!pill) return;
-  const filterKey = pill.dataset.filterKey;
-  if (!filterKey) return;
-  setTaskFilter(filterKey);
+
+function tasksBuildPendingBarHtml({ canInteract }) {
+  if (!canInteract) return '';
+  const pendingCount = getPendingTaskChangeList().length;
+  const disabledAttr = (pendingCount === 0 || S.isSubmittingTasks) ? 'disabled' : '';
+
+  return `
+    <div class="pending-bar" style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin:10px 0 12px;">
+      <span>📝 Chờ xác nhận: <b>${pendingCount}</b></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-submit" type="button" data-task-action="submit" ${disabledAttr}>✅ Xác nhận</button>
+        <button class="btn-cancel" type="button" data-task-action="cancel" ${disabledAttr}>↩️ Hủy</button>
+      </div>
+    </div>
+  `;
 }
+
 function tasksGroupByCategory(tasks) {
   const groups = {};
   tasks.forEach(t => {
@@ -1232,6 +1242,7 @@ function tasksBuildChildCheckHtml({ child, task, done, canInteract }) {
     </label>
   `;
 }
+
 function taskPendingKey(childId, taskId) {
   return `${String(childId)}::${String(taskId)}`;
 }
@@ -1269,101 +1280,59 @@ function upsertPendingTaskChange(childId, taskId, currentDone) {
 function resetPendingTaskChanges() {
   S.pendingTaskChanges = {};
 }
+
+function setTaskFilter(key) {
+  S.taskFilter = key;
+  renderTasks();
+}
+
+function handleTaskFilterClick(event) {
+  const pill = event.target.closest('.cat-pill');
+  if (!pill) return false;
+  const filterKey = pill.dataset.filterKey;
+  if (!filterKey) return true;
+  setTaskFilter(filterKey);
+  return true;
+}
+
+function handleTaskPendingActionClick(event) {
+  const btn = event.target.closest('[data-task-action]');
+  if (!btn) return false;
+  const action = btn.dataset.taskAction;
+  if (action === 'submit') submitPendingTasks();
+  if (action === 'cancel') cancelPendingTasks();
+  return true;
+}
+
+function handleTasksContainerClick(event) {
+  // Ưu tiên nút action trước
+  if (handleTaskPendingActionClick(event)) return;
+  // Sau đó đến filter tabs
+  handleTaskFilterClick(event);
+}
+
+function bindTaskTabClickOnce() {
+  const el = document.getElementById('tab-tasks');
+  if (!el) return;
+  if (el.dataset.taskClickBound === '1') return;
+  el.addEventListener('click', handleTasksContainerClick);
+  el.dataset.taskClickBound = '1';
+}
+
 function renderTasks() {
   const el = document.getElementById('tab-tasks');
+  if (!el) return;
+
   try {
     const canInteract = S.user?.role === 'admin' || S.user?.role === 'scorer';
     const activeTasks = S.tasks.filter(t => S.taskFilter === 'all' || t.category === S.taskFilter);
     const groups = tasksGroupByCategory(activeTasks);
 
-  function cancelPendingTasks() {
-  if (S.isSubmittingTasks) return;
-  resetPendingTaskChanges();
-  renderTasks();
-  toast('Đã hủy thay đổi chờ xác nhận', 'warn');
-}
-
-async function submitPendingTasks() {
-  if (S.user?.role !== 'admin' && S.user?.role !== 'scorer') return;
-  if (S.isSubmittingTasks) return;
-
-  const changes = getPendingTaskChangeList();
-  if (!changes.length) {
-    toast('Không có thay đổi để xác nhận', 'warn');
-    return;
-  }
-
-  S.isSubmittingTasks = true;
-  showLoad(true);
-
-  let ok = 0;
-  const fail = [];
-
-  try {
-    for (let i = 0; i < changes.length; i++) {
-      const c = changes[i];
-      const action = c.toDone ? 'completeTask' : 'undoTask';
-
-      toast(`Đang gửi ${i + 1}/${changes.length}...`, 'info');
-
-      try {
-        const r = await api(action, { child_id: c.child_id, task_id: c.task_id });
-        if (r.success) {
-          ok++;
-        } else {
-          fail.push({ ...c, message: r.message || 'Lỗi không xác định' });
-        }
-      } catch (e) {
-        fail.push({ ...c, message: 'Lỗi kết nối' });
-      }
-    }
-
-    // reload nguồn sự thật từ server
-    await fetchData(true);
-
-    if (fail.length === 0) {
-      resetPendingTaskChanges();
-      renderTasks();
-      toast(`✅ Đã xác nhận ${ok}/${changes.length} thay đổi`, 'success');
-      return;
-    }
-
-    // partial fail: giữ lại fail để user retry
-    const retryMap = {};
-    fail.forEach(f => {
-      const k = taskPendingKey(f.child_id, f.task_id);
-      retryMap[k] = {
-        child_id: f.child_id,
-        task_id: f.task_id,
-        fromDone: !f.toDone, // sau fetchData, từ trạng thái server
-        toDone: f.toDone
-      };
-    });
-    S.pendingTaskChanges = retryMap;
-    renderTasks();
-    toast(`⚠️ Thành công ${ok}/${changes.length}, lỗi ${fail.length} (có thể thử lại)`, 'warn');
-  } finally {
-    S.isSubmittingTasks = false;
-    showLoad(false);
-  }
-}
-
-  let html = `
+    let html = `
       <div class="sec-title">📜 Nhiệm Vụ Hôm Nay</div>
+      ${tasksBuildPendingBarHtml({ canInteract })}
       ${tasksBuildFilterHtml(S.taskFilter)}
     `;
-    el.onclick = handleTaskFilterClick;
-
-    const pendingCount = getPendingTaskChangeList().length;
-    if (canInteract) {
-      html += `
-        <div class="pending-bar">
-          <span>📝 Thay đổi chờ xác nhận: <b>${pendingCount}</b></span>
-          <button class="btn-submit" ${pendingCount ? '' : 'disabled'} onclick="submitPendingTasks()">✅ Xác nhận</button>
-          <button class="btn-cancel" ${pendingCount ? '' : 'disabled'} onclick="cancelPendingTasks()">↩️ Hủy</button>
-        </div>
-      `;
-    }
 
     if (!activeTasks.length) {
       html += '<div class="empty-state"><div class="es-icon">📜</div><p>Không có nhiệm vụ nào</p></div>';
@@ -1373,9 +1342,11 @@ async function submitPendingTasks() {
 
     Object.entries(groups).forEach(([cat, tasks]) => {
       html += `<div class="cat-section"><div class="cat-section-title">${esc(cat)}</div>`;
+
       tasks.forEach(task => {
         const applicable = S.children.filter(c => taskAppliesTo(task, c));
         if (!applicable.length) return;
+
         html += `
           <div class="task-item">
             <div class="task-item-head">
@@ -1384,12 +1355,15 @@ async function submitPendingTasks() {
             </div>
             <div class="task-checks">
         `;
+
         applicable.forEach(child => {
           const done = getEffectiveTaskDone(child.child_id, task.task_id);
           html += tasksBuildChildCheckHtml({ child, task, done, canInteract });
         });
+
         html += `</div></div>`;
       });
+
       html += `</div>`;
     });
 
@@ -1418,48 +1392,73 @@ function handleTaskToggleClick(e) {
   renderTasks();
 }
 
-async function handleTaskToggle(childId, taskId, isDone) {
+function cancelPendingTasks() {
+  if (S.isSubmittingTasks) return;
+  resetPendingTaskChanges();
+  renderTasks();
+  toast('Đã hủy các thay đổi chờ xác nhận', 'warn');
+}
+
+async function submitPendingTasks() {
   if (S.user?.role !== 'admin' && S.user?.role !== 'scorer') return;
+  if (S.isSubmittingTasks) return;
 
-  const child = S.children.find(c => String(c.child_id) === String(childId));
-  const task  = S.tasks.find(t => String(t.task_id)  === String(taskId));
-  if (!child || !task) return;
-
-  const lbl = document.getElementById(`lbl-${childId}-${taskId}`);
-  if (lbl) {
-    lbl.style.opacity = '0.5';
-    lbl.style.pointerEvents = 'none';
+  const changes = getPendingTaskChangeList();
+  if (!changes.length) {
+    toast('Không có thay đổi để xác nhận', 'warn');
+    return;
   }
 
+  S.isSubmittingTasks = true;
   showLoad(true);
-  try {
-    const action = isDone ? 'undoTask' : 'completeTask';
-    const r = await api(action, { child_id: childId, task_id: taskId });
 
-    if (r.success) {
-      toast(
-        isDone
-          ? `↩️ ${esc(child.child_name)}: -${Number(task.points || 0)} ⭐`
-          : `✅ ${esc(child.child_name)}: +${Number(task.points || 0)} ⭐`,
-        isDone ? 'warn' : 'success'
-      );
-      await fetchData(true);
-    } else {
-      toast(r.message, 'error');
-      if (lbl) {
-        lbl.style.opacity = '';
-        lbl.style.pointerEvents = '';
+  let ok = 0;
+  const fail = [];
+
+  try {
+    for (let i = 0; i < changes.length; i++) {
+      const c = changes[i];
+      const action = c.toDone ? 'completeTask' : 'undoTask';
+
+      toast(`Đang gửi ${i + 1}/${changes.length}...`, 'info');
+
+      try {
+        const r = await api(action, { child_id: c.child_id, task_id: c.task_id });
+        if (r.success) ok++;
+        else fail.push({ ...c, message: r.message || 'Lỗi không xác định' });
+      } catch (err) {
+        fail.push({ ...c, message: 'Lỗi kết nối' });
       }
     }
-  } catch (e) {
-    toast('Lỗi kết nối', 'error');
-    if (lbl) {
-      lbl.style.opacity = '';
-      lbl.style.pointerEvents = '';
-    }
-  }
 
-  showLoad(false);
+    // Đồng bộ lại từ server
+    await fetchData(true);
+
+    if (fail.length === 0) {
+      resetPendingTaskChanges();
+      renderTasks();
+      toast(`✅ Đã xác nhận ${ok}/${changes.length} thay đổi`, 'success');
+      return;
+    }
+
+    // Giữ lại phần lỗi để retry
+    const retryMap = {};
+    fail.forEach(f => {
+      const k = taskPendingKey(f.child_id, f.task_id);
+      retryMap[k] = {
+        child_id: f.child_id,
+        task_id: f.task_id,
+        fromDone: !f.toDone,
+        toDone: f.toDone
+      };
+    });
+    S.pendingTaskChanges = retryMap;
+    renderTasks();
+    toast(`⚠️ Thành công ${ok}/${changes.length}, lỗi ${fail.length}. Có thể thử lại.`, 'warn');
+  } finally {
+    S.isSubmittingTasks = false;
+    showLoad(false);
+  }
 }
 
 // ============================================================
