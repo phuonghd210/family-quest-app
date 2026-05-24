@@ -1216,15 +1216,15 @@ function renderTasks() {
   }
 
   Object.entries(groups).forEach(([cat, tasks]) => {
-    html += `<div class="cat-section"><div class="cat-section-title">${cat}</div>`;
+    html += `<div class="cat-section"><div class="cat-section-title">${esc(cat)}</div>`;
     tasks.forEach(task => {
       const applicable = S.children.filter(c => taskAppliesTo(task, c));
       if (!applicable.length) return;
       html += `
         <div class="task-item">
           <div class="task-item-head">
-            <span class="task-name-text">${task.task_name}</span>
-            <span class="task-pts-badge">+${task.points} ⭐</span>
+            <span class="task-name-text">${esc(task.task_name)}</span>
+            <span class="task-pts-badge">+${Number(task.points || 0)} ⭐</span>
           </div>
           <div class="task-checks">
       `;
@@ -1236,7 +1236,7 @@ function renderTasks() {
                  id="lbl-${child.child_id}-${task.task_id}"
                  onclick="${canInteract ? `handleTaskToggle('${child.child_id}','${task.task_id}',${done})` : ''}">
             <div class="check-box">${done ? '✓' : ''}</div>
-            <span class="check-child-name">${child.avatar_icon || ''} ${child.child_name}</span>
+            <span class="check-child-name">${child.avatar_icon || ''} ${esc(child.child_name)}</span>
           </label>
         `;
       });
@@ -1262,7 +1262,7 @@ async function handleTaskToggle(childId, taskId, isDone) {
     const action = isDone ? 'undoTask' : 'completeTask';
     const r = await api(action, { child_id: childId, task_id: taskId });
     if (r.success) {
-      toast(isDone ? `↩️ ${child.child_name}: -${task.points} ⭐` : `✅ ${child.child_name}: +${task.points} ⭐`, isDone ? 'warn' : 'success');
+      toast(isDone ? `↩️ ${esc(child.child_name)}: -${task.points} ⭐` : `✅ ${esc(child.child_name)}: +${task.points} ⭐`, isDone ? 'warn' : 'success');
       await fetchData(true);
     } else {
       toast(r.message, 'error');
@@ -1284,9 +1284,9 @@ function renderPoints() {
 
   let formHtml = '';
   if (canAct) {
-    const childOpts = S.children.map(c =>
-      `<option value="${c.child_id}">${c.avatar_icon || ''} ${c.child_name}</option>`
-    ).join('');
+const childOpts = redeemKids.map(c =>
+  `<option value="${esc(c.child_id)}">${esc(c.avatar_icon || '')} ${esc(c.child_name)} (${childScore(c.child_id).total_score} ⭐)</option>`
+).join('');
     formHtml = `
       <div class="points-form">
         <div class="form-row">
@@ -1385,26 +1385,26 @@ function renderRewards() {
       <select id="rd-child" class="form-select">${childOpts}</select>
     </div>
     <div class="rewards-grid">
-      ${S.rewards.map(rw => `
-        <div class="reward-card">
-          <span class="reward-icon">${rw.icon || '🎁'}</span>
-          <div class="reward-name">${rw.reward_name}</div>
-          <div class="reward-pts">${rw.required_points} ⭐</div>
-          ${canRedeem ? `<button class="btn-redeem" onclick="submitRedeem('${rw.reward_id}')">🌸 Đổi thưởng</button>` : ''}
-        </div>
-      `).join('')}
+${S.rewards.map(rw => `
+  <div class="reward-card">
+    <span class="reward-icon">${esc(rw.icon || '🎁')}</span>
+    <div class="reward-name">${esc(rw.reward_name)}</div>
+    <div class="reward-pts">${Number(rw.required_points || 0)} ⭐</div>
+    ${canRedeem ? `<button class="btn-redeem" onclick="submitRedeem('${esc(rw.reward_id)}')">🌸 Đổi thưởng</button>` : ''}
+  </div>
+`).join('')}
     </div>
   ` : '<div class="empty-state"><div class="es-icon">🌸</div><p>Chưa có phần thưởng nào</p></div>';
 
-  const redeemHist = S.redemptions.slice(0, 10).map(rd => `
-    <div class="tx-item">
-      <div class="tx-left">
-        <div class="tx-name">${rd.child_name} · ${rd.reward_name}</div>
-        <div class="tx-meta">${fmtDate(rd.date)} · ${rd.status || ''}</div>
-      </div>
-      <div class="tx-pts neg">-${rd.points_spent}</div>
+const redeemHist = S.redemptions.slice(0, 10).map(rd => `
+  <div class="tx-item">
+    <div class="tx-left">
+      <div class="tx-name">${esc(rd.child_name)} · ${esc(rd.reward_name)}</div>
+      <div class="tx-meta">${esc(fmtDate(rd.date))} · ${esc(rd.status || '')}</div>
     </div>
-  `).join('') || '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có lịch sử đổi thưởng</p></div>';
+    <div class="tx-pts neg">-${Number(rd.points_spent || 0)}</div>
+  </div>
+`).join('') || '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có lịch sử đổi thưởng</p></div>';
 
   el.innerHTML = `
     <div class="sec-title">🌸 Phần Thưởng</div>
@@ -1425,7 +1425,7 @@ async function submitRedeem(rewardId) {
 
   confirm(
     '🌸 Xác nhận đổi thưởng',
-    `${child.child_name} đổi "${reward.reward_name}" tốn ${reward.required_points} ⭐`,
+    `${esc(child.child_name)} đổi "${reward.reward_name}" tốn ${reward.required_points} ⭐`,
     async () => {
       showLoad(true);
       try {
