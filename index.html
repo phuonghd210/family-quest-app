@@ -1232,9 +1232,12 @@ function renderTasks() {
         const done = isTaskDone(child.child_id, task.task_id);
         const ro   = !canInteract ? 'readonly' : '';
         html += `
-          <label class="check-label ${done ? 'done' : ''} ${ro}"
-                 id="lbl-${child.child_id}-${task.task_id}"
-                 onclick="${canInteract ? `handleTaskToggle('${child.child_id}','${task.task_id}',${done})` : ''}">
+          <label
+                id="lbl-${child.child_id}-${task.task_id}"
+                data-child-id="${esc(child.child_id)}"
+                data-task-id="${esc(task.task_id)}"
+                data-is-done="${done ? '1' : '0'}"
+                onclick="handleTaskToggleClick(event)">
             <div class="check-box">${done ? '✓' : ''}</div>
             <span class="check-child-name">${child.avatar_icon || ''} ${esc(child.child_name)}</span>
           </label>
@@ -1248,7 +1251,19 @@ function renderTasks() {
 }
 
 function setTaskFilter(key) { S.taskFilter = key; renderTasks(); }
+function handleTaskToggleClick(e) {
+  const el = e?.currentTarget;
+  const childId = el?.dataset?.childId || '';
+  const taskId = el?.dataset?.taskId || '';
+  const isDone = el?.dataset?.isDone === '1';
 
+  if (!childId || !taskId) {
+    toast('Thiếu dữ liệu nhiệm vụ', 'error');
+    return;
+  }
+
+  handleTaskToggle(childId, taskId, isDone);
+}
 async function handleTaskToggle(childId, taskId, isDone) {
   if (S.user?.role !== 'admin' && S.user?.role !== 'scorer') return;
   const child = S.children.find(c => String(c.child_id) === String(childId));
