@@ -1239,7 +1239,6 @@ function renderTasks() {
   data-task-id="${esc(task.task_id)}"
   data-is-done="${done ? '1' : '0'}"
   onclick="handleTaskToggleClick(event)">
-  <input type="checkbox" ${done ? 'checked' : ''} />
   <span class="check-icon">${done ? '✅' : '⬜'}</span>
   <span class="check-name">${esc(child.avatar_icon || '')} ${esc(child.child_name)}</span>
 </label>
