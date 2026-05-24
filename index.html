@@ -1139,11 +1139,11 @@ function renderToday() {
     <div class="leaders-banner">
       <div class="leader-item">
         <span class="leader-label">⚔️ Dẫn đầu hôm nay</span>
-        <span class="leader-name">${todayLeader.avatar_icon || '⭐'} ${todayLeader.child_name}</span>
+        <span class="leader-name">${esc(todayLeader.avatar_icon || '⭐')} ${esc(todayLeader.child_name)}</span>
       </div>
       <div class="leader-item">
         <span class="leader-label">🏆 Dẫn đầu tuần</span>
-        <span class="leader-name">${weekLeader.avatar_icon || '⭐'} ${weekLeader.child_name}</span>
+        <span class="leader-name">${esc(weekLeader.avatar_icon || '⭐')} ${esc(weekLeader.child_name)}</span>
       </div>
     </div>
     <div class="child-cards">
@@ -1154,10 +1154,10 @@ function renderToday() {
     html += `
       <div class="child-card">
         <div class="child-card-head">
-          <span class="child-card-avatar">${c.avatar_icon || '⭐'}</span>
+          <span class="child-card-avatar">${esc(c.avatar_icon || '⭐')}</span>
           <div class="child-card-info">
-            <h3>${c.child_name}</h3>
-            <span>${c.avatar_name || ''}</span>
+            <h3>${esc(esc(c.child_name))}</h3>
+            <span>${esc(c.avatar_name || '')}</span>
           </div>
         </div>
         <div class="score-row">
@@ -1285,7 +1285,7 @@ function renderPoints() {
   let formHtml = '';
 if (canAct) {
   const childOpts = S.children.map(c =>
-    `<option value="${esc(c.child_id)}">${esc(c.avatar_icon || '')} ${esc(c.child_name)}</option>`
+    `<option value="${esc(c.child_id)}">${esc(c.avatar_icon || '')} ${esc(esc(c.child_name))}</option>`
   ).join('');
     formHtml = `
       <div class="points-form">
@@ -1376,7 +1376,7 @@ function renderRewards() {
     : S.children;
 
   const childOpts = redeemKids.map(c =>
-    `<option value="${c.child_id}">${c.avatar_icon || ''} ${c.child_name} (${childScore(c.child_id).total_score} ⭐)</option>`
+    `<option value="${c.child_id}">${c.avatar_icon || ''} ${esc(c.child_name)} (${childScore(c.child_id).total_score} ⭐)</option>`
   ).join('');
 
   const rewardsHtml = S.rewards.length ? `
@@ -1459,8 +1459,8 @@ function renderRankings() {
     <div class="rank-card">
       <div class="rank-num ${i < 3 ? 'r'+(i+1) : ''}">${rankEmojis[i] || (i+1)}</div>
       <div class="rank-info">
-        <h3>${c.avatar_icon || ''} ${c.child_name}</h3>
-        <span>Tổng: ${c.total_score} ⭐ · Hôm nay: ${c.today_score}</span>
+        <h3>${esc(c.avatar_icon || '')} ${esc(esc(c.child_name))}</h3>
+        <span>Tổng: ${Number(c.total_score || 0)} ⭐ · Hôm nay: ${Number(c.today_score || 0)}</span>
       </div>
       <div class="rank-score">${c.week_score} ⭐</div>
     </div>
@@ -1478,7 +1478,7 @@ function renderRankings() {
             ${allScored.map((c,i) => `<div class="cbar ${colors[i]}" style="width:${Math.round(c[metric]/maxVal*100)}%"></div>`).join('')}
           </div>
           <div class="compare-values">
-            ${allScored.map(c => `<span>${c.child_name}: ${c[metric]}</span>`).join('')}
+            ${allScored.map(c => `<span>${esc(esc(c.child_name))}: ${Number(c[metric] || 0)}</span>`).join('')}
           </div>
         </div>
       </div>
@@ -1526,13 +1526,13 @@ function renderHistory() {
   const barsHtml = dayData.map(d => {
     const childBars = S.children.map((c,i) => {
       const h = Math.max(4, Math.round((d.scores[c.child_id] / maxVal) * 100));
-      return `<div class="bar b${i+1}" style="height:${h}px" title="${c.child_name}: ${d.scores[c.child_id]}"></div>`;
+      return `<div class="bar b${i+1}" style="height:${h}px" title="${esc(c.child_name)}: ${d.scores[c.child_id]}"></div>`;
     }).join('');
     return `<div class="bar-group">${childBars}<span class="bar-date">${d.short}</span></div>`;
   }).join('');
 
   const legendHtml = S.children.map((c,i) => `
-    <span><span class="legend-dot" style="background:${colors[i]||'#fff'}"></span>${c.child_name}</span>
+    <span><span class="legend-dot" style="background:${colors[i]||'#fff'}"></span>${esc(c.child_name)}</span>
   `).join('');
 
   const recentTx = S.transactions.slice(0,30);
@@ -1572,9 +1572,9 @@ function renderSettings() {
     return;
   }
   const cats     = ['Tác phong hằng ngày','Việc nhà','Học tập','Điểm phát sinh','Thành tích'];
-  const catOpts  = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-  const assignOpts = `<option value="both">👥 Cả hai</option>` +
-    S.children.map(c => `<option value="${c.child_key || c.child_id}">${c.avatar_icon || ''} ${c.child_name}</option>`).join('');
+const catOpts  = cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+const assignOpts = `<option value="both">👥 Cả hai</option>` +
+  S.children.map(c => `<option value="${esc(c.child_key || c.child_id)}">${esc(c.avatar_icon || '')} ${esc(c.child_name)}</option>`).join('');
 
   const adminSection = role === 'admin' ? `
     <div class="settings-card">
