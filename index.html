@@ -1405,7 +1405,7 @@ function rewardsBuildGridHtml(rewards, canRedeem) {
           <span class="reward-icon">${esc(rw.icon || '🎁')}</span>
           <div class="reward-name">${esc(rw.reward_name)}</div>
           <div class="reward-pts">${Number(rw.required_points || 0)} ⭐</div>
-          ${canRedeem ? `<button class="btn-redeem" onclick="submitRedeem('${esc(rw.reward_id)}')">🌸 Đổi thưởng</button>` : ''}
+          ${canRedeem ? `<button class="btn-redeem" data-reward-id="${esc(rw.reward_id)}" onclick="handleRedeemClick(event)">🌸 Đổi thưởng</button>` : ''}
         </div>
       `).join('')}
     </div>
@@ -1453,6 +1453,45 @@ function rewardsBuildHistoryHtml(redemptions) {
       ${redeemHist}
     </div>
   `;
+}
+  function handleRedeemClick(e) {
+  const rewardId = e?.currentTarget?.dataset?.rewardId || '';
+  if (!rewardId) {
+    toast('Không xác định được phần thưởng', 'error');
+    return;
+  }
+  submitRedeem(rewardId);
+}
+
+async function submitRedeem(rewardId) {
+  if (!rewardId) { toast('Thiếu mã phần thưởng', 'error'); return; }
+
+  const childId = document.getElementById('rd-child')?.value;
+  if (!childId) { toast('Chọn bé', 'warn'); return; }
+
+  const child  = S.children.find(c => String(c.child_id)  === String(childId));
+  const reward = S.rewards.find(r  => String(r.reward_id) === String(rewardId));
+  if (!child || !reward) {
+    console.warn('submitRedeem lookup fail', { rewardId, childId });
+    toast('Không tìm thấy dữ liệu đổi thưởng', 'error');
+    return;
+  }
+
+  confirm(
+    '🌸 Xác nhận đổi thưởng',
+    `${esc(child.child_name)} đổi "${esc(reward.reward_name)}" tốn ${Number(reward.required_points || 0)} ⭐`,
+    async () => {
+      showLoad(true);
+      try {
+        const r = await api('redeemReward', { child_id: childId, reward_id: rewardId });
+        if (r.success) { toast(r.message, 'success'); await fetchData(true); }
+        else toast(r.message, 'error');
+      } catch (e) {
+        toast('Lỗi kết nối', 'error');
+      }
+      showLoad(false);
+    }
+  );
 }
 
 // ============================================================
