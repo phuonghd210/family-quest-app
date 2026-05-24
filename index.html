@@ -1276,11 +1276,14 @@ async function handleTaskToggle(childId, taskId, isDone) {
 }
 
 // ============================================================
-// RENDER: POINTS
+// POINTS TAB — RENDER HELPERS (must stay top-level)
+// NOTE:
+// - Keep exactly ONE renderPoints() definition.
+// - Do not nest function declarations inside renderPoints().
 // ============================================================
 
 
-function buildPointsFormHtml({ canAct, children }) {
+function pointsBuildFormHtml({ canAct, children }) {
   if (!canAct) return '';
 
   const childOpts = children.map(c =>
@@ -1314,7 +1317,7 @@ function buildPointsFormHtml({ canAct, children }) {
   `;
 }
 
-function buildRecentTxHtml(transactions) {
+function pointsBuildRecentTxHtml(transactions) {
   const recentTx = transactions.slice(0, 20);
   if (!recentTx.length) {
     return '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có hoạt động nào</p></div>';
@@ -1337,8 +1340,8 @@ function buildRecentTxHtml(transactions) {
 function renderPoints() {
   const el = document.getElementById('tab-points');
   const canAct = S.user?.role === 'admin' || S.user?.role === 'scorer';
-  const formHtml = buildPointsFormHtml({ canAct, children: S.children });
-  const txHtml = buildRecentTxHtml(S.transactions);
+  const formHtml = pointsBuildFormHtml({ canAct, children: S.children });
+  const txHtml = pointsBuildRecentTxHtml(S.transactions);
 
   el.innerHTML = `
     <div class="sec-title">💎 Thưởng / Phạt Điểm</div>
@@ -1348,6 +1351,10 @@ function renderPoints() {
       ${txHtml}
     </div>
   `;
+}
+// Dev-safe guard: detect accidental overwrite in future edits.
+if (typeof renderPoints !== 'function') {
+  console.error('[guard] renderPoints is missing');
 }
 
 function setBpType(type) {
