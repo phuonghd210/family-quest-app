@@ -1286,11 +1286,9 @@ async function handleTaskToggle(childId, taskId, isDone) {
 function pointsBuildFormHtml({ canAct, children }) {
   if (!canAct) return '';
 
-function rewardsBuildChildOptions(redeemKids) {
-  return redeemKids.map(c =>
-    `<option value="${esc(c.child_id)}">${esc(c.avatar_icon || '')} ${esc(c.child_name)} (${childScore(c.child_id).total_score} ⭐)</option>`
+  const childOpts = children.map(c =>
+    `<option value="${esc(c.child_id)}">${esc(c.avatar_icon || '')} ${esc(c.child_name)}</option>`
   ).join('');
-}
 
   return `
     <div class="points-form">
@@ -1389,7 +1387,46 @@ async function submitBonusPenalty() {
 // ============================================================
 // RENDER: REWARDS
 // ============================================================
-function renderRewards() {
+  function rewardsBuildChildOptions(redeemKids) {
+  return redeemKids.map(c =>
+    `<option value="${esc(c.child_id)}">${esc(c.avatar_icon || '')} ${esc(c.child_name)} (${childScore(c.child_id).total_score} ⭐)</option>`
+  ).join('');
+}
+
+function rewardsBuildGridHtml(rewards, canRedeem) {
+  if (!rewards.length) {
+    return '<div class="empty-state"><div class="es-icon">🌸</div><p>Chưa có phần thưởng nào</p></div>';
+  }
+
+  return `
+    <div class="rewards-grid">
+      ${rewards.map(rw => `
+        <div class="reward-card">
+          <span class="reward-icon">${esc(rw.icon || '🎁')}</span>
+          <div class="reward-name">${esc(rw.reward_name)}</div>
+          <div class="reward-pts">${Number(rw.required_points || 0)} ⭐</div>
+          ${canRedeem ? `<button class="btn-redeem" onclick="submitRedeem('${esc(rw.reward_id)}')">🌸 Đổi thưởng</button>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function rewardsBuildHistoryHtml(redemptions) {
+  const rows = redemptions.slice(0, 10).map(rd => `
+    <div class="tx-item">
+      <div class="tx-left">
+        <div class="tx-name">${esc(rd.child_name)} · ${esc(rd.reward_name)}</div>
+        <div class="tx-meta">${esc(fmtDate(rd.date))} · ${esc(rd.status || '')}</div>
+      </div>
+      <div class="tx-pts neg">-${Number(rd.points_spent || 0)}</div>
+    </div>
+  `).join('');
+
+  return rows || '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có lịch sử đổi thưởng</p></div>';
+}
+  
+  function renderRewards() {
   const el = document.getElementById('tab-rewards');
   const canRedeem = ['admin','scorer','viewer'].includes(S.user?.role);
   const redeemKids = S.user?.role === 'viewer'
