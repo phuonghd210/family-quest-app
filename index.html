@@ -1281,52 +1281,64 @@ async function handleTaskToggle(childId, taskId, isDone) {
 function renderPoints() {
   const el     = document.getElementById('tab-points');
   const canAct = S.user?.role === 'admin' || S.user?.role === 'scorer';
+  const formHtml = buildPointsFormHtml({ canAct, children: S.children });
+  const txHtml = buildRecentTxHtml(S.transactions);
 
-  let formHtml = '';
-if (canAct) {
-  const childOpts = S.children.map(c =>
-    `<option value="${esc(c.child_id)}">${esc(c.avatar_icon || '')} ${esc(esc(c.child_name))}</option>`
+  
+function buildPointsFormHtml({ canAct, children }) {
+  if (!canAct) return '';
+
+  const childOpts = children.map(c =>
+    `<option value="${esc(c.child_id)}">${esc(c.avatar_icon || '')} ${esc(c.child_name)}</option>`
   ).join('');
-    formHtml = `
-      <div class="points-form">
-        <div class="form-row">
-          <label>👶 Chọn bé</label>
-          <select id="bp-child" class="form-select">${childOpts}</select>
-        </div>
-        <div class="form-row">
-          <label>Loại</label>
-          <div class="type-toggle">
-            <button type="button" id="btn-bonus"   class="type-btn active-bonus"   onclick="setBpType('bonus')">➕ Thưởng</button>
-            <button type="button" id="btn-penalty" class="type-btn"                onclick="setBpType('penalty')">➖ Phạt</button>
-          </div>
-          <input type="hidden" id="bp-type" value="bonus" />
-        </div>
-        <div class="form-row">
-          <label>📝 Lý do</label>
-          <input id="bp-note" class="form-input" type="text" placeholder="Nhập lý do..." />
-        </div>
-        <div class="form-row">
-          <label>🔢 Số điểm</label>
-          <input id="bp-pts"  class="form-input" type="number" min="1" placeholder="VD: 10" />
-        </div>
-        <button class="btn-submit" onclick="submitBonusPenalty()">✅ Xác Nhận</button>
-      </div>
-    `;
-  }
 
-  const recentTx = S.transactions.slice(0, 20);
-const txHtml   = recentTx.length ? recentTx.map(tx => {
-  const pts = Number(tx.points || 0);
   return `
-    <div class="tx-item">
-      <div class="tx-left">
-        <div class="tx-name">${esc(tx.child_name)} · ${esc(tx.note || tx.task_name || tx.type || '')}</div>
-        <div class="tx-meta">${esc(fmtDatetime(tx.created_at))} · ${esc(tx.created_by_name)}</div>
+    <div class="points-form">
+      <div class="form-row">
+        <label>👶 Chọn bé</label>
+        <select id="bp-child" class="form-select">${childOpts}</select>
       </div>
-      <div class="tx-pts ${pts >= 0 ? 'pos' : 'neg'}">${pts >= 0 ? '+' : ''}${pts}</div>
+      <div class="form-row">
+        <label>Loại</label>
+        <div class="type-toggle">
+          <button type="button" id="btn-bonus" class="type-btn active-bonus" onclick="setBpType('bonus')">➕ Thưởng</button>
+          <button type="button" id="btn-penalty" class="type-btn" onclick="setBpType('penalty')">➖ Phạt</button>
+        </div>
+        <input type="hidden" id="bp-type" value="bonus" />
+      </div>
+      <div class="form-row">
+        <label>📝 Lý do</label>
+        <input id="bp-note" class="form-input" type="text" placeholder="Nhập lý do..." />
+      </div>
+      <div class="form-row">
+        <label>🔢 Số điểm</label>
+        <input id="bp-pts" class="form-input" type="number" min="1" placeholder="VD: 10" />
+      </div>
+      <button class="btn-submit" onclick="submitBonusPenalty()">✅ Xác Nhận</button>
     </div>
   `;
-}).join('') : '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có dữ liệu</p></div>';
+}
+
+function buildRecentTxHtml(transactions) {
+  const recentTx = transactions.slice(0, 20);
+  if (!recentTx.length) {
+    return '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có hoạt động nào</p></div>';
+  }
+
+  return recentTx.map(tx => {
+    const pts = Number(tx.points || 0);
+    return `
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="tx-name">${esc(tx.child_name)} · ${esc(tx.note || tx.task_name || tx.type || '')}</div>
+          <div class="tx-meta">${esc(fmtDatetime(tx.created_at))} · ${esc(tx.created_by_name)}</div>
+        </div>
+        <div class="tx-pts ${pts >= 0 ? 'pos' : 'neg'}">${pts >= 0 ? '+' : ''}${pts}</div>
+      </div>
+    `;
+  }).join('');
+}
+  <div class="es-icon">📜</div><p>Chưa có dữ liệu</p></div>';
 
   el.innerHTML = `
     <div class="sec-title">💎 Thưởng / Phạt Điểm</div>
