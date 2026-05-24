@@ -1192,12 +1192,11 @@ function tasksBuildFilterHtml(taskFilter) {
 
   return `
     <div class="cat-filter">
-      ${cats.map(c => `
-        <div class="cat-pill ${taskFilter === c.key ? 'active' : ''}"
-             onclick="setTaskFilter('${esc(c.key)}')">${esc(c.label)}</div>
-             data-filter-key="${esc(c.key)}">${esc(c.label)}</div>
-      `).join('')}
-    </div>
+  ${cats.map(c => `
+    <div class="cat-pill ${taskFilter === c.key ? 'active' : ''}"
+         data-filter-key="${esc(c.key)}">${esc(c.label)}</div>
+  `).join('')}
+</div>
   `;
 }
 function handleTaskFilterClick(event) {
