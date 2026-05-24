@@ -782,50 +782,8 @@ let S = {
   activeTab:    'today',
   taskFilter:   'all',
   historyDays:  7,
-  // key: `${child_id}::${task_id}` -> { child_id, task_id, fromDone, toDone }
   pendingTaskChanges: {},
   isSubmittingTasks: false
-}
-function taskPendingKey(childId, taskId) {
-  return `${String(childId)}::${String(taskId)}`;
-}
-
-function getEffectiveTaskDone(childId, taskId) {
-  const key = taskPendingKey(childId, taskId);
-  const p = S.pendingTaskChanges[key];
-  if (p) return !!p.toDone;
-  return isTaskDone(childId, taskId);
-}
-
-function upsertPendingTaskChange(childId, taskId, currentDone) {
-  const key = taskPendingKey(childId, taskId);
-  const existing = S.pendingTaskChanges[key];
-
-  if (!existing) {
-    S.pendingTaskChanges[key] = {
-      child_id: String(childId),
-      task_id: String(taskId),
-      fromDone: !!currentDone,
-      toDone: !currentDone
-    };
-    return;
-  }
-
-  // Toggle lần nữa
-  existing.toDone = !existing.toDone;
-
-  // Nếu quay về trạng thái ban đầu thì xóa pending
-  if (existing.toDone === existing.fromDone) {
-    delete S.pendingTaskChanges[key];
-  }
-}
-
-function getPendingTaskChangeList() {
-  return Object.values(S.pendingTaskChanges);
-}
-
-function resetPendingTaskChanges() {
-  S.pendingTaskChanges = {};
 };
 
 // ============================================================
@@ -1274,14 +1232,51 @@ function tasksBuildChildCheckHtml({ child, task, done, canInteract }) {
     </label>
   `;
 }
+function taskPendingKey(childId, taskId) {
+  return `${String(childId)}::${String(taskId)}`;
+}
 
+function getEffectiveTaskDone(childId, taskId) {
+  const key = taskPendingKey(childId, taskId);
+  const p = S.pendingTaskChanges?.[key];
+  if (p) return !!p.toDone;
+  return isTaskDone(childId, taskId);
+}
+
+function getPendingTaskChangeList() {
+  return Object.values(S.pendingTaskChanges || {});
+}
+
+function upsertPendingTaskChange(childId, taskId, currentDone) {
+  if (!S.pendingTaskChanges) S.pendingTaskChanges = {};
+  const key = taskPendingKey(childId, taskId);
+  const existing = S.pendingTaskChanges[key];
+
+  if (!existing) {
+    S.pendingTaskChanges[key] = {
+      child_id: String(childId),
+      task_id: String(taskId),
+      fromDone: !!currentDone,
+      toDone: !currentDone
+    };
+    return;
+  }
+
+  existing.toDone = !existing.toDone;
+  if (existing.toDone === existing.fromDone) delete S.pendingTaskChanges[key];
+}
+
+function resetPendingTaskChanges() {
+  S.pendingTaskChanges = {};
+}
 function renderTasks() {
   const el = document.getElementById('tab-tasks');
-  const canInteract = S.user?.role === 'admin' || S.user?.role === 'scorer';
-
-  const activeTasks = S.tasks.filter(t => S.taskFilter === 'all' || t.category === S.taskFilter);
-  const groups = tasksGroupByCategory(activeTasks);
-  const pendingCount = getPendingTaskChangeList().length;
+  try {
+    const canInteract = S.user?.role === 'admin' || S.user?.role === 'scorer';
+    const activeTasks = S.tasks.filter(t => S.taskFilter === 'all' || t.category === S.taskFilter);
+    const groups = tasksGroupByCategory(activeTasks);
+  
+    const pendingCount = getPendingTaskChangeList().length;
 if (canInteract) {
   html += `
     <div class="pending-bar">
@@ -1368,50 +1363,55 @@ async function submitPendingTasks() {
 }
 
   let html = `
-    <div class="sec-title">📜 Nhiệm Vụ Hôm Nay</div>
-    ${tasksBuildFilterHtml(S.taskFilter)}
-  `;
-  el.onclick = handleTaskFilterClick;
+      <div class="sec-title">📜 Nhiệm Vụ Hôm Nay</div>
+      ${tasksBuildFilterHtml(S.taskFilter)}
+    `;
+    el.onclick = handleTaskFilterClick;
 
-  if (!activeTasks.length) {
-    html += '<div class="empty-state"><div class="es-icon">📜</div><p>Không có nhiệm vụ nào</p></div>';
-    el.innerHTML = html;
-    return;
-  }
-
-  Object.entries(groups).forEach(([cat, tasks]) => {
-    html += `<div class="cat-section"><div class="cat-section-title">${esc(cat)}</div>`;
-
-    tasks.forEach(task => {
-      const applicable = S.children.filter(c => taskAppliesTo(task, c));
-      if (!applicable.length) return;
-
+    const pendingCount = getPendingTaskChangeList().length;
+    if (canInteract) {
       html += `
-        <div class="task-item">
-          <div class="task-item-head">
-            <span class="task-name-text">${esc(task.task_name)}</span>
-            <span class="task-pts-badge">+${Number(task.points || 0)} ⭐</span>
-          </div>
-          <div class="task-checks">
+        <div class="pending-bar">
+          <span>📝 Thay đổi chờ xác nhận: <b>${pendingCount}</b></span>
+          <button class="btn-submit" ${pendingCount ? '' : 'disabled'} onclick="submitPendingTasks()">✅ Xác nhận</button>
+          <button class="btn-cancel" ${pendingCount ? '' : 'disabled'} onclick="cancelPendingTasks()">↩️ Hủy</button>
+        </div>
       `;
+    }
 
-      applicable.forEach(child => {
+    if (!activeTasks.length) {
+      html += '<div class="empty-state"><div class="es-icon">📜</div><p>Không có nhiệm vụ nào</p></div>';
+      el.innerHTML = html;
+      return;
+    }
+
+    Object.entries(groups).forEach(([cat, tasks]) => {
+      html += `<div class="cat-section"><div class="cat-section-title">${esc(cat)}</div>`;
+      tasks.forEach(task => {
+        const applicable = S.children.filter(c => taskAppliesTo(task, c));
+        if (!applicable.length) return;
+        html += `
+          <div class="task-item">
+            <div class="task-item-head">
+              <span class="task-name-text">${esc(task.task_name)}</span>
+              <span class="task-pts-badge">+${Number(task.points || 0)} ⭐</span>
+            </div>
+            <div class="task-checks">
+        `;
+        applicable.forEach(child => {
           const done = getEffectiveTaskDone(child.child_id, task.task_id);
           html += tasksBuildChildCheckHtml({ child, task, done, canInteract });
+        });
+        html += `</div></div>`;
       });
-
-      html += `</div></div>`;
+      html += `</div>`;
     });
 
-    html += `</div>`;
-  });
-
-  el.innerHTML = html;
-}
-
-function setTaskFilter(key) {
-  S.taskFilter = key;
-  renderTasks();
+    el.innerHTML = html;
+  } catch (err) {
+    console.error('renderTasks fatal:', err);
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">⚠️</div><p>Lỗi hiển thị Nhiệm vụ. Mở Console để xem chi tiết.</p></div>';
+  }
 }
 
 function handleTaskToggleClick(e) {
