@@ -758,10 +758,6 @@
     <button class="tab-btn" data-tab="history"  onclick="switchTab('history')">
       <span class="tab-icon">📅</span>Lịch sử
     </button>
-    <button class="tab-btn" id="tab-btn-settings" data-tab="settings"
-            onclick="switchTab('settings')" style="display:none">
-      <span class="tab-icon">🗡️</span>Cài đặt
-    </button>
   </nav>
 </div>
 
@@ -784,7 +780,8 @@ let S = {
   today:        '',
   week_start:   '',
   activeTab:    'today',
-  taskFilter:   'all'
+  taskFilter:   'all',
+  historyDays:  7
 };
 
 // ============================================================
@@ -1029,11 +1026,6 @@ function showApp() {
   document.getElementById('currentUser').textContent =
     (S.user?.display_name || '?') + ' · ' + (S.user?.role || '');
 
-  const settingsBtn = document.getElementById('tab-btn-settings');
-  if (settingsBtn) {
-    settingsBtn.style.display =
-      (S.user?.role === 'admin' || S.user?.role === 'scorer') ? '' : 'none';
-  }
   switchTab('today');
 }
 
@@ -1090,7 +1082,6 @@ function renderTab(tab) {
     case 'rewards':  renderRewards();  break;
     case 'rankings': renderRankings(); break;
     case 'history':  renderHistory();  break;
-    case 'settings': renderSettings(); break;
     default: console.warn('renderTab: unknown tab =', tab);
   }
 }
@@ -1570,13 +1561,28 @@ function renderRankings() {
 // ============================================================
 // RENDER: HISTORY
 // ============================================================
-function renderHistory() {
+  function setHistoryDays(days) {
+  const d = Number(days);
+  S.historyDays = d === 30 ? 30 : 7; // only allow 7 or 30
+  renderHistory();
+}
+  function renderHistory() {
   const el = document.getElementById('tab-history');
   if (!S.children.length || !S.today) {
     el.innerHTML = '<div class="empty-state"><div class="es-icon">📅</div><p>Đang tải...</p></div>';
     return;
   }
-  const days    = 7;
+  const days = S.historyDays === 30 ? 30 : 7;
+
+const historyFilterHtml = `
+  <div class="form-row" style="margin-bottom:12px">
+    <label>🗂️ Khoảng thời gian</label>
+    <select class="form-select" onchange="setHistoryDays(this.value)">
+      <option value="7" ${days === 7 ? 'selected' : ''}>7 ngày gần đây</option>
+      <option value="30" ${days === 30 ? 'selected' : ''}>30 ngày gần đây</option>
+    </select>
+  </div>
+`;
   const dayData = [];
   for (let i = days-1; i >= 0; i--) {
     const d  = new Date(S.today + 'T00:00:00');
@@ -1585,7 +1591,10 @@ function renderHistory() {
     const entry = { date: ds, short: `${d.getDate()}/${d.getMonth()+1}`, scores: {} };
     S.children.forEach(c => {
       entry.scores[c.child_id] = S.transactions
-        .filter(tx => String(tx.child_id) === String(c.child_id) && String(tx.date).substring(0,10) === ds)
+        .filter(tx => {
+  const txDay = String(tx.date || tx.created_at || '').substring(0,10);
+  return String(tx.child_id) === String(c.child_id) && txDay === ds;
+})
         .reduce((sum,tx) => sum + Number(tx.points || 0), 0);
     });
     dayData.push(entry);
@@ -1607,30 +1616,47 @@ function renderHistory() {
     <span><span class="legend-dot" style="background:${colors[i]||'#fff'}"></span>${esc(c.child_name)}</span>
   `).join('');
 
-  const recentTx = S.transactions.slice(0,30);
-  const txHtml   = recentTx.length ? recentTx.map(tx => {
+  const fromDate = new Date(S.today + 'T00:00:00');
+fromDate.setDate(fromDate.getDate() - (days - 1));
+const fromDateStr = fromDate.toISOString().substring(0,10);
+
+// lấy đúng giao dịch trong window [fromDate .. S.today]
+const recentTx = S.transactions
+  .filter(tx => {
+    const d = String(tx.date || tx.created_at || '').substring(0,10);
+    return d >= fromDateStr && d <= S.today;
+  })
+  .slice(0, 200); // vẫn giới hạn để tránh render quá nặng
+    
+const sortedTx = [...recentTx].sort((a,b) => {
+  const da = String(a.created_at || a.date || '');
+  const db = String(b.created_at || b.date || '');
+  return db.localeCompare(da);
+});
+  const txHtml = sortedTx.length ? sortedTx.map(tx => {
     const pts = Number(tx.points || 0);
     return `
       <div class="tx-item">
         <div class="tx-left">
-          <div class="tx-name">${tx.child_name || ''} · ${tx.note || tx.task_name || tx.type || ''}</div>
-          <div class="tx-meta">${fmtDatetime(tx.created_at)} · ${tx.created_by_name || ''}</div>
+            <div class="tx-name">${esc(tx.child_name || '')} · ${esc(tx.note || tx.task_name || tx.type || '')}</div>
+            <div class="tx-meta">${esc(fmtDatetime(tx.created_at))} · ${esc(tx.created_by_name || '')}</div>
         </div>
         <div class="tx-pts ${pts >= 0 ? 'pos' : 'neg'}">${pts >= 0 ? '+' : ''}${pts}</div>
       </div>
     `;
   }).join('') : '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có dữ liệu</p></div>';
 
-  el.innerHTML = `
-    <div class="sec-title">📅 Lịch Sử</div>
-    <div class="chart-wrap">
-      <div class="chart-title">📈 Biểu Đồ 7 Ngày Gần Đây</div>
-      <div class="bar-chart">${barsHtml}</div>
-      <div class="chart-legend">${legendHtml}</div>
-    </div>
-    <div class="sec-title">📜 Giao Dịch Gần Đây</div>
-    ${txHtml}
-  `;
+el.innerHTML = `
+  <div class="sec-title">📅 Lịch Sử</div>
+  ${historyFilterHtml}
+  <div class="chart-wrap">
+    <div class="chart-title">📈 Biểu Đồ ${days} Ngày Gần Đây</div>
+    <div class="bar-chart">${barsHtml}</div>
+    <div class="chart-legend">${legendHtml}</div>
+  </div>
+  <div class="sec-title">📜 Giao Dịch Gần Đây</div>
+  ${txHtml}
+`;
 }
 
 // ============================================================
