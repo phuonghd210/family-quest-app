@@ -1409,6 +1409,12 @@ async function submitPendingTasks() {
     toast('Không có thay đổi để xác nhận', 'warn');
     return;
   }
+    const completeItems = changes
+    .filter(c => c.toDone)
+    .map(c => ({ child_id: c.child_id, task_id: c.task_id }));
+  const undoItems = changes
+    .filter(c => !c.toDone)
+    .map(c => ({ child_id: c.child_id, task_id: c.task_id }));
 
   S.isSubmittingTasks = true;
   showLoad(true);
@@ -1417,22 +1423,53 @@ async function submitPendingTasks() {
   const fail = [];
 
   try {
-    for (let i = 0; i < changes.length; i++) {
-      const c = changes[i];
-      const action = c.toDone ? 'completeTask' : 'undoTask';
+        const groups = [
+      { type: 'complete', items: completeItems },
+      { type: 'undo', items: undoItems }
+    ].filter(g => g.items.length > 0);
 
-      toast(`Đang gửi ${i + 1}/${changes.length}...`, 'info');
+
+    for (let i = 0; i < groups.length; i++) {
+      const g = groups[i];
+      toast(`Đang gửi batch ${i + 1}/${groups.length}...`, 'info');
 
       try {
-        const r = await api(action, { child_id: c.child_id, task_id: c.task_id });
-        if (r.success) ok++;
-        else fail.push({ ...c, message: r.message || 'Lỗi không xác định' });
+        const r = await api('bulkUpdateTasks', { type: g.type, items: g.items });
+        const results = Array.isArray(r?.results) ? r.results : [];
+
+        if (!r?.success) {
+          g.items.forEach(item => fail.push({
+            ...item,
+            toDone: g.type === 'complete',
+            message: r?.message || 'Lỗi không xác định'
+          }));
+          continue;
+        }
+
+        const failByKey = {};
+        results.forEach(item => {
+          if (!item?.success) {
+            failByKey[taskPendingKey(item.child_id, item.task_id)] = item.message || 'Lỗi không xác định';
+          }
+        });
+
+        g.items.forEach(item => {
+          const key = taskPendingKey(item.child_id, item.task_id);
+          if (failByKey[key]) {
+            fail.push({ ...item, toDone: g.type === 'complete', message: failByKey[key] });
+          } else {
+            ok++;
+          }
+        });
       } catch (err) {
-        fail.push({ ...c, message: 'Lỗi kết nối' });
+        g.items.forEach(item => fail.push({
+          ...item,
+          toDone: g.type === 'complete',
+          message: 'Lỗi kết nối'
+        }));
       }
     }
 
-    // Đồng bộ lại từ server
     await fetchData(true);
 
     if (fail.length === 0) {
@@ -1442,7 +1479,6 @@ async function submitPendingTasks() {
       return;
     }
 
-    // Giữ lại phần lỗi để retry
     const retryMap = {};
     fail.forEach(f => {
       const k = taskPendingKey(f.child_id, f.task_id);
