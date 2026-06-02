@@ -783,9 +783,70 @@ let S = {
   taskFilter:   'all',
   historyDays:  7,
   pendingTaskChanges: {},
-  isSubmittingTasks: false
+  isSubmittingTasks: false,
+  themeId:      'default'
+};
+  
+// ============================================================
+// THEME (model + apply, no UI change)
+// ============================================================
+const THEME_DEFAULT_ID = 'default';
+
+const THEME_REGISTRY = {
+  default: {
+    id: 'default',
+    label: 'Demon Slayer',
+    vars: {
+      '--bg-page':    '#f0fdf4',
+      '--bg-card':    '#ffffff',
+      '--bg-surface': '#f9fafb',
+      '--bg-nav':     '#ffffff',
+      '--green':      '#16a34a',
+      '--green-l':    '#22c55e',
+      '--green-bg':   '#dcfce7',
+      '--pink':       '#ec4899',
+      '--pink-l':     '#f472b6',
+      '--pink-bg':    '#fce7f3',
+      '--gold':       '#f59e0b',
+      '--gold-bg':    '#fef3c7',
+      '--blue':       '#3b82f6',
+      '--blue-bg':    '#dbeafe',
+      '--red':        '#ef4444',
+      '--red-l':      '#f87171',
+      '--text':       '#1e293b',
+      '--dim':        '#64748b',
+      '--text-light': '#94a3b8',
+      '--border':     'rgba(0,0,0,0.08)',
+      '--shadow-sm':  '0 2px 8px rgba(0,0,0,0.08)',
+      '--shadow-md':  '0 4px 16px rgba(0,0,0,0.12)',
+      '--shadow-lg':  '0 8px 32px rgba(0,0,0,0.15)',
+      '--radius':     '20px'
+    }
+  }
 };
 
+function getThemeById(themeId) {
+  const id = String(themeId || '').trim();
+  if (id && THEME_REGISTRY[id]) return THEME_REGISTRY[id];
+  return THEME_REGISTRY[THEME_DEFAULT_ID];
+}
+
+function applyThemeById(themeId) {
+  const theme = getThemeById(themeId);
+  const vars = theme?.vars || {};
+  const rootStyle = document.documentElement.style;
+
+  Object.entries(vars).forEach(([key, value]) => {
+    if (!key || typeof key !== 'string') return;
+    if (!key.startsWith('--')) return;
+    if (typeof value !== 'string' || !value.trim()) return;
+    rootStyle.setProperty(key, value);
+  });
+
+  S.themeId = theme.id || THEME_DEFAULT_ID;
+  return S.themeId;
+}
+  
 // ============================================================
 // API
 // ============================================================
@@ -883,6 +944,11 @@ async function fetchData(silent = false) {
       S.redemptions  = r.redemptions   || [];
       S.today        = r.today         || '';
       S.week_start   = r.week_start    || '';
+      const backendThemeId =
+        r?.theme_config?.theme_id ||
+        r?.settings?.theme_id ||
+        THEME_DEFAULT_ID;
+      applyThemeById(backendThemeId);
       renderTab(S.activeTab);
     } else {
       if (!silent) toast(r.message || 'Không tải được dữ liệu', 'error');
