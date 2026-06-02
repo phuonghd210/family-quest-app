@@ -398,16 +398,19 @@
       padding: 16px 16px 0 16px;
     }
 
-    .cat-filter { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-bottom: 16px; padding-bottom: 4px; }
-    .cat-filter::-webkit-scrollbar { display: none; }
-    .cat-pill {
-      flex-shrink: 0; padding: 7px 16px; border-radius: 999px;
-      background: #f1f5f9; border: 1px solid transparent;
-      color: var(--dim); font-size: 13px; font-weight: 700;
-      cursor: pointer; white-space: nowrap; transition: all 0.2s ease; min-height: 36px;
+    .cat-filter { margin-bottom: 16px; }
+    .cat-filter label {
+      display: block; margin-bottom: 6px;
+      color: var(--dim); font-size: 12px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.6px;
     }
-    .cat-pill:hover  { background: var(--green-bg); color: var(--green); }
-    .cat-pill.active { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,0.3); }
+    .cat-filter-select {
+      width: 100%; min-height: 42px; padding: 9px 12px;
+      border: 1px solid var(--border); border-radius: 12px;
+      background: #fff; color: var(--text);
+      font-size: 14px; font-weight: 700;
+      box-shadow: var(--shadow-sm);
+    }
 
     .cat-section       { margin-bottom: 22px; }
     .cat-section-title { font-size: 12px; font-weight: 800; color: var(--dim); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.8px; }
@@ -768,6 +771,8 @@ function safeParseUser(raw) {
   try { return JSON.parse(raw || 'null'); }
   catch { return null; }
 }
+const THEME_DEFAULT_ID = 'default';
+const THEME_STORAGE_KEY = 'fq_theme_id';
 let S = {
   token:        localStorage.getItem('fq_token') || null,
   user:         safeParseUser(localStorage.getItem('fq_user')),
@@ -784,14 +789,12 @@ let S = {
   historyDays:  7,
   pendingTaskChanges: {},
   isSubmittingTasks: false,
-  themeId:      'default'
+  themeId:      localStorage.getItem(THEME_STORAGE_KEY) || THEME_DEFAULT_ID
 };
-  
-// ============================================================
-// THEME (model + apply, no UI change)
-// ============================================================
-const THEME_DEFAULT_ID = 'default';
 
+// ============================================================
+// THEME
+// ============================================================
 const THEME_REGISTRY = {
   default: {
     id: 'default',
@@ -831,6 +834,11 @@ function getThemeById(themeId) {
   return THEME_REGISTRY[THEME_DEFAULT_ID];
 }
 
+function getStoredThemeId() {
+  const id = String(localStorage.getItem(THEME_STORAGE_KEY) || '').trim();
+  return id && THEME_REGISTRY[id] ? id : '';
+}
+
 function applyThemeById(themeId) {
   const theme = getThemeById(themeId);
   const vars = theme?.vars || {};
@@ -845,6 +853,18 @@ function applyThemeById(themeId) {
 
   S.themeId = theme.id || THEME_DEFAULT_ID;
   return S.themeId;
+}
+
+function saveThemePreference(themeId) {
+  const appliedThemeId = applyThemeById(themeId);
+  localStorage.setItem(THEME_STORAGE_KEY, appliedThemeId);
+  return appliedThemeId;
+}
+
+function previewTheme(themeId) {
+  const appliedThemeId = saveThemePreference(themeId);
+  renderTab(S.activeTab);
+  toast('Đã lưu theme: ' + getThemeById(appliedThemeId).label, 'success');
 }
   
 // ============================================================
@@ -1348,10 +1368,12 @@ function taskCategoryKeys(tasks = S.tasks) {
 
   return `
     <div class="cat-filter">
-      ${cats.map(c => `
-        <div class="cat-pill ${taskFilter === c.key ? 'active' : ''}"
-             data-filter-key="${esc(c.key)}">${esc(c.label)}</div>
-      `).join('')}
+      <label for="task-category-filter">Lọc nhóm đánh giá</label>
+      <select id="task-category-filter" class="cat-filter-select" onchange="setTaskFilter(this.value)">
+        ${cats.map(c => `
+          <option value="${esc(c.key)}" ${taskFilter === c.key ? 'selected' : ''}>${esc(c.label)}</option>
+        `).join('')}
+      </select>
     </div>
   `;
 }
@@ -1440,14 +1462,6 @@ function setTaskFilter(key) {
   renderTasks();
 }
 
-function handleTaskFilterClick(event) {
-  const pill = event.target.closest('.cat-pill');
-  if (!pill) return false;
-  const filterKey = pill.dataset.filterKey;
-  if (!filterKey) return true;
-  setTaskFilter(filterKey);
-  return true;
-}
 
 function handleTaskPendingActionClick(event) {
   const btn = event.target.closest('[data-task-action]');
@@ -1461,8 +1475,6 @@ function handleTaskPendingActionClick(event) {
 function handleTasksContainerClick(event) {
   // Ưu tiên nút action trước
   if (handleTaskPendingActionClick(event)) return;
-  // Sau đó đến filter tabs
-  handleTaskFilterClick(event);
 }
 
 function bindTaskTabClickOnce() {
