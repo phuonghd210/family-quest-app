@@ -1171,6 +1171,7 @@ async function handleLogin(e) {
       errEl.style.display = 'block';
     }
   } catch(err) {
+    console.error('login error:', err);
     toast('⚠️ Không kết nối được server', 'error');
   }
   showLoad(false);
