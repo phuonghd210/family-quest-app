@@ -744,10 +744,10 @@
       <span class="tab-icon">⚔️</span>Hôm nay
     </button>
     <button class="tab-btn" data-tab="tasks"    onclick="switchTab('tasks')">
-      <span class="tab-icon">📜</span>Nhiệm vụ
+      <span class="tab-icon">📝</span>Đánh giá
     </button>
     <button class="tab-btn" data-tab="points"   onclick="switchTab('points')">
-      <span class="tab-icon">💎</span>Điểm
+      <span class="tab-icon">⚡</span>Bổ sung
     </button>
     <button class="tab-btn" data-tab="rewards"  onclick="switchTab('rewards')">
       <span class="tab-icon">🌸</span>Thưởng
@@ -762,7 +762,7 @@
 </div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxtFO98RQMbgZyTVUP7thK9Vv1Ok6mEOA4IosA0l9I_SHy8BCXoBDyOYPhVn5I2kDCc/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxziVCpBIl9jm9TVxnDZYn9vcX2Vk5vnaT_KyO2VmpthmJvy3lAUah4Ai1vpvDPXwV_/exec';
 
 function safeParseUser(raw) {
   try { return JSON.parse(raw || 'null'); }
@@ -1373,7 +1373,7 @@ function renderTasks() {
     const groups = tasksGroupByCategory(activeTasks);
 
     let html = `
-      <div class="sec-title">📜 Nhiệm Vụ Hôm Nay</div>
+      <div class="sec-title">📝 Đánh Giá Hôm Nay</div>
       ${tasksBuildPendingBarHtml({ canInteract })}
       ${tasksBuildFilterHtml(S.taskFilter)}
     `;
@@ -1414,7 +1414,7 @@ function renderTasks() {
     el.innerHTML = html;
   } catch (err) {
     console.error('renderTasks fatal:', err);
-    el.innerHTML = '<div class="empty-state"><div class="es-icon">⚠️</div><p>Lỗi hiển thị Nhiệm vụ. Mở Console để xem chi tiết.</p></div>';
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">⚠️</div><p>Lỗi hiển thị Đánh giá. Mở Console để xem chi tiết.</p></div>';
   }
 }
 
@@ -1610,7 +1610,7 @@ function renderPoints() {
   const txHtml = pointsBuildRecentTxHtml(S.transactions);
 
   el.innerHTML = `
-    <div class="sec-title">💎 Thưởng / Phạt Điểm</div>
+    <div class="sec-title">⚡ Bổ Sung Thưởng / Phạt Điểm</div>
     ${formHtml}
     <div class="recent-tx">
       <div class="sec-title" style="margin-top:20px">📜 Hoạt Động Gần Đây</div>
