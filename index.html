@@ -771,49 +771,6 @@ function safeParseUser(raw) {
   try { return JSON.parse(raw || 'null'); }
   catch { return null; }
 }
-const THEME_DEFAULT_ID = 'default';
-const THEME_STORAGE_KEY = 'fq_theme_id';
-let S = {
-  token:        localStorage.getItem('fq_token') || null,
-  user:         safeParseUser(localStorage.getItem('fq_user')),
-  children:     [],
-  tasks:        [],
-  rewards:      [],
-  transactions: [],
-  dailyStatus:  [],
-  redemptions:  [],
-  today:        '',
-  week_start:   '',
-  activeTab:    'today',
-  taskFilter:   'all',
-  historyDays:  7,
-  pendingTaskChanges: {},
-  @@ -746,68 +746,156 @@
-    <button class="tab-btn" data-tab="tasks"    onclick="switchTab('tasks')">
-      <span class="tab-icon">📝</span>Đánh giá
-    </button>
-    <button class="tab-btn" data-tab="points"   onclick="switchTab('points')">
-      <span class="tab-icon">⚡</span>Bổ sung
-    </button>
-    <button class="tab-btn" data-tab="rewards"  onclick="switchTab('rewards')">
-      <span class="tab-icon">🌸</span>Thưởng
-    </button>
-    <button class="tab-btn" data-tab="rankings" onclick="switchTab('rankings')">
-      <span class="tab-icon">🏆</span>Xếp hạng
-    </button>
-    <button class="tab-btn" data-tab="history"  onclick="switchTab('history')">
-      <span class="tab-icon">📅</span>Lịch sử
-    </button>
-  </nav>
-</div>
-
-<script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxziVCpBIl9jm9TVxnDZYn9vcX2Vk5vnaT_KyO2VmpthmJvy3lAUah4Ai1vpvDPXwV_/exec';
-
-function safeParseUser(raw) {
-  try { return JSON.parse(raw || 'null'); }
-  catch { return null; }
-}
 
 const THEME_DEFAULT_ID = 'default';
 const THEME_STORAGE_KEY = 'fq_theme_id';
@@ -834,9 +791,6 @@ let S = {
   historyDays:  7,
   pendingTaskChanges: {},
   isSubmittingTasks: false
-  isSubmittingTasks: false,
-  themeId:      localStorage.getItem(THEME_STORAGE_KEY) || THEME_DEFAULT_ID,
-  backendThemeId: THEME_DEFAULT_ID
 };
 
 // ============================================================
