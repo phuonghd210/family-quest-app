@@ -788,8 +788,55 @@ let S = {
   taskFilter:   'all',
   historyDays:  7,
   pendingTaskChanges: {},
+  @@ -746,68 +746,156 @@
+    <button class="tab-btn" data-tab="tasks"    onclick="switchTab('tasks')">
+      <span class="tab-icon">📝</span>Đánh giá
+    </button>
+    <button class="tab-btn" data-tab="points"   onclick="switchTab('points')">
+      <span class="tab-icon">⚡</span>Bổ sung
+    </button>
+    <button class="tab-btn" data-tab="rewards"  onclick="switchTab('rewards')">
+      <span class="tab-icon">🌸</span>Thưởng
+    </button>
+    <button class="tab-btn" data-tab="rankings" onclick="switchTab('rankings')">
+      <span class="tab-icon">🏆</span>Xếp hạng
+    </button>
+    <button class="tab-btn" data-tab="history"  onclick="switchTab('history')">
+      <span class="tab-icon">📅</span>Lịch sử
+    </button>
+  </nav>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbxziVCpBIl9jm9TVxnDZYn9vcX2Vk5vnaT_KyO2VmpthmJvy3lAUah4Ai1vpvDPXwV_/exec';
+
+function safeParseUser(raw) {
+  try { return JSON.parse(raw || 'null'); }
+  catch { return null; }
+}
+
+const THEME_DEFAULT_ID = 'default';
+const THEME_STORAGE_KEY = 'fq_theme_id';
+
+let S = {
+  token:        localStorage.getItem('fq_token') || null,
+  user:         safeParseUser(localStorage.getItem('fq_user')),
+  children:     [],
+  tasks:        [],
+  rewards:      [],
+  transactions: [],
+  dailyStatus:  [],
+  redemptions:  [],
+  today:        '',
+  week_start:   '',
+  activeTab:    'today',
+  taskFilter:   'all',
+  historyDays:  7,
+  pendingTaskChanges: {},
+  isSubmittingTasks: false
   isSubmittingTasks: false,
-  themeId:      localStorage.getItem(THEME_STORAGE_KEY) || THEME_DEFAULT_ID
+  themeId:      localStorage.getItem(THEME_STORAGE_KEY) || THEME_DEFAULT_ID,
+  backendThemeId: THEME_DEFAULT_ID
 };
 
 // ============================================================
@@ -865,6 +912,13 @@ function previewTheme(themeId) {
   const appliedThemeId = saveThemePreference(themeId);
   renderTab(S.activeTab);
   toast('Đã lưu theme: ' + getThemeById(appliedThemeId).label, 'success');
+}
+
+function clearThemePreference() {
+  localStorage.removeItem(THEME_STORAGE_KEY);
+  const appliedThemeId = applyThemeById(S.backendThemeId || THEME_DEFAULT_ID);
+  renderTab(S.activeTab);
+  toast('Đã dùng lại theme Google Sheet: ' + getThemeById(appliedThemeId).label, 'success');
 }
   
 // ============================================================
@@ -968,7 +1022,8 @@ async function fetchData(silent = false) {
         r?.theme_config?.theme_id ||
         r?.settings?.theme_id ||
         THEME_DEFAULT_ID;
-      applyThemeById(backendThemeId);
+      S.backendThemeId = getThemeById(backendThemeId).id || THEME_DEFAULT_ID;
+      applyThemeById(getStoredThemeId() || S.backendThemeId);
       renderTab(S.activeTab);
     } else {
       if (!silent) toast(r.message || 'Không tải được dữ liệu', 'error');
@@ -2065,7 +2120,8 @@ const themeOpts = Object.values(THEME_REGISTRY)
         <label>Theme đang xem</label>
         <select id="theme-select" class="form-select" onchange="previewTheme(this.value)">${themeOpts}</select>
       </div>
-      <p style="font-size:12px;color:var(--dim);line-height:1.45;margin-top:8px">Chỉ xem thử trong phiên hiện tại. Theme từ Google Sheet sẽ được áp dụng lại khi tải dữ liệu.</p>
+      <button class="btn-setting" onclick="clearThemePreference()">↩️ Dùng theme Google Sheet</button>
+      <p style="font-size:12px;color:var(--dim);line-height:1.45;margin-top:8px">Lưu trên trình duyệt này. Nếu muốn quay về cấu hình Google Sheet, bấm nút trên.</p>
     </div>
     <div class="settings-card">
       <h3>🗡️ Quản Lý Hệ Thống</h3>
