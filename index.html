@@ -954,7 +954,12 @@ function childDisplayScore(childId) {
 function scoreBarWidth(value, maxVal) {
   return Math.max(0, Math.round(Number(value || 0) / maxVal * 100));
 }
-
+  
+function formatTaskPoints(points) {
+  const pts = Number(points || 0);
+  return `${pts > 0 ? '+' : ''}${pts} ⭐`;
+}
+  
 function isTaskDone(childId, taskId) {
   return S.dailyStatus.some(ds =>
     String(ds.child_id) === String(childId) &&
@@ -1390,7 +1395,7 @@ function renderTasks() {
           <div class="task-item">
             <div class="task-item-head">
               <span class="task-name-text">${esc(task.task_name)}</span>
-              <span class="task-pts-badge">+${Number(task.points || 0)} ⭐</span>
+              <span class="task-pts-badge">${formatTaskPoints(task.points)}</span>
             </div>
             <div class="task-checks">
         `;
