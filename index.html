@@ -2042,8 +2042,19 @@ function renderSettings() {
 const catOpts  = cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
 const assignOpts = `<option value="both">👥 Cả hai</option>` +
   S.children.map(c => `<option value="${esc(c.child_key || c.child_id)}">${esc(c.avatar_icon || '')} ${esc(c.child_name)}</option>`).join('');
+const themeOpts = Object.values(THEME_REGISTRY)
+    .map(theme => `<option value="${esc(theme.id)}" ${theme.id === S.themeId ? 'selected' : ''}>${esc(theme.label)}</option>`)
+    .join('');
 
   const adminSection = role === 'admin' ? `
+      <div class="settings-card">
+      <h3>🎨 Theme</h3>
+      <div class="form-row">
+        <label>Theme đang xem</label>
+        <select id="theme-select" class="form-select" onchange="previewTheme(this.value)">${themeOpts}</select>
+      </div>
+      <p style="font-size:12px;color:var(--dim);line-height:1.45;margin-top:8px">Chỉ xem thử trong phiên hiện tại. Theme từ Google Sheet sẽ được áp dụng lại khi tải dữ liệu.</p>
+    </div>
     <div class="settings-card">
       <h3>🗡️ Quản Lý Hệ Thống</h3>
       <button class="btn-setting"        onclick="doResetToday()">🔄 Đặt Lại Nhiệm Vụ Hôm Nay</button>
