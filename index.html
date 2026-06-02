@@ -950,6 +950,9 @@ function clearThemePreference() {
   renderTab(S.activeTab);
   toast('Đã dùng lại theme Google Sheet: ' + getThemeById(appliedThemeId).label, 'success');
 }
+
+S.themeId = getStoredThemeId() || THEME_DEFAULT_ID;
+S.backendThemeId = THEME_DEFAULT_ID;
   
 // ============================================================
 // API
