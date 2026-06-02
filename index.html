@@ -917,6 +917,44 @@ function childScore(childId) {
   };
 }
 
+function txDateKey(tx) {
+  return String(tx.date || tx.created_at || '').substring(0, 10);
+}
+
+function isRedeemTransaction(tx) {
+  const type = String(tx.type || '').toLowerCase();
+  return type.includes('redeem') || type.includes('redemption') || type.includes('reward');
+}
+
+function transactionScoreForChild(childId, { fromDate = '', toDate = '' } = {}) {
+  return S.transactions
+    .filter(tx => {
+      const txDay = txDateKey(tx);
+      return String(tx.child_id) === String(childId) &&
+        !isRedeemTransaction(tx) &&
+        (!fromDate || txDay >= fromDate) &&
+        (!toDate || txDay <= toDate);
+    })
+    .reduce((sum, tx) => sum + Number(tx.points || 0), 0);
+}
+
+function childDisplayScore(childId) {
+  const c = childScore(childId);
+  return {
+    ...c,
+    today_score: S.today
+      ? transactionScoreForChild(childId, { fromDate: S.today, toDate: S.today })
+      : c.today_score,
+    week_score: S.week_start && S.today
+      ? transactionScoreForChild(childId, { fromDate: S.week_start, toDate: S.today })
+      : c.week_score
+  };
+}
+
+function scoreBarWidth(value, maxVal) {
+  return Math.max(0, Math.round(Number(value || 0) / maxVal * 100));
+}
+
 function isTaskDone(childId, taskId) {
   return S.dailyStatus.some(ds =>
     String(ds.child_id) === String(childId) &&
@@ -1134,7 +1172,7 @@ function renderToday() {
     el.innerHTML = '<div class="empty-state"><div class="es-icon">🌸</div><p>Đang tải dữ liệu...</p></div>';
     return;
   }
-  const scored      = S.children.map(c => ({ ...c, ...childScore(c.child_id) }));
+  const scored      = S.children.map(c => ({ ...c, ...childDisplayScore(c.child_id) }));
   const todayLeader = scored.reduce((a,b) => a.today_score >= b.today_score ? a : b);
   const weekLeader  = scored.reduce((a,b) => a.week_score  >= b.week_score  ? a : b);
 
@@ -1154,7 +1192,7 @@ function renderToday() {
   `;
 
   scored.forEach(c => {
-    const pct = Math.min(100, c.daily_target > 0 ? Math.round(c.today_score / c.daily_target * 100) : 0);
+    const pct = Math.max(0, Math.min(100, c.daily_target > 0 ? Math.round(c.today_score / c.daily_target * 100) : 0));
     html += `
       <div class="child-card">
         <div class="child-card-head">
@@ -1727,11 +1765,11 @@ function renderRankings() {
     return;
   }
   const scored = S.children
-    .map(c => ({ ...c, ...childScore(c.child_id) }))
+    .map(c => ({ ...c, ...childDisplayScore(c.child_id) }))
     .sort((a,b) => b.week_score - a.week_score);
 
   const rankEmojis = ['🥇','🥈','🥉'];
-  const allScored  = S.children.map(c => ({ ...c, ...childScore(c.child_id) }));
+  const allScored  = S.children.map(c => ({ ...c, ...childDisplayScore(c.child_id) }));
   const colors     = ['c1','c2','c3','c4'];
 
   const rankCards = scored.map((c,i) => `
@@ -1754,7 +1792,7 @@ function renderRankings() {
         <span class="compare-label">${labels[metric]}</span>
         <div class="compare-bar-wrap">
           <div class="compare-bar-track">
-            ${allScored.map((c,i) => `<div class="cbar ${colors[i]}" style="width:${Math.round(c[metric]/maxVal*100)}%"></div>`).join('')}
+            ${allScored.map((c,i) => `<div class="cbar ${colors[i]}" style="width:${scoreBarWidth(c[metric], maxVal)}%"></div>`).join('')}
           </div>
           <div class="compare-values">
             ${allScored.map(c => `<span>${esc(esc(c.child_name))}: ${Number(c[metric] || 0)}</span>`).join('')}
