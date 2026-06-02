@@ -1226,14 +1226,58 @@ function renderToday() {
 // ============================================================
 // RENDER: TASKS
 // ============================================================
-function tasksBuildFilterHtml(taskFilter) {
+  const TASK_CATEGORY_ICONS = {
+  'Tác phong hằng ngày': '🌅',
+  'Việc nhà': '🏠',
+  'Học tập': '📚',
+  'Điểm phát sinh': '⚡',
+  'Thành tích': '🏆',
+  'Hành vi trừ điểm': '🚫',
+  'Khác': '🏷️'
+};
+
+const TASK_CATEGORY_SHORT_LABELS = {
+  'Tác phong hằng ngày': 'Tác phong',
+  'Điểm phát sinh': 'Phát sinh'
+};
+
+const DEFAULT_TASK_CATEGORIES = [
+  'Tác phong hằng ngày',
+  'Việc nhà',
+  'Học tập',
+  'Điểm phát sinh',
+  'Thành tích',
+  'Hành vi trừ điểm'
+];
+
+function taskCategoryKey(task) {
+  return String(task?.category || 'Khác').trim() || 'Khác';
+}
+
+function taskCategoryLabel(category) {
+  const key = String(category || 'Khác');
+  const icon = TASK_CATEGORY_ICONS[key] || '🏷️';
+  const label = TASK_CATEGORY_SHORT_LABELS[key] || key;
+  return `${icon} ${label}`;
+}
+
+function taskCategoryKeys(tasks = S.tasks) {
+  const seen = new Set();
+  const keys = [];
+  const addKey = key => {
+    if (seen.has(key)) return;
+    seen.add(key);
+    keys.push(key);
+  };
+
+  DEFAULT_TASK_CATEGORIES.forEach(addKey);
+  (tasks || []).forEach(task => addKey(taskCategoryKey(task)));
+  return keys;
+}
+  function tasksBuildFilterHtml(taskFilter) {
   const cats = [
-    { key: 'all',                 label: '🔍 Tất cả' },
-    { key: 'Tác phong hằng ngày', label: '🌅 Tác phong' },
-    { key: 'Việc nhà',            label: '🏠 Việc nhà' },
-    { key: 'Học tập',             label: '📚 Học tập' },
-    { key: 'Điểm phát sinh',      label: '⚡ Phát sinh' },
-    { key: 'Thành tích',          label: '🏆 Thành tích' }
+      { key: 'all', label: '🔍 Tất cả' },
+          ...taskCategoryKeys().map(key => ({ key, label: taskCategoryLabel(key) }))
   ];
 
   return `
@@ -1265,7 +1309,7 @@ function tasksBuildPendingBarHtml({ canInteract }) {
 function tasksGroupByCategory(tasks) {
   const groups = {};
   tasks.forEach(t => {
-    const cat = t.category || 'Khác';
+    const cat = taskCategoryKey(t);
     if (!groups[cat]) groups[cat] = [];
     groups[cat].push(t);
   });
@@ -1369,7 +1413,7 @@ function renderTasks() {
 
   try {
     const canInteract = S.user?.role === 'admin' || S.user?.role === 'scorer';
-    const activeTasks = S.tasks.filter(t => S.taskFilter === 'all' || t.category === S.taskFilter);
+    const activeTasks = S.tasks.filter(t => S.taskFilter === 'all' || taskCategoryKey(t) === S.taskFilter);
     const groups = tasksGroupByCategory(activeTasks);
 
     let html = `
@@ -1928,7 +1972,7 @@ function renderSettings() {
     el.innerHTML = '<div class="empty-state"><div class="es-icon">🔒</div><p>Chỉ dành cho admin/scorer</p></div>';
     return;
   }
-  const cats     = ['Tác phong hằng ngày','Việc nhà','Học tập','Điểm phát sinh','Thành tích'];
+  const cats     = taskCategoryKeys();
 const catOpts  = cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
 const assignOpts = `<option value="both">👥 Cả hai</option>` +
   S.children.map(c => `<option value="${esc(c.child_key || c.child_id)}">${esc(c.avatar_icon || '')} ${esc(c.child_name)}</option>`).join('');
