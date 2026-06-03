@@ -651,7 +651,7 @@
 <!-- LOADING -->
 <div id="loading">
   <div class="spinner"></div>
-  <span>⚔️ Đang tải...</span>
+  <span id="loading-text">⚔️ Đang tải...</span>
 </div>
 
 <!-- TOAST -->
@@ -675,27 +675,27 @@
   <!-- Tanjiro — bên trái -->
   <div class="login-deco-left" aria-hidden="true">
     <div class="deco-inner">
-      <span class="deco-char">⚔️</span>
-      <div class="deco-jp">水の呼吸</div>
-      <div class="deco-emojis">🌿🗡️🌊</div>
+      <span class="deco-char" id="login-deco-left-char">⚔️</span>
+      <div class="deco-jp" id="login-deco-left-title">水の呼吸</div>
+      <div class="deco-emojis" id="login-deco-left-emojis">🌿🗡️🌊</div>
     </div>
   </div>
 
   <!-- Nezuko — bên phải -->
   <div class="login-deco-right" aria-hidden="true">
     <div class="deco-inner">
-      <span class="deco-char">🌸</span>
-      <div class="deco-jp">鬼滅の刃</div>
-      <div class="deco-emojis">🌸💮🎋</div>
+      <span class="deco-char" id="login-deco-right-char">🌸</span>
+      <div class="deco-jp" id="login-deco-right-title">鬼滅の刃</div>
+      <div class="deco-emojis" id="login-deco-right-emojis">🌸💮🎋</div>
     </div>
   </div>
 
   <div class="login-card">
     <div class="login-logo">
       <div class="login-card-header">
-        <span class="logo-icon">🏆</span>
-        <h1>⚔️ Bảng Theo dõi điểm thưởng</h1>
-        <p>Hành trình chinh phục thế giới 🌸</p>
+        <span class="logo-icon" id="login-logo-icon">🏆</span>
+        <h1 id="login-title">⚔️ Bảng Theo dõi điểm thưởng</h1>
+        <p id="login-subtitle">Hành trình chinh phục thế giới 🌸</p>
       </div>
     </div>
     <div class="chars-row" id="chars-row"></div>
@@ -714,7 +714,7 @@
           <button type="button" class="pw-toggle" onclick="togglePw()">👁️</button>
         </div>
       </div>
-      <button type="submit" class="btn-login">🗡️ Bắt Đầu Hành Trình</button>
+      <button type="submit" class="btn-login" id="login-submit">🗡️ Bắt Đầu Hành Trình</button>
     </form>
   </div>
 </div>
@@ -744,22 +744,22 @@
 
   <nav class="tab-nav">
     <button class="tab-btn active" data-tab="today"    onclick="switchTab('today')">
-      <span class="tab-icon">⚔️</span>Hôm nay
+      <span class="tab-icon" id="tab-icon-today">⚔️</span>Hôm nay
     </button>
     <button class="tab-btn" data-tab="tasks"    onclick="switchTab('tasks')">
-      <span class="tab-icon">📝</span>Đánh giá
+      <span class="tab-icon" id="tab-icon-tasks">📝</span>Đánh giá
     </button>
     <button class="tab-btn" data-tab="points"   onclick="switchTab('points')">
-      <span class="tab-icon">⚡</span>Bổ sung
+      <span class="tab-icon" id="tab-icon-points">⚡</span>Bổ sung
     </button>
     <button class="tab-btn" data-tab="rewards"  onclick="switchTab('rewards')">
-      <span class="tab-icon">🌸</span>Thưởng
+      <span class="tab-icon" id="tab-icon-rewards">🌸</span>Thưởng
     </button>
     <button class="tab-btn" data-tab="rankings" onclick="switchTab('rankings')">
-      <span class="tab-icon">🏆</span>Xếp hạng
+      <span class="tab-icon" id="tab-icon-rankings">🏆</span>Xếp hạng
     </button>
     <button class="tab-btn" data-tab="history"  onclick="switchTab('history')">
-      <span class="tab-icon">📅</span>Lịch sử
+      <span class="tab-icon" id="tab-icon-history">📅</span>Lịch sử
     </button>
   </nav>
 </div>
@@ -825,6 +825,22 @@ const THEME_REGISTRY = {
       '--shadow-md':  '0 4px 16px rgba(0,0,0,0.12)',
       '--shadow-lg':  '0 8px 32px rgba(0,0,0,0.15)',
       '--radius':     '20px'
+    },
+    content: {
+      appTitle: '⚔️ Bảng Theo dõi điểm thưởng',
+      loadingText: '⚔️ Đang tải...',
+      login: {
+        leftChar: '⚔️', leftTitle: '水の呼吸', leftEmojis: '🌿🗡️🌊',
+        rightChar: '🌸', rightTitle: '鬼滅の刃', rightEmojis: '🌸💮🎋',
+        logoIcon: '🏆', title: '⚔️ Bảng Theo dõi điểm thưởng',
+        subtitle: 'Hành trình chinh phục thế giới 🌸',
+        submitText: '🗡️ Bắt Đầu Hành Trình',
+        users: [
+          { icon: '⚔️', name: 'Bố / Mẹ', role: 'admin / scorer' },
+          { icon: '🌸', name: 'Các bé', role: 'viewer' }
+        ]
+      },
+      tabs: { today: '⚔️', tasks: '📝', points: '⚡', rewards: '🌸', rankings: '🏆', history: '📅' }
     }
   },
   ocean: {
@@ -855,6 +871,22 @@ const THEME_REGISTRY = {
       '--shadow-md':  '0 4px 16px rgba(14,165,233,0.14)',
       '--shadow-lg':  '0 8px 32px rgba(14,165,233,0.18)',
       '--radius':     '20px'
+    },
+    content: {
+      appTitle: '🌊 Bảng Theo dõi thủy thủ nhí',
+      loadingText: '🌊 Đang ra khơi...',
+      login: {
+        leftChar: '🌊', leftTitle: 'ĐẠI DƯƠNG', leftEmojis: '🐚⚓🐬',
+        rightChar: '🐳', rightTitle: 'PHIÊU LƯU', rightEmojis: '🦀🐠⭐',
+        logoIcon: '🏝️', title: '🌊 Bảng Theo dõi thủy thủ nhí',
+        subtitle: 'Cùng ra khơi gom sao thưởng 🐚',
+        submitText: '⚓ Ra Khơi',
+        users: [
+          { icon: '👨‍✈️', name: 'Thuyền trưởng', role: 'admin / scorer' },
+          { icon: '🧒', name: 'Thủy thủ nhí', role: 'viewer' }
+        ]
+      },
+      tabs: { today: '🌊', tasks: '🧭', points: '⭐', rewards: '🐚', rankings: '🏆', history: '🗺️' }
     }
   }
 };
@@ -870,6 +902,43 @@ function getStoredThemeId() {
   return id && THEME_REGISTRY[id] ? id : '';
 }
 
+function setTextById(id, value) {
+  const el = document.getElementById(id);
+  if (!el || typeof value !== 'string') return;
+  el.textContent = value;
+}
+
+function applyThemeContent(theme) {
+  const content = theme?.content || THEME_REGISTRY[THEME_DEFAULT_ID].content || {};
+  const login = content.login || {};
+  const tabs = content.tabs || {};
+
+  if (content.appTitle) document.title = content.appTitle;
+  setTextById('loading-text', content.loadingText);
+  setTextById('login-deco-left-char', login.leftChar);
+  setTextById('login-deco-left-title', login.leftTitle);
+  setTextById('login-deco-left-emojis', login.leftEmojis);
+  setTextById('login-deco-right-char', login.rightChar);
+  setTextById('login-deco-right-title', login.rightTitle);
+  setTextById('login-deco-right-emojis', login.rightEmojis);
+  setTextById('login-logo-icon', login.logoIcon);
+  setTextById('login-title', login.title);
+  setTextById('login-subtitle', login.subtitle);
+  setTextById('login-submit', login.submitText);
+  setTextById('tab-icon-today', tabs.today);
+  setTextById('tab-icon-tasks', tabs.tasks);
+  setTextById('tab-icon-points', tabs.points);
+  setTextById('tab-icon-rewards', tabs.rewards);
+  setTextById('tab-icon-rankings', tabs.rankings);
+  setTextById('tab-icon-history', tabs.history);
+}
+
+function getThemeLoginUsers() {
+  const theme = getThemeById(S.themeId);
+  const users = theme?.content?.login?.users;
+  return Array.isArray(users) && users.length ? users : THEME_REGISTRY[THEME_DEFAULT_ID].content.login.users;
+}
+
 function applyThemeById(themeId) {
   const theme = getThemeById(themeId);
   const vars = theme?.vars || {};
@@ -883,6 +952,7 @@ function applyThemeById(themeId) {
   });
 
   S.themeId = theme.id || THEME_DEFAULT_ID;
+  applyThemeContent(theme);
   return S.themeId;
 }
 
@@ -907,6 +977,7 @@ function clearThemePreference() {
 
 S.themeId = getStoredThemeId() || THEME_DEFAULT_ID;
 S.backendThemeId = THEME_DEFAULT_ID;
+applyThemeById(S.themeId);
   
 // ============================================================
 // API
@@ -1172,10 +1243,7 @@ async function init() {
 
 function buildLoginChars() {
   const row = document.getElementById('chars-row');
-  const chars = [
-    { icon: '⚔️', name: 'Bố / Mẹ',  role: 'admin / scorer' },
-    { icon: '🌸', name: 'Các bé',    role: 'viewer' }
-  ];
+  const chars = getThemeLoginUsers();
   row.innerHTML = chars.map(c => `
     <div class="char-btn">
       <span class="char-icon">${c.icon}</span>
