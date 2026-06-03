@@ -855,7 +855,10 @@ const THEME_REGISTRY = {
         categoryLabel: 'Danh mục', pointsLabel: 'Số điểm', assignToLabel: 'Giao cho',
         addRewardTitle: '🌸 Thêm Phần Thưởng Mới', addRewardButton: '🌸 Thêm Phần Thưởng', rewardNameLabel: 'Tên phần thưởng',
         iconLabel: 'Icon', requiredPointsLabel: 'Điểm cần', historyTitle: '📅 Lịch Sử', historyRangeLabel: '🗂️ Khoảng thời gian',
-        historyChartTitle: '📈 Biểu Đồ', historyRecentTxTitle: '📜 Giao Dịch Gần Đây'
+        historyChartTitle: '📈 Biểu Đồ', historyRecentTxTitle: '📜 Giao Dịch Gần Đây', pointsTitle: '⚡ Bổ Sung Thưởng / Phạt Điểm',
+        pointsChildLabel: '👶 Chọn bé', pointsTypeLabel: 'Loại', bonusButton: '➕ Thưởng', penaltyButton: '➖ Phạt',
+        pointsNoteLabel: '📝 Lý do', pointsInputLabel: '🔢 Số điểm', pointsSubmitButton: '✅ Xác Nhận', pointsRecentTitle: '📜 Hoạt Động Gần Đây',
+        pointsEmptyIcon: '📜', pointsEmptyText: 'Chưa có hoạt động nào', chooseChildWarn: 'Chọn bé', invalidPointsWarn: 'Nhập số điểm hợp lệ'
       }
     }
   },
@@ -917,7 +920,10 @@ const THEME_REGISTRY = {
         categoryLabel: 'Nhóm nhiệm vụ', pointsLabel: 'Sao thưởng', assignToLabel: 'Giao cho thủy thủ',
         addRewardTitle: '🐚 Thêm Kho Báu Mới', addRewardButton: '🐚 Thêm Kho Báu', rewardNameLabel: 'Tên kho báu',
         iconLabel: 'Biểu tượng', requiredPointsLabel: 'Sao cần đổi', historyTitle: '🗺️ Hải Trình Đã Qua', historyRangeLabel: '🧭 Khoảng thời gian',
-        historyChartTitle: '📈 Bản Đồ Tiến Bộ', historyRecentTxTitle: '📜 Nhật Ký Gần Đây'
+        historyChartTitle: '📈 Bản Đồ Tiến Bộ', historyRecentTxTitle: '📜 Nhật Ký Gần Đây', pointsTitle: '⭐ Thêm Sao Biển',
+        pointsChildLabel: '🧒 Chọn thủy thủ', pointsTypeLabel: 'Loại điều chỉnh', bonusButton: '➕ Thưởng sao', penaltyButton: '➖ Trừ sao',
+        pointsNoteLabel: '📝 Lý do trên hải trình', pointsInputLabel: '⭐ Số sao', pointsSubmitButton: '✅ Ghi Vào Nhật Ký', pointsRecentTitle: '📜 Nhật Ký Sao Gần Đây',
+        pointsEmptyIcon: '📜', pointsEmptyText: 'Chưa có nhật ký sao', chooseChildWarn: 'Chọn thủy thủ', invalidPointsWarn: 'Nhập số sao hợp lệ'
       }
     }
   }
@@ -1834,26 +1840,26 @@ function pointsBuildFormHtml({ canAct, children }) {
   return `
     <div class="points-form">
       <div class="form-row">
-        <label>👶 Chọn bé</label>
+        <label>${esc(themeText('sections.pointsChildLabel', '👶 Chọn bé'))}</label>
         <select id="bp-child" class="form-select">${childOpts}</select>
       </div>
       <div class="form-row">
-        <label>Loại</label>
+        <label>${esc(themeText('sections.pointsTypeLabel', 'Loại'))}</label>
         <div class="type-toggle">
-          <button type="button" id="btn-bonus" class="type-btn active-bonus" onclick="setBpType('bonus')">➕ Thưởng</button>
-          <button type="button" id="btn-penalty" class="type-btn" onclick="setBpType('penalty')">➖ Phạt</button>
+          <button type="button" id="btn-bonus" class="type-btn active-bonus" onclick="setBpType('bonus')">${esc(themeText('sections.bonusButton', '➕ Thưởng'))}</button>
+          <button type="button" id="btn-penalty" class="type-btn" onclick="setBpType('penalty')">${esc(themeText('sections.penaltyButton', '➖ Phạt'))}</button>
         </div>
         <input type="hidden" id="bp-type" value="bonus" />
       </div>
       <div class="form-row">
-        <label>📝 Lý do</label>
+        <label>${esc(themeText('sections.pointsNoteLabel', '📝 Lý do'))}</label>
         <input id="bp-note" class="form-input" type="text" placeholder="Nhập lý do..." />
       </div>
       <div class="form-row">
-        <label>🔢 Số điểm</label>
+        <label>${esc(themeText('sections.pointsInputLabel', '🔢 Số điểm'))}</label>
         <input id="bp-pts" class="form-input" type="number" min="1" placeholder="VD: 10" />
       </div>
-      <button class="btn-submit" onclick="submitBonusPenalty()">✅ Xác Nhận</button>
+      <button class="btn-submit" onclick="submitBonusPenalty()">${esc(themeText('sections.pointsSubmitButton', '✅ Xác Nhận'))}</button>
     </div>
   `;
 }
@@ -1861,7 +1867,7 @@ function pointsBuildFormHtml({ canAct, children }) {
 function pointsBuildRecentTxHtml(transactions) {
   const recentTx = transactions.slice(0, 20);
   if (!recentTx.length) {
-    return '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có hoạt động nào</p></div>';
+    return `<div class="empty-state"><div class="es-icon">${esc(themeText('sections.pointsEmptyIcon', '📜'))}</div><p>${esc(themeText('sections.pointsEmptyText', 'Chưa có hoạt động nào'))}</p></div>`;
   }
 
   return recentTx.map(tx => {
@@ -1885,10 +1891,10 @@ function renderPoints() {
   const txHtml = pointsBuildRecentTxHtml(S.transactions);
 
   el.innerHTML = `
-    <div class="sec-title">⚡ Bổ Sung Thưởng / Phạt Điểm</div>
+    <div class="sec-title">${esc(themeText('sections.pointsTitle', '⚡ Bổ Sung Thưởng / Phạt Điểm'))}</div>
     ${formHtml}
     <div class="recent-tx">
-      <div class="sec-title" style="margin-top:20px">📜 Hoạt Động Gần Đây</div>
+      <div class="sec-title" style="margin-top:20px">${esc(themeText('sections.pointsRecentTitle', '📜 Hoạt Động Gần Đây'))}</div>
       ${txHtml}
     </div>
   `;
@@ -1909,8 +1915,8 @@ async function submitBonusPenalty() {
   const type    = document.getElementById('bp-type').value;
   const note    = document.getElementById('bp-note').value.trim();
   const pts     = Number(document.getElementById('bp-pts').value);
-  if (!childId)      { toast('Chọn bé', 'warn'); return; }
-  if (!pts || pts<=0){ toast('Nhập số điểm hợp lệ', 'warn'); return; }
+  if (!childId)      { toast(themeText('sections.chooseChildWarn', 'Chọn bé'), 'warn'); return; }
+  if (!pts || pts<=0){ toast(themeText('sections.invalidPointsWarn', 'Nhập số điểm hợp lệ'), 'warn'); return; }
 
   showLoad(true);
   try {
