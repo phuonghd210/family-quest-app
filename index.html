@@ -847,9 +847,15 @@ const THEME_REGISTRY = {
         tasksTitle: '📝 Đánh Giá Hôm Nay', rewardsTitle: '🌸 Phần Thưởng', rewardsEmptyIcon: '🌸',
         redeemForLabel: '👶 Đổi thưởng cho', redeemButton: '🌸 Đổi thưởng', redeemHistoryTitle: '🔖 Lịch Sử Đổi Thưởng',
         redeemConfirmTitle: '🌸 Xác nhận đổi thưởng', settingsTitle: '🗡️ Cài Đặt', systemTitle: '🗡️ Quản Lý Hệ Thống',
-        resetTodayButton: '🔄 Đặt Lại Nhiệm Vụ Hôm Nay', resetWeekButton: '🗑️ Đặt Lại Điểm Tuần',
-        addTaskTitle: '➕ Thêm Nhiệm Vụ Mới', addTaskButton: '✅ Thêm Nhiệm Vụ',
-        addRewardTitle: '🌸 Thêm Phần Thưởng Mới', addRewardButton: '🌸 Thêm Phần Thưởng'
+        resetTodayButton: '🔄 Đặt Lại Nhiệm Vụ Hôm Nay', resetTodayConfirmTitle: '🔄 Đặt lại nhiệm vụ?',
+        resetTodayConfirmBody: 'Xóa toàn bộ tick hôm nay (điểm không đổi). Chắc chắn?',
+        resetWeekButton: '🗑️ Đặt Lại Điểm Tuần', resetWeekConfirmTitle: '🗑️ Đặt lại điểm tuần?',
+        resetWeekConfirmBody: '⚠️ Sẽ xóa toàn bộ giao dịch tuần này. Không thể hoàn tác!',
+        addTaskTitle: '➕ Thêm Nhiệm Vụ Mới', addTaskButton: '✅ Thêm Nhiệm Vụ', taskNameLabel: 'Tên nhiệm vụ',
+        categoryLabel: 'Danh mục', pointsLabel: 'Số điểm', assignToLabel: 'Giao cho',
+        addRewardTitle: '🌸 Thêm Phần Thưởng Mới', addRewardButton: '🌸 Thêm Phần Thưởng', rewardNameLabel: 'Tên phần thưởng',
+        iconLabel: 'Icon', requiredPointsLabel: 'Điểm cần', historyTitle: '📅 Lịch Sử', historyRangeLabel: '🗂️ Khoảng thời gian',
+        historyChartTitle: '📈 Biểu Đồ', historyRecentTxTitle: '📜 Giao Dịch Gần Đây'
       }
     }
   },
@@ -903,9 +909,15 @@ const THEME_REGISTRY = {
         tasksTitle: '🧭 Hải Trình Hôm Nay', rewardsTitle: '🐚 Kho Báu', rewardsEmptyIcon: '🐚',
         redeemForLabel: '🧒 Đổi kho báu cho', redeemButton: '🐚 Đổi kho báu', redeemHistoryTitle: '📜 Nhật Ký Đổi Kho Báu',
         redeemConfirmTitle: '🐚 Xác nhận đổi kho báu', settingsTitle: '⚙️ Cài Đặt Tàu', systemTitle: '⚓ Quản Lý Hạm Đội',
-        resetTodayButton: '🔄 Làm mới hải trình hôm nay', resetWeekButton: '🗑️ Làm mới điểm tuần',
-        addTaskTitle: '➕ Thêm Hải Trình Mới', addTaskButton: '✅ Thêm Hải Trình',
-        addRewardTitle: '🐚 Thêm Kho Báu Mới', addRewardButton: '🐚 Thêm Kho Báu'
+        resetTodayButton: '🔄 Làm mới hải trình hôm nay', resetTodayConfirmTitle: '🔄 Làm mới hải trình?',
+        resetTodayConfirmBody: 'Xóa toàn bộ dấu hoàn thành hôm nay (điểm không đổi). Chắc chắn?',
+        resetWeekButton: '🗑️ Làm mới điểm tuần', resetWeekConfirmTitle: '🗑️ Làm mới điểm tuần?',
+        resetWeekConfirmBody: '⚠️ Sẽ xóa toàn bộ giao dịch tuần này. Không thể hoàn tác!',
+        addTaskTitle: '➕ Thêm Hải Trình Mới', addTaskButton: '✅ Thêm Hải Trình', taskNameLabel: 'Tên hải trình',
+        categoryLabel: 'Nhóm nhiệm vụ', pointsLabel: 'Sao thưởng', assignToLabel: 'Giao cho thủy thủ',
+        addRewardTitle: '🐚 Thêm Kho Báu Mới', addRewardButton: '🐚 Thêm Kho Báu', rewardNameLabel: 'Tên kho báu',
+        iconLabel: 'Biểu tượng', requiredPointsLabel: 'Sao cần đổi', historyTitle: '🗺️ Hải Trình Đã Qua', historyRangeLabel: '🧭 Khoảng thời gian',
+        historyChartTitle: '📈 Bản Đồ Tiến Bộ', historyRecentTxTitle: '📜 Nhật Ký Gần Đây'
       }
     }
   }
@@ -2098,7 +2110,7 @@ function renderRankings() {
 
 const historyFilterHtml = `
   <div class="form-row" style="margin-bottom:12px">
-    <label>🗂️ Khoảng thời gian</label>
+    <label>${esc(themeText('sections.historyRangeLabel', '🗂️ Khoảng thời gian'))}</label>
     <select class="form-select" onchange="setHistoryDays(this.value)">
       <option value="7" ${days === 7 ? 'selected' : ''}>7 ngày gần đây</option>
       <option value="30" ${days === 30 ? 'selected' : ''}>30 ngày gần đây</option>
@@ -2169,14 +2181,14 @@ const sortedTx = [...recentTx].sort((a,b) => {
   }).join('') : '<div class="empty-state"><div class="es-icon">📜</div><p>Chưa có dữ liệu</p></div>';
 
 el.innerHTML = `
-  <div class="sec-title">📅 Lịch Sử</div>
+  <div class="sec-title">${esc(themeText('sections.historyTitle', '📅 Lịch Sử'))}</div>
   ${historyFilterHtml}
   <div class="chart-wrap">
-    <div class="chart-title">📈 Biểu Đồ ${days} Ngày Gần Đây</div>
+    <div class="chart-title">${esc(themeText('sections.historyChartTitle', '📈 Biểu Đồ'))} ${days} Ngày Gần Đây</div>
     <div class="bar-chart">${barsHtml}</div>
     <div class="chart-legend">${legendHtml}</div>
   </div>
-  <div class="sec-title">📜 Giao Dịch Gần Đây</div>
+  <div class="sec-title">${esc(themeText('sections.historyRecentTxTitle', '📜 Giao Dịch Gần Đây'))}</div>
   ${txHtml}
 `;
 }
@@ -2221,22 +2233,22 @@ const themeOpts = Object.values(THEME_REGISTRY)
     <div class="settings-card">
       <h3>${esc(themeText('sections.addTaskTitle', '➕ Thêm Nhiệm Vụ Mới'))}</h3>
       <div class="add-task-form">
-        <div class="form-row"><label>Tên nhiệm vụ</label><input id="nt-name" class="form-input" type="text" placeholder="Tên nhiệm vụ..." /></div>
+        <div class="form-row"><label>${esc(themeText('sections.taskNameLabel', 'Tên nhiệm vụ'))}</label><input id="nt-name" class="form-input" type="text" placeholder="Tên nhiệm vụ..." /></div>
         <div class="form-row-2">
-          <div><label>Danh mục</label><select id="nt-cat" class="form-select">${catOpts}</select></div>
-          <div><label>Số điểm</label><input id="nt-pts" class="form-input" type="number" min="1" placeholder="10" /></div>
+          <div><label>${esc(themeText('sections.categoryLabel', 'Danh mục'))}</label><select id="nt-cat" class="form-select">${catOpts}</select></div>
+          <div><label>${esc(themeText('sections.pointsLabel', 'Số điểm'))}</label><input id="nt-pts" class="form-input" type="number" min="1" placeholder="10" /></div>
         </div>
-        <div class="form-row"><label>Giao cho</label><select id="nt-assign" class="form-select">${assignOpts}</select></div>
+        <div class="form-row"><label>${esc(themeText('sections.assignToLabel', 'Giao cho'))}</label><select id="nt-assign" class="form-select">${assignOpts}</select></div>
         <button class="btn-submit" onclick="submitAddTask()">${esc(themeText('sections.addTaskButton', '✅ Thêm Nhiệm Vụ'))}</button>
       </div>
     </div>
     <div class="settings-card">
       <h3>${esc(themeText('sections.addRewardTitle', '🌸 Thêm Phần Thưởng Mới'))}</h3>
       <div class="add-reward-form">
-        <div class="form-row"><label>Tên phần thưởng</label><input id="nr-name" class="form-input" type="text" placeholder="Tên phần thưởng..." /></div>
+        <div class="form-row"><label>${esc(themeText('sections.rewardNameLabel', 'Tên phần thưởng'))}</label><input id="nr-name" class="form-input" type="text" placeholder="Tên phần thưởng..." /></div>
         <div class="form-row-2">
-          <div><label>Icon</label><input id="nr-icon" class="form-input" type="text" placeholder="🎁" /></div>
-          <div><label>Điểm cần</label><input id="nr-pts" class="form-input" type="number" min="1" placeholder="200" /></div>
+          <div><label>${esc(themeText('sections.iconLabel', 'Icon'))}</label><input id="nr-icon" class="form-input" type="text" placeholder="🎁" /></div>
+          <div><label>${esc(themeText('sections.requiredPointsLabel', 'Điểm cần'))}</label><input id="nr-pts" class="form-input" type="number" min="1" placeholder="200" /></div>
         </div>
         <button class="btn-submit" onclick="submitAddReward()">${esc(themeText('sections.addRewardButton', '🌸 Thêm Phần Thưởng'))}</button>
       </div>
@@ -2277,7 +2289,7 @@ async function submitAddReward() {
 }
 
 async function doResetToday() {
-  confirm('🔄 Đặt lại nhiệm vụ?', 'Xóa toàn bộ tick hôm nay (điểm không đổi). Chắc chắn?', async () => {
+  confirm(themeText('sections.resetTodayConfirmTitle', '🔄 Đặt lại nhiệm vụ?'), themeText('sections.resetTodayConfirmBody', 'Xóa toàn bộ tick hôm nay (điểm không đổi). Chắc chắn?'), async () => {
     showLoad(true);
     try {
       const r = await api('resetToday');
@@ -2289,7 +2301,7 @@ async function doResetToday() {
 }
 
 async function doResetWeek() {
-  confirm('🗑️ Đặt lại điểm tuần?','⚠️ Sẽ xóa toàn bộ giao dịch tuần này. Không thể hoàn tác!', async () => {
+  confirm(themeText('sections.resetWeekConfirmTitle', '🗑️ Đặt lại điểm tuần?'), themeText('sections.resetWeekConfirmBody', '⚠️ Sẽ xóa toàn bộ giao dịch tuần này. Không thể hoàn tác!'), async () => {
     showLoad(true);
     try {
       const r = await api('resetWeek');
