@@ -842,9 +842,13 @@ const THEME_REGISTRY = {
       },
       tabs: { today: '⚔️', tasks: '📝', points: '⚡', rewards: '🌸', rankings: '🏆', history: '📅' },
       sections: {
-        todayTitle: '⚔️ Hôm Nay', todayLeader: '⚔️ Dẫn đầu hôm nay', todayScoreLabel: '⚔️ Hôm nay',
+        todayTitle: '⚔️ Hôm Nay', todayLeader: '⚔️ Dẫn đầu hôm nay', weekLeader: '🏆 Dẫn đầu tuần',
+        todayScoreLabel: '⚔️ Hôm nay', weekScoreLabel: '📅 Tuần này', totalScoreLabel: 'Ngôi sao',
         tasksTitle: '📝 Đánh Giá Hôm Nay', rewardsTitle: '🌸 Phần Thưởng', rewardsEmptyIcon: '🌸',
-        redeemButton: '🌸 Đổi thưởng', settingsTitle: '🗡️ Cài Đặt', systemTitle: '🗡️ Quản Lý Hệ Thống',
+        redeemForLabel: '👶 Đổi thưởng cho', redeemButton: '🌸 Đổi thưởng', redeemHistoryTitle: '🔖 Lịch Sử Đổi Thưởng',
+        redeemConfirmTitle: '🌸 Xác nhận đổi thưởng', settingsTitle: '🗡️ Cài Đặt', systemTitle: '🗡️ Quản Lý Hệ Thống',
+        resetTodayButton: '🔄 Đặt Lại Nhiệm Vụ Hôm Nay', resetWeekButton: '🗑️ Đặt Lại Điểm Tuần',
+        addTaskTitle: '➕ Thêm Nhiệm Vụ Mới', addTaskButton: '✅ Thêm Nhiệm Vụ',
         addRewardTitle: '🌸 Thêm Phần Thưởng Mới', addRewardButton: '🌸 Thêm Phần Thưởng'
       }
     }
@@ -894,9 +898,13 @@ const THEME_REGISTRY = {
       },
       tabs: { today: '🌊', tasks: '🧭', points: '⭐', rewards: '🐚', rankings: '🏆', history: '🗺️' },
       sections: {
-        todayTitle: '🌊 Nhật Ký Ra Khơi', todayLeader: '🌊 Thủy thủ nổi bật hôm nay', todayScoreLabel: '🌊 Hôm nay',
+        todayTitle: '🌊 Nhật Ký Ra Khơi', todayLeader: '🌊 Thủy thủ nổi bật hôm nay', weekLeader: '🏆 Thuyền viên dẫn đầu tuần',
+        todayScoreLabel: '🌊 Hôm nay', weekScoreLabel: '🗺️ Tuần này', totalScoreLabel: 'Sao biển',
         tasksTitle: '🧭 Hải Trình Hôm Nay', rewardsTitle: '🐚 Kho Báu', rewardsEmptyIcon: '🐚',
-        redeemButton: '🐚 Đổi kho báu', settingsTitle: '⚙️ Cài Đặt Tàu', systemTitle: '⚓ Quản Lý Hạm Đội',
+        redeemForLabel: '🧒 Đổi kho báu cho', redeemButton: '🐚 Đổi kho báu', redeemHistoryTitle: '📜 Nhật Ký Đổi Kho Báu',
+        redeemConfirmTitle: '🐚 Xác nhận đổi kho báu', settingsTitle: '⚙️ Cài Đặt Tàu', systemTitle: '⚓ Quản Lý Hạm Đội',
+        resetTodayButton: '🔄 Làm mới hải trình hôm nay', resetWeekButton: '🗑️ Làm mới điểm tuần',
+        addTaskTitle: '➕ Thêm Hải Trình Mới', addTaskButton: '✅ Thêm Hải Trình',
         addRewardTitle: '🐚 Thêm Kho Báu Mới', addRewardButton: '🐚 Thêm Kho Báu'
       }
     }
@@ -1408,7 +1416,7 @@ function renderToday() {
         <span class="leader-name">${esc(todayLeader.avatar_icon || '⭐')} ${esc(todayLeader.child_name)}</span>
       </div>
       <div class="leader-item">
-        <span class="leader-label">🏆 Dẫn đầu tuần</span>
+        <span class="leader-label">${esc(themeText('sections.weekLeader', '🏆 Dẫn đầu tuần'))}</span>
         <span class="leader-name">${esc(weekLeader.avatar_icon || '⭐')} ${esc(weekLeader.child_name)}</span>
       </div>
     </div>
@@ -1428,8 +1436,8 @@ function renderToday() {
         </div>
         <div class="score-row">
           <div class="score-box"><div class="sv">${c.today_score}</div><div class="sl">${esc(themeText('sections.todayScoreLabel', '⚔️ Hôm nay'))}</div></div>
-          <div class="score-box"><div class="sv">${c.week_score}</div><div class="sl">📅 Tuần này</div></div>
-          <div class="score-box"><div class="sv" style="color:var(--blue)">${c.total_score} ⭐</div><div class="sl">Ngôi sao</div></div>
+          <div class="score-box"><div class="sv">${c.week_score}</div><div class="sl">${esc(themeText('sections.weekScoreLabel', '📅 Tuần này'))}</div></div>
+          <div class="score-box"><div class="sv" style="color:var(--blue)">${c.total_score} ⭐</div><div class="sl">${esc(themeText('sections.totalScoreLabel', 'Ngôi sao'))}</div></div>
         </div>
         <div class="prog-wrap">
           <div class="prog-label"><span>Tiến độ hôm nay</span><span>${c.today_score} / ${c.daily_target}</span></div>
@@ -1960,7 +1968,7 @@ function rewardsBuildHistoryHtml(redemptions) {
 
   const rewardsHtml = S.rewards.length ? `
     <div class="form-row" style="margin-bottom:14px">
-      <label>👶 Đổi thưởng cho</label>
+      <label>${esc(themeText('sections.redeemForLabel', '👶 Đổi thưởng cho'))}</label>
       <select id="rd-child" class="form-select">${childOpts}</select>
     </div>
     ${rewardsGrid}
@@ -1970,7 +1978,7 @@ function rewardsBuildHistoryHtml(redemptions) {
     <div class="sec-title">${esc(themeText('sections.rewardsTitle', '🌸 Phần Thưởng'))}</div>
     ${rewardsHtml}
     <div class="redeem-history">
-      <div class="sec-title" style="margin-top:20px">🔖 Lịch Sử Đổi Thưởng</div>
+      <div class="sec-title" style="margin-top:20px">${esc(themeText('sections.redeemHistoryTitle', '🔖 Lịch Sử Đổi Thưởng'))}</div>
       ${redeemHist}
     </div>
   `;
@@ -1999,7 +2007,7 @@ async function submitRedeem(rewardId) {
   }
 
   confirm(
-    '🌸 Xác nhận đổi thưởng',
+    themeText('sections.redeemConfirmTitle', '🌸 Xác nhận đổi thưởng'),
     `${esc(child.child_name)} đổi "${esc(reward.reward_name)}" tốn ${Number(reward.required_points || 0)} ⭐`,
     async () => {
       showLoad(true);
@@ -2037,7 +2045,7 @@ function renderRankings() {
       <div class="rank-num ${i < 3 ? 'r'+(i+1) : ''}">${rankEmojis[i] || (i+1)}</div>
       <div class="rank-info">
         <h3>${esc(c.avatar_icon || '')} ${esc(esc(c.child_name))}</h3>
-        <span>Tổng: ${Number(c.total_score || 0)} ⭐ · Hôm nay: ${Number(c.today_score || 0)}</span>
+        <span>${esc(themeText('sections.totalScoreLabel', 'Tổng'))}: ${Number(c.total_score || 0)} ⭐ · ${esc(themeText('sections.todayScoreLabel', 'Hôm nay'))}: ${Number(c.today_score || 0)}</span>
       </div>
       <div class="rank-score">${c.week_score} ⭐</div>
     </div>
@@ -2045,7 +2053,7 @@ function renderRankings() {
 
   let compareBars = '';
   ['today_score','week_score','total_score'].forEach(metric => {
-    const labels  = { today_score:'Hôm nay', week_score:'Tuần này', total_score:'Ngôi sao' };
+    const labels  = { today_score: themeText('sections.todayScoreLabel', 'Hôm nay'), week_score: themeText('sections.weekScoreLabel', 'Tuần này'), total_score: themeText('sections.totalScoreLabel', 'Ngôi sao') };
     const maxVal  = Math.max(...allScored.map(c => c[metric]), 1);
     compareBars  += `
       <div class="compare-row">
@@ -2202,15 +2210,6 @@ const themeOpts = Object.values(THEME_REGISTRY)
       <p style="font-size:12px;color:var(--dim);line-height:1.45;margin-top:8px">Lưu trên trình duyệt này. Nếu muốn quay về cấu hình Google Sheet, bấm nút trên.</p>
     </div>
     <div class="settings-card">
-      <h3>🎨 Theme</h3>
-      <div class="form-row">
-        <label>Theme đang xem</label>
-        <select id="theme-select" class="form-select" onchange="previewTheme(this.value)">${themeOpts}</select>
-      </div>
-      <button class="btn-setting" onclick="clearThemePreference()">↩️ Dùng theme Google Sheet</button>
-      <p style="font-size:12px;color:var(--dim);line-height:1.45;margin-top:8px">Lưu trên trình duyệt này. Nếu muốn quay về cấu hình Google Sheet, bấm nút trên.</p>
-    </div>
-    <div class="settings-card">
       <h3>${esc(themeText('sections.systemTitle', '🗡️ Quản Lý Hệ Thống'))}</h3>
       <button class="btn-setting"        onclick="doResetToday()">🔄 Đặt Lại Nhiệm Vụ Hôm Nay</button>
       <button class="btn-setting danger" onclick="doResetWeek()">🗑️ Đặt Lại Điểm Tuần</button>
@@ -2220,7 +2219,7 @@ const themeOpts = Object.values(THEME_REGISTRY)
   el.innerHTML = `
     <div class="sec-title">${esc(themeText('sections.settingsTitle', '🗡️ Cài Đặt'))}</div>
     <div class="settings-card">
-      <h3>➕ Thêm Nhiệm Vụ Mới</h3>
+      <h3>${esc(themeText('sections.addTaskTitle', '➕ Thêm Nhiệm Vụ Mới'))}</h3>
       <div class="add-task-form">
         <div class="form-row"><label>Tên nhiệm vụ</label><input id="nt-name" class="form-input" type="text" placeholder="Tên nhiệm vụ..." /></div>
         <div class="form-row-2">
@@ -2228,7 +2227,7 @@ const themeOpts = Object.values(THEME_REGISTRY)
           <div><label>Số điểm</label><input id="nt-pts" class="form-input" type="number" min="1" placeholder="10" /></div>
         </div>
         <div class="form-row"><label>Giao cho</label><select id="nt-assign" class="form-select">${assignOpts}</select></div>
-        <button class="btn-submit" onclick="submitAddTask()">✅ Thêm Nhiệm Vụ</button>
+        <button class="btn-submit" onclick="submitAddTask()">${esc(themeText('sections.addTaskButton', '✅ Thêm Nhiệm Vụ'))}</button>
       </div>
     </div>
     <div class="settings-card">
