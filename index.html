@@ -926,6 +926,252 @@ const THEME_REGISTRY = {
         pointsEmptyIcon: '📜', pointsEmptyText: 'Chưa có nhật ký sao', chooseChildWarn: 'Chọn thủy thủ', invalidPointsWarn: 'Nhập số sao hợp lệ'
       }
     }
+  },
+  pocket_adventure: {
+    id: 'pocket_adventure',
+    label: 'Pocket Adventure',
+    vars: {
+      '--bg-page': '#EAF7FF',
+      '--bg-card': '#FFFFFF',
+      '--bg-surface': '#F6FBFF',
+      '--bg-nav': '#D7F0FF',
+
+      '--green': '#1FA97A',
+      '--green-l': '#63D6AD',
+      '--green-bg': '#DDF8EF',
+
+      '--pink': '#F05A8A',
+      '--pink-l': '#FF9BBC',
+      '--pink-bg': '#FFE4EF',
+
+      '--gold': '#F6B93B',
+      '--gold-bg': '#FFF3CF',
+      '--blue': '#1E88E5',
+      '--blue-bg': '#DCEFFF',
+      '--red': '#E53935',
+      '--red-l': '#FF7A73',
+
+      '--text': '#18324A',
+      '--dim': '#5E7488',
+      '--text-light': '#FFFFFF',
+
+      '--border': 'rgba(30, 136, 229, 0.22)',
+      '--shadow-sm': '0 2px 8px rgba(24, 50, 74, 0.08)',
+      '--shadow-md': '0 4px 16px rgba(24, 50, 74, 0.12)',
+      '--shadow-lg': '0 8px 32px rgba(30, 136, 229, 0.18)',
+
+      '--radius': '22px'
+    },
+    content: {
+      appTitle: 'Family Quest',
+      loadingText: 'Đang mở cánh cửa phiêu lưu...',
+      login: {
+        leftChar: '🤖',
+        leftTitle: 'Bạn máy túi thần kỳ',
+        leftEmojis: '🔔 🧭 ⭐ 🚪',
+        rightChar: '🐭',
+        rightTitle: 'Đội bạn nhỏ dũng cảm',
+        rightEmojis: '📘 ✏️ 🎒 🌈',
+        logoIcon: '🔔',
+        title: 'Family Quest',
+        subtitle: 'Cùng làm việc tốt, gom sao vui mỗi ngày!',
+        submitText: '🚪 Bắt đầu chuyến phiêu lưu',
+        users: [
+          { icon: '👨‍👩‍👧‍👦', name: 'Bố mẹ', role: 'admin / scorer' },
+          { icon: '🧒', name: 'Bé ngoan', role: 'viewer' }
+        ]
+      },
+      tabs: {
+        today: '🌞 Hôm nay',
+        tasks: '✅ Nhiệm vụ',
+        points: '⭐ Điểm',
+        rewards: '🎁 Kho báu',
+        rankings: '🏅 Xếp hạng',
+        history: '📊 Nhật ký'
+      },
+      sections: {
+        todayTitle: '🌞 Nhiệm vụ hôm nay',
+        todayLeader: 'Bạn dẫn đầu hôm nay',
+        weekLeader: 'Bạn dẫn đầu tuần này',
+        todayScoreLabel: 'Hôm nay',
+        weekScoreLabel: 'Tuần này',
+        totalScoreLabel: 'Tổng sao',
+
+        tasksTitle: '✅ Danh sách nhiệm vụ',
+        rewardsTitle: '🎁 Kho báu đổi thưởng',
+        rewardsEmptyIcon: '🪄',
+
+        redeemForLabel: 'Đổi kho báu cho',
+        redeemButton: '🎁 Đổi kho báu',
+        redeemHistoryTitle: '🔖 Lịch sử đổi thưởng',
+        redeemConfirmTitle: 'Xác nhận mở kho báu?',
+
+        settingsTitle: '⚙️ Cài đặt nhiệm vụ',
+        systemTitle: '🔧 Quản lý hệ thống',
+
+        resetTodayButton: '🔄 Làm mới nhiệm vụ hôm nay',
+        resetTodayConfirmTitle: 'Làm mới nhiệm vụ hôm nay?',
+        resetTodayConfirmBody: 'Các nhiệm vụ đã hoàn thành hôm nay sẽ được đặt lại.',
+        resetWeekButton: '🗑️ Làm mới điểm tuần',
+        resetWeekConfirmTitle: 'Làm mới điểm tuần?',
+        resetWeekConfirmBody: 'Điểm trong tuần này sẽ được đặt lại cho tất cả các bé.',
+
+        addTaskTitle: '➕ Thêm nhiệm vụ mới',
+        addTaskButton: '✅ Thêm nhiệm vụ',
+        taskNameLabel: 'Tên nhiệm vụ',
+        categoryLabel: 'Nhóm nhiệm vụ',
+        pointsLabel: 'Số sao',
+        assignToLabel: 'Giao cho',
+
+        addRewardTitle: '🎁 Thêm kho báu mới',
+        addRewardButton: '🎁 Thêm kho báu',
+        rewardNameLabel: 'Tên kho báu',
+        iconLabel: 'Biểu tượng',
+        requiredPointsLabel: 'Số sao cần đổi',
+
+        historyTitle: '📊 Nhật ký phiêu lưu',
+        historyRangeLabel: 'Khoảng thời gian',
+        historyChartTitle: '📈 Biểu đồ tiến bộ 7 ngày',
+        historyRecentTxTitle: '📜 Hoạt động gần đây',
+
+        pointsTitle: '⭐ Thêm / trừ sao',
+        pointsChildLabel: 'Chọn bé',
+        pointsTypeLabel: 'Loại điểm',
+        bonusButton: '➕ Thưởng sao',
+        penaltyButton: '➖ Trừ sao',
+        pointsNoteLabel: 'Lý do',
+        pointsInputLabel: 'Số sao',
+        pointsSubmitButton: '✅ Xác nhận',
+        pointsRecentTitle: '📜 Nhật ký sao gần đây',
+        pointsEmptyIcon: '🌟',
+        pointsEmptyText: 'Chưa có hoạt động nào. Hãy bắt đầu nhiệm vụ đầu tiên!',
+        chooseChildWarn: 'Vui lòng chọn bé trước nhé!',
+        invalidPointsWarn: 'Số sao phải lớn hơn 0!'
+      }
+    }
+  },
+  dino_explorer: {
+    id: 'dino_explorer',
+    label: 'Dino Explorer',
+    vars: {
+      '--bg-page': '#F1F8E9',
+      '--bg-card': '#FFFFFF',
+      '--bg-surface': '#FAFFF4',
+      '--bg-nav': '#DDEFC8',
+
+      '--green': '#2E7D32',
+      '--green-l': '#7BC67E',
+      '--green-bg': '#E2F5DF',
+
+      '--pink': '#E86A8A',
+      '--pink-l': '#FFA6BA',
+      '--pink-bg': '#FFE5EC',
+
+      '--gold': '#D9A441',
+      '--gold-bg': '#FFF0C7',
+      '--blue': '#2F80A8',
+      '--blue-bg': '#DDF1FA',
+      '--red': '#C94132',
+      '--red-l': '#FF7A68',
+
+      '--text': '#243322',
+      '--dim': '#61705A',
+      '--text-light': '#FFFFFF',
+
+      '--border': 'rgba(46, 125, 50, 0.24)',
+      '--shadow-sm': '0 2px 8px rgba(36, 51, 34, 0.08)',
+      '--shadow-md': '0 4px 16px rgba(36, 51, 34, 0.12)',
+      '--shadow-lg': '0 8px 32px rgba(46, 125, 50, 0.18)',
+
+      '--radius': '22px'
+    },
+    content: {
+      appTitle: 'Family Quest',
+      loadingText: 'Đang mở bản đồ kỷ Jura...',
+      login: {
+        leftChar: '🦖',
+        leftTitle: 'Khủng long dũng cảm',
+        leftEmojis: '🌋 🌿 🦴 ⭐',
+        rightChar: '🦕',
+        rightTitle: 'Đội thám hiểm nhí',
+        rightEmojis: '🧭 🎒 🔍 🏕️',
+        logoIcon: '🦖',
+        title: 'Family Quest',
+        subtitle: 'Hoàn thành nhiệm vụ, thu thập hóa thạch, lớn lên mỗi ngày!',
+        submitText: '🧭 Bắt đầu thám hiểm',
+        users: [
+          { icon: '👨‍👩‍👧‍👦', name: 'Trưởng đoàn gia đình', role: 'admin / scorer' },
+          { icon: '🧒', name: 'Nhà thám hiểm nhí', role: 'viewer' }
+        ]
+      },
+      tabs: {
+        today: '🌞 Hôm nay',
+        tasks: '🦴 Nhiệm vụ',
+        points: '⭐ Hóa thạch',
+        rewards: '🎁 Kho báu',
+        rankings: '🏅 Bộ lạc',
+        history: '📜 Nhật ký'
+      },
+      sections: {
+        todayTitle: '🌞 Chuyến thám hiểm hôm nay',
+        todayLeader: 'Nhà thám hiểm dẫn đầu hôm nay',
+        weekLeader: 'Nhà thám hiểm dẫn đầu tuần này',
+        todayScoreLabel: 'Hôm nay',
+        weekScoreLabel: 'Tuần này',
+        totalScoreLabel: 'Tổng hóa thạch',
+
+        tasksTitle: '🦴 Danh sách nhiệm vụ thám hiểm',
+        rewardsTitle: '🎁 Kho báu khủng long',
+        rewardsEmptyIcon: '🥚',
+
+        redeemForLabel: 'Đổi kho báu cho',
+        redeemButton: '🎁 Đổi kho báu',
+        redeemHistoryTitle: '🔖 Lịch sử đổi kho báu',
+        redeemConfirmTitle: 'Xác nhận đổi kho báu?',
+
+        settingsTitle: '⚙️ Cài đặt nhiệm vụ',
+        systemTitle: '🔧 Trạm thám hiểm',
+
+        resetTodayButton: '🔄 Làm mới nhiệm vụ hôm nay',
+        resetTodayConfirmTitle: 'Làm mới nhiệm vụ hôm nay?',
+        resetTodayConfirmBody: 'Các nhiệm vụ đã hoàn thành hôm nay sẽ được đặt lại.',
+        resetWeekButton: '🗑️ Làm mới hóa thạch tuần',
+        resetWeekConfirmTitle: 'Làm mới hóa thạch tuần?',
+        resetWeekConfirmBody: 'Số hóa thạch trong tuần này sẽ được đặt lại cho tất cả thành viên.',
+
+        addTaskTitle: '➕ Thêm nhiệm vụ mới',
+        addTaskButton: '✅ Thêm nhiệm vụ',
+        taskNameLabel: 'Tên nhiệm vụ',
+        categoryLabel: 'Nhóm nhiệm vụ',
+        pointsLabel: 'Hóa thạch',
+        assignToLabel: 'Giao cho',
+
+        addRewardTitle: '🎁 Thêm kho báu mới',
+        addRewardButton: '🎁 Thêm kho báu',
+        rewardNameLabel: 'Tên kho báu',
+        iconLabel: 'Biểu tượng',
+        requiredPointsLabel: 'Hóa thạch cần đổi',
+
+        historyTitle: '📜 Nhật ký thám hiểm',
+        historyRangeLabel: 'Khoảng thời gian',
+        historyChartTitle: '📈 Biểu đồ tiến bộ 7 ngày',
+        historyRecentTxTitle: '📜 Hoạt động gần đây',
+
+        pointsTitle: '⭐ Thêm / trừ hóa thạch',
+        pointsChildLabel: 'Chọn thành viên',
+        pointsTypeLabel: 'Loại điểm',
+        bonusButton: '➕ Thưởng hóa thạch',
+        penaltyButton: '➖ Trừ hóa thạch',
+        pointsNoteLabel: 'Lý do',
+        pointsInputLabel: 'Số hóa thạch',
+        pointsSubmitButton: '✅ Xác nhận',
+        pointsRecentTitle: '📜 Nhật ký hóa thạch gần đây',
+        pointsEmptyIcon: '🦴',
+        pointsEmptyText: 'Chưa có hoạt động nào. Hãy bắt đầu chuyến thám hiểm đầu tiên!',
+        chooseChildWarn: 'Vui lòng chọn thành viên trước nhé!',
+        invalidPointsWarn: 'Số hóa thạch phải lớn hơn 0!'
+      }
+    }
   }
 };
 
