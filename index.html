@@ -774,6 +774,7 @@ function safeParseUser(raw) {
 
 const THEME_DEFAULT_ID = 'default';
 const THEME_STORAGE_KEY = 'fq_theme_id';
+const THEME_LAST_STORAGE_KEY = 'fq_last_theme_id';
 
 let S = {
   token:        localStorage.getItem('fq_token') || null,
@@ -982,12 +983,12 @@ const THEME_REGISTRY = {
         ]
       },
       tabs: {
-        today: '🌞 Hôm nay',
-        tasks: '✅ Nhiệm vụ',
-        points: '⭐ Điểm',
-        rewards: '🎁 Kho báu',
-        rankings: '🏅 Xếp hạng',
-        history: '📊 Nhật ký'
+        today: '🌞',
+        tasks: '✅',
+        points: '⭐',
+        rewards: '🎁',
+        rankings: '🏅',
+        history: '📊'
       },
       sections: {
         todayTitle: '🌞 Nhiệm vụ hôm nay',
@@ -1105,12 +1106,12 @@ const THEME_REGISTRY = {
         ]
       },
       tabs: {
-        today: '🌞 Hôm nay',
-        tasks: '🦴 Nhiệm vụ',
-        points: '⭐ Hóa thạch',
-        rewards: '🎁 Kho báu',
-        rankings: '🏅 Bộ lạc',
-        history: '📜 Nhật ký'
+        today: '🌞',
+        tasks: '🦴',
+        points: '⭐',
+        rewards: '🎁',
+        rankings: '🏅',
+        history: '📜'
       },
       sections: {
         todayTitle: '🌞 Chuyến thám hiểm hôm nay',
@@ -1185,7 +1186,16 @@ function getStoredThemeId() {
   const id = String(localStorage.getItem(THEME_STORAGE_KEY) || '').trim();
   return id && THEME_REGISTRY[id] ? id : '';
 }
+function getLastThemeId() {
+  const id = String(localStorage.getItem(THEME_LAST_STORAGE_KEY) || '').trim();
+  return id && THEME_REGISTRY[id] ? id : '';
+}
 
+function cacheLastThemeId(themeId) {
+  const id = String(themeId || '').trim();
+  if (id && THEME_REGISTRY[id]) localStorage.setItem(THEME_LAST_STORAGE_KEY, id);
+}
+  
 function setTextById(id, value) {
   const el = document.getElementById(id);
   if (!el || typeof value !== 'string') return;
@@ -1253,6 +1263,7 @@ function applyThemeById(themeId) {
 function saveThemePreference(themeId) {
   const appliedThemeId = applyThemeById(themeId);
   localStorage.setItem(THEME_STORAGE_KEY, appliedThemeId);
+  cacheLastThemeId(appliedThemeId);
   return appliedThemeId;
 }
 
@@ -1265,11 +1276,12 @@ function previewTheme(themeId) {
 function clearThemePreference() {
   localStorage.removeItem(THEME_STORAGE_KEY);
   const appliedThemeId = applyThemeById(S.backendThemeId || THEME_DEFAULT_ID);
+  cacheLastThemeId(appliedThemeId);
   renderTab(S.activeTab);
   toast('Đã dùng lại theme Google Sheet: ' + getThemeById(appliedThemeId).label, 'success');
 }
 
-S.themeId = getStoredThemeId() || THEME_DEFAULT_ID;
+S.themeId = getStoredThemeId() || getLastThemeId() || THEME_DEFAULT_ID;
 S.backendThemeId = THEME_DEFAULT_ID;
 applyThemeById(S.themeId);
   
@@ -1375,7 +1387,8 @@ async function fetchData(silent = false) {
         r?.settings?.theme_id ||
         THEME_DEFAULT_ID;
       S.backendThemeId = getThemeById(backendThemeId).id || THEME_DEFAULT_ID;
-      applyThemeById(getStoredThemeId() || S.backendThemeId);
+      const appliedThemeId = applyThemeById(getStoredThemeId() || S.backendThemeId);
+      cacheLastThemeId(appliedThemeId);
       renderTab(S.activeTab);
     } else {
       if (!silent) toast(r.message || 'Không tải được dữ liệu', 'error');
